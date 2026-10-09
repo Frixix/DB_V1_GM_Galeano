@@ -117,7 +117,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
           {isPrivileged && (
             <button 
               className={`folder-btn folder-boveda ${currentFolder === 'boveda' ? 'active' : ''}`}
-              onClick={onBovedaClick}
+              onClick={() => onFolderSelect('boveda')}
             >
               <i className="ph-bold ph-vault"></i>
               <span>Bóveda de Archivos</span>
