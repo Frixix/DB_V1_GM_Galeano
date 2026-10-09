@@ -1417,84 +1417,48 @@ select {
   font-size: 1.15rem;
 }
 
-/* --- ESTILOS RESPONSIVOS PARA EL MENÚ MÓVIL --- */
-@media (max-width: 768px) {
-  .sidebar-container {
-    position: fixed;
-    top: 0;
-    left: -280px; /* Oculto fuera de la pantalla por defecto */
-    width: 280px;
-    height: 100vh;
-    z-index: 1005;
-    background-color: var(--card-bg, #ffffff);
-    transition: left 0.3s ease-in-out;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .sidebar-container.mobile-open {
-    left: 0; /* Desliza y muestra el sidebar en pantalla */
-  }
-
-  .mobile-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 1000;
-    backdrop-filter: blur(2px);
-  }
-  
-  .btn-mobile-toggle {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-main, #0f172a);
-    padding: 0.25rem;
-  }
+/* --- ESTILOS RESPONSIVOS UNIFICADOS Y CORREGIDOS --- */
+.table-wrapper {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* En pantallas grandes, aseguramos que el sidebar permanezca estático */
-@media (min-width: 769px) {
-  .sidebar-container {
-    display: block;
-    position: relative;
-    left: 0 !important;
-  }
-  .btn-mobile-toggle {
-    display: none; /* Oculto en PC */
-  }
-}
-
-/* Responsive */
 @media (max-width: 900px) {
   .app-layout { grid-template-columns: 1fr; }
-  .btn-mobile-toggle { display: block; }
-  .sidebar {
+  .btn-mobile-toggle { display: flex !important; }
+  
+  .sidebar-container {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
     width: 290px;
+    height: 100vh;
+    background-color: var(--surface) !important; /* Forzamos color de fondo sólido para evitar el fondo blanco transparente */
+    z-index: 1005;
     box-shadow: var(--shadow-lg);
     transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
   }
-  .sidebar.mobile-open { transform: translateX(0); }
-  .sidebar-top-mobile { display: flex; }
-  .sidebar-overlay {
+  
+  .sidebar-container.mobile-open { 
+    transform: translateX(0); 
+  }
+
+  .mobile-backdrop {
     position: fixed;
     inset: 0;
     background-color: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 25;
+    z-index: 1000;
   }
-  .sidebar-overlay:not(.hidden) { display: block !important; }
+
   .navbar { padding: 0.75rem 1rem; }
   .nav-brand h1 { font-size: 0.95rem; }
   .subtitle { display: none; }
@@ -1506,6 +1470,20 @@ select {
   .btn-floating-tour { bottom: 16px; right: 16px; padding: 0.65rem 1rem; font-size: 0.78rem; }
 }
 
+@media (min-width: 901px) {
+  .sidebar-container {
+    display: block;
+    position: relative;
+    transform: none !important;
+  }
+  .btn-mobile-toggle {
+    display: none !important;
+  }
+  .mobile-backdrop {
+    display: none !important;
+  }
+}
+
 @media (max-width: 480px) {
   .user-info { display: none; }
   .user-chip { padding: 2px; background: transparent; border: none; }
@@ -1514,4 +1492,3 @@ select {
   .breadcrumb-container { flex-direction: column; align-items: flex-start; gap: 8px; }
   .tour-box { width: 94%; padding: 1.25rem; }
 }
-
