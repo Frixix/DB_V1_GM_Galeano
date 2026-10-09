@@ -6,7 +6,29 @@ export default function FilterBar({
 }) {
   return (
     <>
-      {/* Filtros Normales */}
+      <div className="breadcrumb-container" style={{ marginBottom: '1rem' }}>
+        <div className="breadcrumb">
+          <span><i className="ph ph-hard-drive"></i> Unidad_MG</span>
+        </div>
+        
+        <div className="view-toggles">
+          <button 
+            className={`view-btn ${currentView === 'cards' ? 'active' : ''}`} 
+            onClick={() => setCurrentView('cards')} 
+            title="Vista Tarjetas"
+          >
+            <i className="ph-bold ph-squares-four"></i>
+          </button>
+          <button 
+            className={`view-btn ${currentView === 'table' ? 'active' : ''}`} 
+            onClick={() => setCurrentView('table')} 
+            title="Vista Tabla BD"
+          >
+            <i className="ph-bold ph-table"></i>
+          </button>
+        </div>
+      </div>
+
       <section className="filters-bar" id="generalFiltersBar">
         <div className="search-box">
           <i className="ph ph-magnifying-glass"></i>

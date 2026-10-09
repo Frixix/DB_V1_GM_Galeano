@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
 import DocumentCard from './components/DocumentCard';
+import DocumentTable from './components/DocumentTable';
 import BovedaAuthModal from './components/BovedaAuthModal';
 import { initialDocuments } from './data/initialDocs';
 
@@ -104,7 +105,7 @@ export default function App() {
                 <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
                 <div>
                   <h3>Bóveda Directiva de Alta Capacidad</h3>
-                  <p>Archivos institucionales organizados por año y subcarpeta.</p>
+                  <p>Archivos institucionales organizados por año y subcarpeta[cite: 3].</p>
                 </div>
               </div>
               <div className="boveda-filters-row">
@@ -140,21 +141,30 @@ export default function App() {
             currentView={currentView} setCurrentView={setCurrentView}
           />
 
-          <div className="cards-grid">
-            {filteredDocs.length > 0 ? (
-              filteredDocs.map(doc => (
-                <DocumentCard 
-                  key={doc.id} 
-                  doc={doc} 
-                  onView={(id) => alert(`Ver documento: ${id}`)}
-                  onDownload={(id) => alert(`Descargar archivo: ${id}`)}
-                  canDelete={isPrivileged}
-                />
-              ))
+          {filteredDocs.length > 0 ? (
+            currentView === 'cards' ? (
+              <div className="cards-grid">
+                {filteredDocs.map(doc => (
+                  <DocumentCard 
+                    key={doc.id} 
+                    doc={doc} 
+                    onView={(id) => alert(`Ver documento: ${id}`)}
+                    onDownload={(id) => alert(`Descargar archivo: ${id}`)}
+                    canDelete={isPrivileged}
+                  />
+                ))}
+              </div>
             ) : (
-              <p style={{ color: 'var(--text-muted)' }}>No se encontraron registros en esta sección.</p>
-            )}
-          </div>
+              <DocumentTable 
+                documents={filteredDocs}
+                onView={(id) => alert(`Ver documento: ${id}`)}
+                onDownload={(id) => alert(`Descargar archivo: ${id}`)}
+                canDelete={isPrivileged}
+              />
+            )
+          ) : (
+            <p style={{ color: 'var(--text-muted)' }}>No se encontraron registros en esta sección.</p>
+          )}
         </main>
       </div>
 
