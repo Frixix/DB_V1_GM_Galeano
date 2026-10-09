@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import FilterBar from './components/FilterBar';
 import DocumentCard from './components/DocumentCard';
 import { initialDocuments } from './data/initialDocs';
 
@@ -9,6 +10,13 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentFolder, setCurrentFolder] = useState('all');
   const [currentTeacher, setCurrentTeacher] = useState('all');
+  
+  // Estados para búsqueda y filtros avanzados
+  const [search, setSearch] = useState('');
+  const [grade, setGrade] = useState('');
+  const [subject, setSubject] = useState('');
+  const [currentView, setCurrentView] = useState('cards');
+
   const [documents, setDocuments] = useState(initialDocuments);
 
   if (!currentUser) {
@@ -17,30 +25,41 @@ export default function App() {
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  // Motor de filtrado idéntico a tu lógica de negocio
+  // Motor de filtrado completo
   const filteredDocs = documents.filter(doc => {
-    // Si no es staff y entra a bóveda, se oculta
     if (doc.folder === 'boveda' && !isPrivileged) return false;
 
-    // Si es docente regular, solo ve lo suyo, lo público o institucional
     if (!isPrivileged) {
       const teacherMatch = doc.teacher === currentUser.name;
       const isShared = Boolean(doc.isPublic) || doc.folder === 'institucional';
       if (!teacherMatch && !isShared) return false;
     }
 
-    // Filtro por docente seleccionado en el panel lateral de la Rectora
     if (isPrivileged && currentTeacher !== 'all') {
       if (doc.teacher !== currentTeacher) return false;
     }
 
-    // Filtro por carpeta
     if (currentFolder === 'publico') {
       if (!doc.isPublic) return false;
     } else if (currentFolder !== 'all') {
       if (doc.folder !== currentFolder) return false;
     } else {
       if (doc.folder === 'boveda' && currentFolder === 'all') return false;
+    }
+
+    // Filtros por grado, materia y texto libre
+    if (grade && doc.grade !== grade) return false;
+    if (subject && doc.subject !== subject) return false;
+
+    if (search) {
+      const q = search.toLowerCase();
+      const match = 
+        (doc.title && doc.title.toLowerCase().includes(q)) ||
+        (doc.teacher && doc.teacher.toLowerCase().includes(q)) ||
+        (doc.subject && doc.subject.toLowerCase().includes(q)) ||
+        (doc.fileName && doc.fileName.toLowerCase().includes(q)) ||
+        (doc.id && doc.id.toLowerCase().includes(q));
+      if (!match) return false;
     }
 
     return true;
@@ -60,6 +79,13 @@ export default function App() {
         />
         
         <main className="main-content">
+          <FilterBar 
+            search={search} setSearch={setSearch}
+            grade={grade} setGrade={setGrade}
+            subject={subject} setSubject={setSubject}
+            currentView={currentView} setCurrentView={setCurrentView}
+          />
+
           <div className="cards-grid">
             {filteredDocs.length > 0 ? (
               filteredDocs.map(doc => (
@@ -72,7 +98,7 @@ export default function App() {
                 />
               ))
             ) : (
-              <p style={{ color: 'var(--text-muted)' }}>No hay documentos para este filtro.</p>
+              <p style={{ color: 'var(--text-muted)' }}>No se encontraron documentos con estos filtros.</p>
             )}
           </div>
         </main>
