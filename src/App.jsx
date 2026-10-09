@@ -18,6 +18,9 @@ export default function App() {
   const [subject, setSubject] = useState('');
   const [currentView, setCurrentView] = useState('cards');
 
+  // Estado para el menú móvil
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // Estados específicos de la Bóveda
   const [isBovedaUnlocked, setIsBovedaUnlocked] = useState(false);
   const [isBovedaModalOpen, setIsBovedaModalOpen] = useState(false);
@@ -39,6 +42,7 @@ export default function App() {
       return;
     }
     setCurrentFolder(folderKey);
+    setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
   };
 
   const filteredDocs = documents.filter(doc => {
@@ -86,16 +90,27 @@ export default function App() {
 
   return (
     <div id="appContainer">
-      <Navbar currentUser={currentUser} onLogout={() => { setCurrentUser(null); setIsBovedaUnlocked(false); }} />
+      <Navbar 
+        currentUser={currentUser} 
+        onLogout={() => { setCurrentUser(null); setIsBovedaUnlocked(false); }} 
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onOpenUploadModal={() => alert("Pronto abriremos el modal de subida de archivos")}
+      />
       
       <div className="app-layout">
-        <Sidebar 
-          currentUser={currentUser} 
-          currentFolder={currentFolder} 
-          onFolderSelect={handleFolderSelectWithBoveda}
-          currentTeacher={currentTeacher}
-          onTeacherSelect={setCurrentTeacher}
-        />
+        <div className={`sidebar-container ${isSidebarOpen ? 'mobile-open' : ''}`}>
+          <Sidebar 
+            currentUser={currentUser} 
+            currentFolder={currentFolder} 
+            onFolderSelect={handleFolderSelectWithBoveda}
+            currentTeacher={currentTeacher}
+            onTeacherSelect={(t) => { setCurrentTeacher(t); setIsSidebarOpen(false); }}
+          />
+        </div>
+
+        {isSidebarOpen && (
+          <div className="mobile-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
+        )}
         
         <main className="main-content">
           {/* Panel visual de Bóveda si está activa */}
@@ -105,12 +120,12 @@ export default function App() {
                 <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
                 <div>
                   <h3>Bóveda Directiva de Alta Capacidad</h3>
-                  <p>Archivos institucionales organizados por año y subcarpeta[cite: 3].</p>
+                  <p>Archivos institucionales organizados por año y subcarpeta.</p>
                 </div>
               </div>
               <div className="boveda-filters-row">
                 <div className="filter-group">
-                  <label><i className="ph-bold ph-calendar"></i> Año Lectivo[cite: 3]:</label>
+                  <label><i className="ph-bold ph-calendar"></i> Año Lectivo:</label>
                   <select value={bovedaYear} onChange={(e) => setBovedaYear(e.target.value)}>
                     <option value="all">Todos los años</option>
                     <option value="2026">Año 2026</option>
@@ -120,7 +135,7 @@ export default function App() {
                   </select>
                 </div>
                 <div className="filter-group">
-                  <label><i className="ph-bold ph-folder-notch-open"></i> Subcarpeta[cite: 3]:</label>
+                  <label><i className="ph-bold ph-folder-notch-open"></i> Subcarpeta:</label>
                   <select value={bovedaSubfolder} onChange={(e) => setBovedaSubfolder(e.target.value)}>
                     <option value="all">Todas las subcarpetas</option>
                     <option value="consejo">Actas de Consejo Directivo</option>

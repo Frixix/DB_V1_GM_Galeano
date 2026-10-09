@@ -1,8 +1,8 @@
-export default function Navbar({ currentUser, onLogout }) {
+export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenUploadModal }) {
   return (
     <header className="navbar">
       <div className="nav-left">
-        <button className="btn-mobile-toggle" aria-label="Abrir Menú">
+        <button className="btn-mobile-toggle" onClick={onToggleSidebar} aria-label="Abrir Menú">
           <i className="ph-bold ph-list"></i>
         </button>
 
@@ -31,7 +31,7 @@ export default function Navbar({ currentUser, onLogout }) {
           </div>
         </div>
 
-        <button className="btn btn-primary btn-upload-nav">
+        <button className="btn btn-primary btn-upload-nav" onClick={onOpenUploadModal}>
           <i className="ph-bold ph-cloud-arrow-up"></i> <span>Subir Documento</span>
         </button>
         
