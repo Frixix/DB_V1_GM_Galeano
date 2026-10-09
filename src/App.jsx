@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
 import DocumentCard from './components/DocumentCard';
+import BovedaAuthModal from './components/BovedaAuthModal';
 import { initialDocuments } from './data/initialDocs';
 
 export default function App() {
@@ -11,11 +12,16 @@ export default function App() {
   const [currentFolder, setCurrentFolder] = useState('all');
   const [currentTeacher, setCurrentTeacher] = useState('all');
   
-  // Estados para búsqueda y filtros avanzados
   const [search, setSearch] = useState('');
   const [grade, setGrade] = useState('');
   const [subject, setSubject] = useState('');
   const [currentView, setCurrentView] = useState('cards');
+
+  // Estados específicos de la Bóveda
+  const [isBovedaUnlocked, setIsBovedaUnlocked] = useState(false);
+  const [isBovedaModalOpen, setIsBovedaModalOpen] = useState(false);
+  const [bovedaYear, setBovedaYear] = useState('all');
+  const [bovedaSubfolder, setBovedaSubfolder] = useState('all');
 
   const [documents, setDocuments] = useState(initialDocuments);
 
@@ -25,9 +31,17 @@ export default function App() {
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  // Motor de filtrado completo
+  // Manejador del clic en Bóveda
+  const handleFolderSelectWithBoveda = (folderKey) => {
+    if (folderKey === 'boveda' && !isBovedaUnlocked) {
+      setIsBovedaModalOpen(true);
+      return;
+    }
+    setCurrentFolder(folderKey);
+  };
+
   const filteredDocs = documents.filter(doc => {
-    if (doc.folder === 'boveda' && !isPrivileged) return false;
+    if (doc.folder === 'boveda' && (!isPrivileged || !isBovedaUnlocked)) return false;
 
     if (!isPrivileged) {
       const teacherMatch = doc.teacher === currentUser.name;
@@ -39,17 +53,22 @@ export default function App() {
       if (doc.teacher !== currentTeacher) return false;
     }
 
-    if (currentFolder === 'publico') {
+    if (currentFolder === 'boveda') {
+      if (doc.folder !== 'boveda') return false;
+      if (bovedaYear !== 'all' && doc.bovedaYear !== bovedaYear) return false;
+      if (bovedaSubfolder !== 'all' && doc.bovedaSubfolder !== bovedaSubfolder) return false;
+    } else if (currentFolder === 'publico') {
       if (!doc.isPublic) return false;
     } else if (currentFolder !== 'all') {
       if (doc.folder !== currentFolder) return false;
     } else {
-      if (doc.folder === 'boveda' && currentFolder === 'all') return false;
+      if (doc.folder === 'boveda') return false;
     }
 
-    // Filtros por grado, materia y texto libre
-    if (grade && doc.grade !== grade) return false;
-    if (subject && doc.subject !== subject) return false;
+    if (currentFolder !== 'boveda') {
+      if (grade && doc.grade !== grade) return false;
+      if (subject && doc.subject !== subject) return false;
+    }
 
     if (search) {
       const q = search.toLowerCase();
@@ -57,7 +76,6 @@ export default function App() {
         (doc.title && doc.title.toLowerCase().includes(q)) ||
         (doc.teacher && doc.teacher.toLowerCase().includes(q)) ||
         (doc.subject && doc.subject.toLowerCase().includes(q)) ||
-        (doc.fileName && doc.fileName.toLowerCase().includes(q)) ||
         (doc.id && doc.id.toLowerCase().includes(q));
       if (!match) return false;
     }
@@ -67,18 +85,54 @@ export default function App() {
 
   return (
     <div id="appContainer">
-      <Navbar currentUser={currentUser} onLogout={() => setCurrentUser(null)} />
+      <Navbar currentUser={currentUser} onLogout={() => { setCurrentUser(null); setIsBovedaUnlocked(false); }} />
       
       <div className="app-layout">
         <Sidebar 
           currentUser={currentUser} 
           currentFolder={currentFolder} 
-          onFolderSelect={setCurrentFolder}
+          onFolderSelect={handleFolderSelectWithBoveda}
           currentTeacher={currentTeacher}
           onTeacherSelect={setCurrentTeacher}
         />
         
         <main className="main-content">
+          {/* Panel visual de Bóveda si está activa */}
+          {currentFolder === 'boveda' && (
+            <section className="boveda-controls">
+              <div className="boveda-banner">
+                <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
+                <div>
+                  <h3>Bóveda Directiva de Alta Capacidad</h3>
+                  <p>Archivos institucionales organizados por año y subcarpeta.</p>
+                </div>
+              </div>
+              <div className="boveda-filters-row">
+                <div className="filter-group">
+                  <label><i className="ph-bold ph-calendar"></i> Año Lectivo[cite: 3]:</label>
+                  <select value={bovedaYear} onChange={(e) => setBovedaYear(e.target.value)}>
+                    <option value="all">Todos los años</option>
+                    <option value="2026">Año 2026</option>
+                    <option value="2025">Año 2025</option>
+                    <option value="2024">Año 2024</option>
+                    <option value="Historico">Archivo Histórico</option>
+                  </select>
+                </div>
+                <div className="filter-group">
+                  <label><i className="ph-bold ph-folder-notch-open"></i> Subcarpeta[cite: 3]:</label>
+                  <select value={bovedaSubfolder} onChange={(e) => setBovedaSubfolder(e.target.value)}>
+                    <option value="all">Todas las subcarpetas</option>
+                    <option value="consejo">Actas de Consejo Directivo</option>
+                    <option value="financiero">Financiero & Contable</option>
+                    <option value="legal">Resoluciones & Legalidad</option>
+                    <option value="contratos">Contratos & Nómina Docente</option>
+                    <option value="pei_soporte">Soportes PEI & Licencias</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+          )}
+
           <FilterBar 
             search={search} setSearch={setSearch}
             grade={grade} setGrade={setGrade}
@@ -98,11 +152,22 @@ export default function App() {
                 />
               ))
             ) : (
-              <p style={{ color: 'var(--text-muted)' }}>No se encontraron documentos con estos filtros.</p>
+              <p style={{ color: 'var(--text-muted)' }}>No se encontraron registros en esta sección.</p>
             )}
           </div>
         </main>
       </div>
+
+      {/* Modal de Autenticación de Bóveda */}
+      <BovedaAuthModal 
+        isOpen={isBovedaModalOpen} 
+        onClose={() => setIsBovedaModalOpen(false)} 
+        onSuccess={() => {
+          setIsBovedaUnlocked(true);
+          setIsBovedaModalOpen(false);
+          setCurrentFolder('boveda');
+        }} 
+      />
     </div>
   );
 }

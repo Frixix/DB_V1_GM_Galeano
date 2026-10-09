@@ -1,4 +1,4 @@
-export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect }) {
+export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, onBovedaClick }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
   return (
@@ -50,7 +50,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
         </div>
       )}
 
-      {/* Categorías de Carpetas completas */}
+      {/* Categorías de Carpetas */}
       <div className="sidebar-section" id="sidebarFoldersSection">
         <div className="sidebar-header">
           <i className="ph-bold ph-folder"></i>
@@ -117,7 +117,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
           {isPrivileged && (
             <button 
               className={`folder-btn folder-boveda ${currentFolder === 'boveda' ? 'active' : ''}`}
-              onClick={() => onFolderSelect('boveda')}
+              onClick={onBovedaClick}
             >
               <i className="ph-bold ph-vault"></i>
               <span>Bóveda de Archivos</span>
