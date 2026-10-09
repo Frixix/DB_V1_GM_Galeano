@@ -1,50 +1,91 @@
-export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect }) {
+export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, onBovedaClick }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
   return (
-    <aside className="sidebar">
-      {/* Cabecera para móvil dentro del menú */}
-      <div className="sidebar-top-mobile">
-        <span>Menú de Navegación</span>
-      </div>
-
-      {/* Sección de Carpetas Principales */}
-      <div className="sidebar-section">
-        <div className="sidebar-header">
-          <i className="ph-bold ph-folders"></i>
-          <span>Gestión Documental</span>
+    <aside className="sidebar" id="mainSidebar">
+      {/* Sección de Auditoría por Docente (Solo Rectora/Admin) */}
+      {isPrivileged && (
+        <div className="sidebar-section" id="adminTeacherSection">
+          <div className="sidebar-header">
+            <i className="ph-bold ph-users"></i>
+            <span>Ver por Docente</span>
+          </div>
+          <nav className="teacher-list">
+            <button 
+              className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('all')}
+            >
+              <i className="ph-fill ph-users-three"></i>
+              <span>Todos los docentes</span>
+            </button>
+            <button 
+              className={`teacher-btn ${currentTeacher === 'Jessica' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('Jessica')}
+            >
+              <i className="ph-bold ph-user"></i>
+              <span>Jessica</span>
+            </button>
+            <button 
+              className={`teacher-btn ${currentTeacher === 'Yuri' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('Yuri')}
+            >
+              <i className="ph-bold ph-user"></i>
+              <span>Yuri</span>
+            </button>
+            <button 
+              className={`teacher-btn ${currentTeacher === 'Elcy' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('Elcy')}
+            >
+              <i className="ph-bold ph-user"></i>
+              <span>Elcy</span>
+            </button>
+            <button 
+              className={`teacher-btn ${currentTeacher === 'Claudia (Rectora)' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('Claudia (Rectora)')}
+            >
+              <i className="ph-bold ph-crown"></i>
+              <span>Claudia (Rectora)</span>
+            </button>
+          </nav>
         </div>
-        <div className="folder-list">
+      )}
+
+      {/* Categorías de Carpetas */}
+      <div className="sidebar-section" id="sidebarFoldersSection">
+        <div className="sidebar-header">
+          <i className="ph-bold ph-folder"></i>
+          <span>Ubicación / Rutas</span>
+        </div>
+        <nav className="folder-list">
           <button 
             className={`folder-btn folder-all ${currentFolder === 'all' ? 'active' : ''}`}
             onClick={() => onFolderSelect('all')}
           >
-            <i className="ph-bold ph-stack"></i>
-            <span>Todos los Archivos</span>
+            <i className="ph-fill ph-folders"></i>
+            <span>{isPrivileged ? "Todos los Documentos" : `Mis Documentos (${currentUser.name})`}</span>
           </button>
-
+          
           <button 
             className={`folder-btn folder-publico ${currentFolder === 'publico' ? 'active' : ''}`}
             onClick={() => onFolderSelect('publico')}
           >
             <i className="ph-bold ph-globe"></i>
-            <span>Públicos / Compartidos</span>
-            <span className="count-badge badge-pub">Docentes</span>
+            <span>Compartidos con Todos</span>
           </button>
 
           <button 
             className={`folder-btn folder-institucional ${currentFolder === 'institucional' ? 'active' : ''}`}
             onClick={() => onFolderSelect('institucional')}
           >
-            <i className="ph-bold ph-bank"></i>
+            <i className="ph-duotone ph-buildings"></i>
             <span>Institucional & Circulares</span>
           </button>
-
+          
           <button 
             className={`folder-btn folder-planeaciones ${currentFolder === 'planeaciones' ? 'active' : ''}`}
             onClick={() => onFolderSelect('planeaciones')}
           >
-            <i className="ph-bold ph-calendar-check"></i>
+            <i className="ph-duotone ph-notebook"></i>
             <span>Planeaciones</span>
           </button>
 
@@ -52,7 +93,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
             className={`folder-btn folder-calificaciones ${currentFolder === 'calificaciones' ? 'active' : ''}`}
             onClick={() => onFolderSelect('calificaciones')}
           >
-            <i className="ph-bold ph-table"></i>
+            <i className="ph-duotone ph-table"></i>
             <span>Planillas de Notas</span>
           </button>
 
@@ -60,7 +101,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
             className={`folder-btn folder-talleres ${currentFolder === 'talleres' ? 'active' : ''}`}
             onClick={() => onFolderSelect('talleres')}
           >
-            <i className="ph-bold ph-file-text"></i>
+            <i className="ph-duotone ph-pencil-line"></i>
             <span>Guías & Talleres</span>
           </button>
 
@@ -68,11 +109,11 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
             className={`folder-btn folder-observador ${currentFolder === 'observador' ? 'active' : ''}`}
             onClick={() => onFolderSelect('observador')}
           >
-            <i className="ph-bold ph-address-book"></i>
+            <i className="ph-duotone ph-user-list"></i>
             <span>Observador & Actas</span>
           </button>
 
-          {/* Bóveda protegida (Solo Rectora/Admin) */}
+        {/* Bóveda protegida (Solo Rectora/Admin) */}
           {isPrivileged && (
             <button 
               className={`folder-btn folder-boveda ${currentFolder === 'boveda' ? 'active' : ''}`}
@@ -83,57 +124,24 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
               <i className="ph-bold ph-lock-key boveda-lock-icon"></i>
             </button>
           )}
-        </div>
+        </nav>
       </div>
 
-      {/* Sección de Docentes / Auditoría (Exclusivo para Rectoría y Administrador) */}
-      {isPrivileged && (
-        <div className="sidebar-section" style={{ marginTop: '0.75rem' }}>
-          <div className="sidebar-header">
-            <i className="ph-bold ph-users"></i>
-            <span>Auditoría por Docente</span>
-          </div>
-          <div className="teacher-list">
-            <button 
-              className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('all')}
-            >
-              <i className="ph-bold ph-users-three"></i>
-              <span>Todos los Docentes</span>
-            </button>
-            <button 
-              className={`teacher-btn ${currentTeacher === 'Jessica Lorena' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('Jessica Lorena')}
-            >
-              <i className="ph-bold ph-user"></i>
-              <span>Jessica Lorena</span>
-            </button>
-            <button 
-              className={`teacher-btn ${currentTeacher === 'Yuri Andrea' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('Yuri Andrea')}
-            >
-              <i className="ph-bold ph-user"></i>
-              <span>Yuri Andrea</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Tarjeta resumen de almacenamiento local / sistema */}
-      <div className="db-summary-card">
+      {/* Almacenamiento */}
+      <div className="db-summary-card" id="sidebarStorageCard">
         <div className="summary-title">
-          <i className="ph-bold ph-hard-drives"></i>
-          <span>Almacenamiento Local</span>
+          <i className="ph-bold ph-hard-drive"></i>
+          <span>Almacenamiento del Sistema</span>
         </div>
         <div className="storage-bar-wrapper">
-          <div className="storage-bar-progress" style={{ width: '12%' }}></div>
+          <div className="storage-bar-progress" style={{ width: '2%' }}></div>
         </div>
         <div className="storage-labels">
-          <span>12.4 MB usados</span>
-          <span>Base Supabase</span>
+          <span>0 MB usados</span>
+          <span>{currentUser.maxUploadLabel} disponibles</span>
         </div>
         <p className="summary-reminder">
-          Sincronización activa con indexedDB y compresión ZIP integrada.
+          Límite por subida: <strong>{currentUser.maxUploadLabel}</strong> por archivo.
         </p>
       </div>
     </aside>
