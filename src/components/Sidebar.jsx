@@ -86,6 +86,39 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
         </div>
       </div>
 
+      {/* Sección de Docentes / Auditoría (Exclusivo para Rectoría y Administrador) */}
+      {isPrivileged && (
+        <div className="sidebar-section" style={{ marginTop: '0.75rem' }}>
+          <div className="sidebar-header">
+            <i className="ph-bold ph-users"></i>
+            <span>Auditoría por Docente</span>
+          </div>
+          <div className="teacher-list">
+            <button 
+              className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('all')}
+            >
+              <i className="ph-bold ph-users-three"></i>
+              <span>Todos los Docentes</span>
+            </button>
+            <button 
+              className={`teacher-btn ${currentTeacher === 'Jessica Lorena' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('Jessica Lorena')}
+            >
+              <i className="ph-bold ph-user"></i>
+              <span>Jessica Lorena</span>
+            </button>
+            <button 
+              className={`teacher-btn ${currentTeacher === 'Yuri Andrea' ? 'active' : ''}`}
+              onClick={() => onTeacherSelect('Yuri Andrea')}
+            >
+              <i className="ph-bold ph-user"></i>
+              <span>Yuri Andrea</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tarjeta resumen de almacenamiento local / sistema */}
       <div className="db-summary-card">
         <div className="summary-title">
