@@ -1417,6 +1417,60 @@ select {
   font-size: 1.15rem;
 }
 
+/* --- ESTILOS RESPONSIVOS PARA EL MENÚ MÓVIL --- */
+@media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Oculto fuera de la pantalla por defecto */
+    width: 280px;
+    height: 100vh;
+    z-index: 1005;
+    background-color: var(--card-bg, #ffffff);
+    transition: left 0.3s ease-in-out;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar-container.mobile-open {
+    left: 0; /* Desliza y muestra el sidebar en pantalla */
+  }
+
+  .mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
+  
+  .btn-mobile-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-main, #0f172a);
+    padding: 0.25rem;
+  }
+}
+
+/* En pantallas grandes, aseguramos que el sidebar permanezca estático */
+@media (min-width: 769px) {
+  .sidebar-container {
+    display: block;
+    position: relative;
+    left: 0 !important;
+  }
+  .btn-mobile-toggle {
+    display: none; /* Oculto en PC */
+  }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .app-layout { grid-template-columns: 1fr; }
@@ -1460,3 +1514,4 @@ select {
   .breadcrumb-container { flex-direction: column; align-items: flex-start; gap: 8px; }
   .tour-box { width: 94%; padding: 1.25rem; }
 }
+
