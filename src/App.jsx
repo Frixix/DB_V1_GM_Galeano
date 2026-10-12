@@ -36,7 +36,14 @@ export default function App() {
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
   const [documents, setDocuments] = useState(initialDocuments);
-  const [hasReadCirculares, setHasReadCirculares] = useState(false);
+  const [readCircularIds, setReadCircularIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('read_circulares_v1');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   if (!currentUser) {
     return <Login onLogin={setCurrentUser} />;
@@ -44,10 +51,42 @@ export default function App() {
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  // Cantidad de circulares institucionales para el globo rojo estilo WhatsApp
-  const circularesCount = hasReadCirculares 
-    ? 0 
-    : documents.filter(d => d.folder === 'institucional').length;
+  // Marcar una circular específica como leída
+  const markCircularAsRead = (id) => {
+    setReadCircularIds(prev => {
+      if (prev.includes(id)) return prev;
+      const next = [...prev, id];
+      try {
+        localStorage.setItem('read_circulares_v1', JSON.stringify(next));
+      } catch {
+        // Ignorar error si almacenamiento local está restringido
+      }
+      return next;
+    });
+  };
+
+  // Marcar todas las circulares como leídas al entrar a la sección
+  const markAllCircularesAsRead = () => {
+    const allCircularIds = documents
+      .filter(d => d.folder === 'institucional')
+      .map(d => d.id);
+
+    setReadCircularIds(prev => {
+      const next = Array.from(new Set([...prev, ...allCircularIds]));
+      try {
+        localStorage.setItem('read_circulares_v1', JSON.stringify(next));
+      } catch {
+        // Ignorar
+      }
+      return next;
+    });
+  };
+
+  // Circulares pendientes por leer (se apaga cuando la docente entra a leer)
+  const unreadCirculares = documents.filter(
+    d => d.folder === 'institucional' && !readCircularIds.includes(d.id)
+  );
+  const circularesCount = unreadCirculares.length;
 
   // Manejador del clic en Bóveda y carpetas
   const handleFolderSelectWithBoveda = (folderKey) => {
@@ -56,18 +95,32 @@ export default function App() {
       return;
     }
     if (folderKey === 'institucional') {
-      setHasReadCirculares(true);
+      markAllCircularesAsRead();
     }
     setCurrentFolder(folderKey);
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
   };
 
-  // Manejador para ver documento
+  // Manejador para abrir circulares desde la campanita
+  const handleOpenCircularesBell = () => {
+    setCurrentFolder('institucional');
+    if (unreadCirculares.length > 0) {
+      const target = unreadCirculares[0];
+      setSelectedDocForView(target);
+      setIsViewModalOpen(true);
+      markCircularAsRead(target.id);
+    }
+  };
+
+  // Manejador para ver documento (al leer una circular se apaga la notificación)
   const handleViewDocument = (id) => {
     const doc = documents.find(d => d.id === id);
     if (doc) {
       setSelectedDocForView(doc);
       setIsViewModalOpen(true);
+      if (doc.folder === 'institucional') {
+        markCircularAsRead(doc.id);
+      }
     }
   };
 
@@ -170,6 +223,7 @@ export default function App() {
         onLogout={() => { setCurrentUser(null); setIsBovedaUnlocked(false); }} 
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
+        onOpenCirculares={handleOpenCircularesBell}
         circularesCount={circularesCount}
       />
       

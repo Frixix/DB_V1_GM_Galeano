@@ -1,4 +1,4 @@
-export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenUploadModal, circularesCount = 0 }) {
+export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenUploadModal, onOpenCirculares, circularesCount = 0 }) {
   return (
     <header className="navbar">
       <div className="nav-left">
@@ -18,9 +18,17 @@ export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenU
       </div>
 
       <div className="nav-actions">
-        <div className="nav-notification-bell" title="Circulares institucionales">
+        <div 
+          className="nav-notification-bell" 
+          title={circularesCount > 0 ? `${circularesCount} circular(es) pendiente(s) por leer` : "Circulares institucionales al día"}
+          onClick={onOpenCirculares}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          aria-label="Abrir circulares"
+        >
           <i className="ph-bold ph-bell"></i>
-          <span className={`whatsapp-badge ${circularesCount === 0 ? 'hidden' : ''}`}>{circularesCount}</span>
+          {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}
         </div>
 
         <div className="user-chip">
