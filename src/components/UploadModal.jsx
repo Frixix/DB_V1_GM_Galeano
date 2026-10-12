@@ -2,15 +2,28 @@ import { useState } from 'react';
 import { formatBytes, formatDateTime, generateRadicado } from '../utils/format';
 import { compressFileIfNeeded } from '../utils/compression';
 
-export default function UploadModal({ isOpen, onClose, currentUser, onUploadSuccess, existingCount = 0 }) {
+export default function UploadModal({ 
+  isOpen, 
+  onClose, 
+  currentUser, 
+  onUploadSuccess, 
+  existingCount = 0,
+  initialFolder = 'planeaciones'
+}) {
   const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
+  const defaultFolder = (initialFolder && initialFolder !== 'all' && initialFolder !== 'publico')
+    ? initialFolder
+    : (isPrivileged ? 'institucional' : 'planeaciones');
+  const isInst = defaultFolder === 'institucional';
+  const isBov = defaultFolder === 'boveda';
+
   const [title, setTitle] = useState('');
-  const [folder, setFolder] = useState('planeaciones');
-  const [grade, setGrade] = useState('Tercero (3°)');
-  const [subject, setSubject] = useState('Matemáticas');
+  const [folder, setFolder] = useState(defaultFolder);
+  const [grade, setGrade] = useState(isInst ? 'General' : (isBov ? 'Directivo' : 'Tercero (3°)'));
+  const [subject, setSubject] = useState(isInst ? 'Institucional' : (isBov ? 'Directiva' : 'Matemáticas'));
   const [period, setPeriod] = useState('1° Periodo');
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublic, setIsPublic] = useState(isInst);
   const [notes, setNotes] = useState('');
 
   // Estados para Bóveda si aplica
@@ -21,6 +34,27 @@ export default function UploadModal({ isOpen, onClose, currentUser, onUploadSucc
   const [compressedInfo, setCompressedInfo] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Manejador del cambio de carpeta con auto-completado
+  const handleFolderChange = (targetFolder) => {
+    setFolder(targetFolder);
+    if (targetFolder === 'institucional') {
+      setGrade('General');
+      setSubject('Institucional');
+      setIsPublic(true);
+    } else if (targetFolder === 'boveda') {
+      setGrade('Directivo');
+      setSubject('Directiva');
+      setIsPublic(false);
+    } else {
+      if (grade === 'General' || grade === 'Directivo') {
+        setGrade('Tercero (3°)');
+      }
+      if (subject === 'Institucional' || subject === 'Directiva') {
+        setSubject('Matemáticas');
+      }
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -156,7 +190,7 @@ export default function UploadModal({ isOpen, onClose, currentUser, onUploadSucc
           <div className="form-grid-3">
             <div className="form-group">
               <label htmlFor="docFolder">Carpeta de Destino</label>
-              <select id="docFolder" value={folder} onChange={(e) => setFolder(e.target.value)}>
+              <select id="docFolder" value={folder} onChange={(e) => handleFolderChange(e.target.value)}>
                 <option value="planeaciones">Planeaciones</option>
                 <option value="calificaciones">Planillas de Notas</option>
                 <option value="talleres">Guías & Talleres</option>
