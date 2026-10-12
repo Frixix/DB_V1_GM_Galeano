@@ -36,12 +36,12 @@ export default function App() {
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
   const [documents, setDocuments] = useState(initialDocuments);
-  const [readCircularIds, setReadCircularIds] = useState(() => {
+  const [readByUsers, setReadByUsers] = useState(() => {
     try {
-      const stored = localStorage.getItem('read_circulares_v1');
-      return stored ? JSON.parse(stored) : [];
+      const stored = localStorage.getItem('read_circulares_v2');
+      return stored ? JSON.parse(stored) : {};
     } catch {
-      return [];
+      return {};
     }
   });
 
@@ -50,24 +50,27 @@ export default function App() {
   }
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
+  const currentUserKey = `${currentUser.role}_${currentUser.name.replace(/\s+/g, '_').toLowerCase()}`;
+  const readCircularIds = readByUsers[currentUserKey] || [];
 
-  // Marcar una circular específica como leída
+  // Marcar una circular específica como leída solo para el usuario actual
   const markCircularAsRead = (id) => {
-    setReadCircularIds(prev => {
-      if (prev.includes(id)) return prev;
-      const next = [...prev, id];
+    setReadByUsers(prev => {
+      const currentList = prev[currentUserKey] || [];
+      if (currentList.includes(id)) return prev;
+      const updated = { ...prev, [currentUserKey]: [...currentList, id] };
       try {
-        localStorage.setItem('read_circulares_v1', JSON.stringify(next));
+        localStorage.setItem('read_circulares_v2', JSON.stringify(updated));
       } catch {
-        // Ignorar error si almacenamiento local está restringido
+        // Ignorar
       }
-      return next;
+      return updated;
     });
   };
 
-  // Circulares pendientes por leer (se apaga cuando la docente entra a leer o descargar)
+  // Circulares pendientes por leer (independiente por usuario, excluyendo al emisor)
   const unreadCirculares = documents.filter(
-    d => d.folder === 'institucional' && !readCircularIds.includes(d.id)
+    d => d.folder === 'institucional' && d.teacher !== currentUser.name && !readCircularIds.includes(d.id)
   );
   const circularesCount = unreadCirculares.length;
 
@@ -284,7 +287,7 @@ export default function App() {
                       onDownload={handleDownloadDocument}
                       onDelete={handleDeleteDocument}
                       canDelete={isPrivileged}
-                      isUnread={doc.folder === 'institucional' && !readCircularIds.includes(doc.id)}
+                      isUnread={doc.folder === 'institucional' && doc.teacher !== currentUser.name && !readCircularIds.includes(doc.id)}
                     />
                   ))}
                 </div>
@@ -296,6 +299,7 @@ export default function App() {
                   onDelete={handleDeleteDocument}
                   canDelete={isPrivileged}
                   readCircularIds={readCircularIds}
+                  currentUserName={currentUser.name}
                 />
               )
             ) : (
@@ -329,11 +333,13 @@ export default function App() {
 
       {/* Modal para Subir Documento */}
       <UploadModal 
+        key={isUploadModalOpen ? `upload_modal_${currentFolder}` : 'upload_modal_closed'}
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         currentUser={currentUser}
         onUploadSuccess={handleUploadSuccess}
         existingCount={documents.length}
+        initialFolder={currentFolder}
       />
 
       {/* Guía Interactiva Spotlight */}

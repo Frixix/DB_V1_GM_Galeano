@@ -1,4 +1,4 @@
-export default function DocumentTable({ documents, onView, onDownload, onDelete, canDelete }) {
+export default function DocumentTable({ documents, onView, onDownload, onDelete, canDelete, readCircularIds = [], currentUserName = '' }) {
   
   const formatFolderLabel = (key) => {
     const map = {
@@ -41,17 +41,25 @@ export default function DocumentTable({ documents, onView, onDownload, onDelete,
           </tr>
         </thead>
         <tbody>
-          {documents.map(doc => (
-            <tr key={doc.id}>
-              <td><code>{doc.id}</code></td>
-              <td>
-                <strong>{doc.title}</strong>
-                {doc.isPublic && (
-                  <span className="tag-pastel-public" style={{ marginLeft: '8px' }}>
-                    <i className="ph-bold ph-globe"></i> Público
-                  </span>
-                )}
-              </td>
+          {documents.map(doc => {
+            const isUnread = doc.folder === 'institucional' && doc.teacher !== currentUserName && !readCircularIds.includes(doc.id);
+            return (
+              <tr key={doc.id} className={isUnread ? 'row-unread' : ''}>
+                <td><code>{doc.id}</code></td>
+                <td>
+                  <strong>{doc.title}</strong>
+                  {isUnread && (
+                    <span className="tag-unread-dot" style={{ marginLeft: '8px' }} title="Circular pendiente de lectura">
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span>
+                      Sin leer
+                    </span>
+                  )}
+                  {doc.isPublic && (
+                    <span className="tag-pastel-public" style={{ marginLeft: '8px' }}>
+                      <i className="ph-bold ph-globe"></i> Público
+                    </span>
+                  )}
+                </td>
               <td><i className="ph ph-user"></i> {doc.teacher}</td>
               <td><span className="tag-pastel-grade">{doc.folder === 'boveda' ? (doc.bovedaYear || '2026') : doc.grade}</span></td>
               <td>{doc.folder === 'boveda' ? doc.bovedaSubfolder : doc.subject}</td>
@@ -76,7 +84,8 @@ export default function DocumentTable({ documents, onView, onDownload, onDelete,
                 </div>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </section>
