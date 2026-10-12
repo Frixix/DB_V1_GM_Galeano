@@ -65,24 +65,7 @@ export default function App() {
     });
   };
 
-  // Marcar todas las circulares como leídas al entrar a la sección
-  const markAllCircularesAsRead = () => {
-    const allCircularIds = documents
-      .filter(d => d.folder === 'institucional')
-      .map(d => d.id);
-
-    setReadCircularIds(prev => {
-      const next = Array.from(new Set([...prev, ...allCircularIds]));
-      try {
-        localStorage.setItem('read_circulares_v1', JSON.stringify(next));
-      } catch {
-        // Ignorar
-      }
-      return next;
-    });
-  };
-
-  // Circulares pendientes por leer (se apaga cuando la docente entra a leer)
+  // Circulares pendientes por leer (se apaga cuando la docente entra a leer o descargar)
   const unreadCirculares = documents.filter(
     d => d.folder === 'institucional' && !readCircularIds.includes(d.id)
   );
@@ -93,9 +76,6 @@ export default function App() {
     if (folderKey === 'boveda' && !isBovedaUnlocked) {
       setIsBovedaModalOpen(true);
       return;
-    }
-    if (folderKey === 'institucional') {
-      markAllCircularesAsRead();
     }
     setCurrentFolder(folderKey);
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
@@ -112,7 +92,7 @@ export default function App() {
     }
   };
 
-  // Manejador para ver documento (al leer una circular se apaga la notificación)
+  // Manejador para ver documento (al leer una circular se apaga la notificación y el puntito)
   const handleViewDocument = (id) => {
     const doc = documents.find(d => d.id === id);
     if (doc) {
@@ -124,10 +104,14 @@ export default function App() {
     }
   };
 
-  // Manejador para descargar archivo
+  // Manejador para descargar archivo (también apaga la notificación y el puntito rojo)
   const handleDownloadDocument = (docOrId) => {
     const doc = typeof docOrId === 'object' ? docOrId : documents.find(d => d.id === docOrId);
     if (!doc) return;
+
+    if (doc.folder === 'institucional') {
+      markCircularAsRead(doc.id);
+    }
 
     if (doc.fileBlob instanceof Blob) {
       const url = URL.createObjectURL(doc.fileBlob);
@@ -300,6 +284,7 @@ export default function App() {
                       onDownload={handleDownloadDocument}
                       onDelete={handleDeleteDocument}
                       canDelete={isPrivileged}
+                      isUnread={doc.folder === 'institucional' && !readCircularIds.includes(doc.id)}
                     />
                   ))}
                 </div>
@@ -310,6 +295,7 @@ export default function App() {
                   onDownload={handleDownloadDocument}
                   onDelete={handleDeleteDocument}
                   canDelete={isPrivileged}
+                  readCircularIds={readCircularIds}
                 />
               )
             ) : (

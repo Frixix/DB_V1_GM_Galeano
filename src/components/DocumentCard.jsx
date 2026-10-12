@@ -1,4 +1,4 @@
-export default function DocumentCard({ doc, onView, onDownload, onDelete, canDelete }) {
+export default function DocumentCard({ doc, onView, onDownload, onDelete, canDelete, isUnread = false }) {
   
   // Mapeo de clases pastel según la carpeta
   const getFolderClass = (folder) => {
@@ -26,12 +26,18 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete, canDel
   };
 
   return (
-    <article className="doc-card">
+    <article className={`doc-card ${isUnread ? 'card-unread' : ''}`}>
       <div className="doc-card-header">
         <div className="badges-group">
           <span className={getFolderClass(doc.folder)}>{formatFolderLabel(doc.folder)}</span>
           <span className="tag-pastel-grade">{doc.grade}</span>
           {doc.isPublic && <span className="tag-pastel-public"><i className="ph-bold ph-globe"></i> Público</span>}
+          {isUnread && (
+            <span className="tag-unread-dot" title="Circular pendiente de lectura">
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span>
+              Sin leer
+            </span>
+          )}
         </div>
         <div className="doc-meta-subtle">
           <span>{doc.uploadedAt}</span>
