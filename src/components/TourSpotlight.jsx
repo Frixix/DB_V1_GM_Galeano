@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react';
+import { TOUR_STEPS_DOCENTE, TOUR_STEPS_RECTORA } from '../data/tourSteps';
+
+export default function TourSpotlight({ currentUser }) {
+  const isRectoraInduccion = currentUser?.role === 'induccion_rectora' || currentUser?.role === 'rectora';
+
+  const defaultSteps = isRectoraInduccion ? TOUR_STEPS_RECTORA : TOUR_STEPS_DOCENTE;
+  const isAutoStart = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+
+  const [isOpen, setIsOpen] = useState(isAutoStart);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  const steps = defaultSteps;
+  const currentStep = steps[currentStepIndex];
+
+  // Manejar el resaltado del elemento
+  useEffect(() => {
+    if (!isOpen || !currentStep) return;
+
+    const targetId = currentStep.targetId;
+    let targetEl = null;
+
+    if (targetId) {
+      targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        targetEl.classList.add('tour-highlighted-target');
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    return () => {
+      if (targetEl) {
+        targetEl.classList.remove('tour-highlighted-target');
+      }
+    };
+  }, [isOpen, currentStepIndex, currentStep]);
+
+  const handleNext = () => {
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStepIndex(prev => prev + 1);
+    } else {
+      setIsOpen(false);
+      setCurrentStepIndex(0);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(prev => prev - 1);
+    }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setCurrentStepIndex(0);
+  };
+
+  const handleOpen = () => {
+    setCurrentStepIndex(0);
+    setIsOpen(true);
+  };
+
+  const renderIcon = (iconName) => {
+    const map = {
+      HandWaving: 'ph-hand-waving',
+      Folders: 'ph-folders',
+      MagnifyingGlass: 'ph-magnifying-glass',
+      CloudArrowUp: 'ph-cloud-arrow-up',
+      FileArrowDown: 'ph-file-arrow-down',
+      Crown: 'ph-crown',
+      UsersThree: 'ph-users-three',
+      Megaphone: 'ph-megaphone',
+      Vault: 'ph-vault',
+      HardDrive: 'ph-hard-drive',
+    };
+    const cls = map[iconName] || 'ph-info';
+    return <i className={`ph-bold ${cls}`}></i>;
+  };
+
+  return (
+    <>
+      {/* Botón flotante para reabrir el tour cuando se desee */}
+      {!isOpen && (
+        <button 
+          className="btn-floating-tour" 
+          onClick={handleOpen} 
+          title="Ver Guía Interactiva del Sistema"
+        >
+          <i className="ph-bold ph-compass"></i>
+          <span>Guía del Sistema</span>
+        </button>
+      )}
+
+      {isOpen && currentStep && (
+        <>
+          <div className="tour-backdrop" onClick={handleClose}></div>
+          <div 
+            className="tour-box" 
+            style={{
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <span className="tour-badge-step">
+              Paso {currentStepIndex + 1} de {steps.length}
+            </span>
+
+            <div className="tour-content">
+              <div className="tour-header-icon">
+                {renderIcon(currentStep.icon)}
+              </div>
+              <h3>{currentStep.title}</h3>
+              <p>{currentStep.desc}</p>
+            </div>
+
+            <div className="tour-actions">
+              <button type="button" className="btn btn-secondary" onClick={handleClose}>
+                Omitir
+              </button>
+
+              <div className="tour-nav-btns">
+                {currentStepIndex > 0 && (
+                  <button type="button" className="btn btn-secondary" onClick={handlePrev}>
+                    Anterior
+                  </button>
+                )}
+                <button type="button" className="btn btn-primary" onClick={handleNext}>
+                  {currentStepIndex === steps.length - 1 ? '¡Entendido!' : 'Siguiente'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}

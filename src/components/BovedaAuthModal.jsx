@@ -52,8 +52,8 @@ export default function BovedaAuthModal({ isOpen, onClose, onSuccess }) {
           </div>
 
           <div className="modal-footer" style={{ padding: 0, marginTop: '0.5rem' }}>
-            <button type="button" class="btn btn-secondary" onClick={onClose}>Cancelar</button>
-            <button type="submit" class="btn btn-primary" style={{ backgroundColor: '#0f172a' }}>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+            <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#0f172a' }}>
               <i className="ph-bold ph-key"></i> Desbloquear Bóveda
             </button>
           </div>

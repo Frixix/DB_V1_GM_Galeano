@@ -46,7 +46,11 @@ export default function DocumentTable({ documents, onView, onDownload, onDelete,
               <td><code>{doc.id}</code></td>
               <td>
                 <strong>{doc.title}</strong>
-                {doc.isPublic && ' <span class="tag-pastel-public"><i class="ph-bold ph-globe"></i> Público</span>'}
+                {doc.isPublic && (
+                  <span className="tag-pastel-public" style={{ marginLeft: '8px' }}>
+                    <i className="ph-bold ph-globe"></i> Público
+                  </span>
+                )}
               </td>
               <td><i className="ph ph-user"></i> {doc.teacher}</td>
               <td><span className="tag-pastel-grade">{doc.folder === 'boveda' ? (doc.bovedaYear || '2026') : doc.grade}</span></td>

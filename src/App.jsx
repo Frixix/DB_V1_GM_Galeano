@@ -6,6 +6,9 @@ import FilterBar from './components/FilterBar';
 import DocumentCard from './components/DocumentCard';
 import DocumentTable from './components/DocumentTable';
 import BovedaAuthModal from './components/BovedaAuthModal';
+import ViewModal from './components/ViewModal';
+import UploadModal from './components/UploadModal';
+import TourSpotlight from './components/TourSpotlight';
 import { initialDocuments } from './data/initialDocs';
 
 export default function App() {
@@ -27,7 +30,13 @@ export default function App() {
   const [bovedaYear, setBovedaYear] = useState('all');
   const [bovedaSubfolder, setBovedaSubfolder] = useState('all');
 
+  // Modales interactivos
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedDocForView, setSelectedDocForView] = useState(null);
+
   const [documents, setDocuments] = useState(initialDocuments);
+  const [hasReadCirculares, setHasReadCirculares] = useState(false);
 
   if (!currentUser) {
     return <Login onLogin={setCurrentUser} />;
@@ -35,14 +44,80 @@ export default function App() {
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  // Manejador del clic en Bóveda
+  // Cantidad de circulares institucionales para el globo rojo estilo WhatsApp
+  const circularesCount = hasReadCirculares 
+    ? 0 
+    : documents.filter(d => d.folder === 'institucional').length;
+
+  // Manejador del clic en Bóveda y carpetas
   const handleFolderSelectWithBoveda = (folderKey) => {
     if (folderKey === 'boveda' && !isBovedaUnlocked) {
       setIsBovedaModalOpen(true);
       return;
     }
+    if (folderKey === 'institucional') {
+      setHasReadCirculares(true);
+    }
     setCurrentFolder(folderKey);
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
+  };
+
+  // Manejador para ver documento
+  const handleViewDocument = (id) => {
+    const doc = documents.find(d => d.id === id);
+    if (doc) {
+      setSelectedDocForView(doc);
+      setIsViewModalOpen(true);
+    }
+  };
+
+  // Manejador para descargar archivo
+  const handleDownloadDocument = (docOrId) => {
+    const doc = typeof docOrId === 'object' ? docOrId : documents.find(d => d.id === docOrId);
+    if (!doc) return;
+
+    if (doc.fileBlob instanceof Blob) {
+      const url = URL.createObjectURL(doc.fileBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.fileName || `${doc.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const content = `========================================\nGIMNASIO MARTIN GALEANO\nSistema de Gestión Documental de Básica Primaria\n========================================\n\nRadicado: ${doc.id}\nTítulo: ${doc.title}\nDocente / Responsable: ${doc.teacher}\nGrado: ${doc.grade}\nÁrea / Materia: ${doc.subject}\nPeriodo: ${doc.period || 'General'}\nFecha de Radicación: ${doc.uploadedAt}\n\nObservaciones / Resumen del Documento:\n${doc.notes || 'Sin observaciones registradas.'}\n\n========================================\nArchivo resguardado institucionalmente.\n`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const downloadName = doc.fileName ? doc.fileName.replace(/\.[^/.]+$/, ".txt") : `${doc.id}.txt`;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // Manejador para eliminar documento
+  const handleDeleteDocument = (id) => {
+    const target = documents.find(d => d.id === id);
+    const confirmMessage = target 
+      ? `¿Está seguro de eliminar el registro "${target.title}" (Radicado: ${id})?\nEsta acción no se puede deshacer.`
+      : `¿Está seguro de eliminar el registro ${id}?`;
+
+    if (window.confirm(confirmMessage)) {
+      setDocuments(prev => prev.filter(doc => doc.id !== id));
+      if (selectedDocForView?.id === id) {
+        setIsViewModalOpen(false);
+      }
+    }
+  };
+
+  // Manejador para registrar nuevo documento
+  const handleUploadSuccess = (newDoc) => {
+    setDocuments(prev => [newDoc, ...prev]);
   };
 
   const filteredDocs = documents.filter(doc => {
@@ -94,7 +169,8 @@ export default function App() {
         currentUser={currentUser} 
         onLogout={() => { setCurrentUser(null); setIsBovedaUnlocked(false); }} 
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        onOpenUploadModal={() => alert("Pronto abriremos el modal de subida de archivos")}
+        onOpenUploadModal={() => setIsUploadModalOpen(true)}
+        circularesCount={circularesCount}
       />
       
       <div className="app-layout">
@@ -105,6 +181,8 @@ export default function App() {
             onFolderSelect={handleFolderSelectWithBoveda}
             currentTeacher={currentTeacher}
             onTeacherSelect={(t) => { setCurrentTeacher(t); setIsSidebarOpen(false); }}
+            documents={documents}
+            circularesCount={circularesCount}
           />
         </div>
 
@@ -156,30 +234,34 @@ export default function App() {
             currentView={currentView} setCurrentView={setCurrentView}
           />
 
-          {filteredDocs.length > 0 ? (
-            currentView === 'cards' ? (
-              <div className="cards-grid">
-                {filteredDocs.map(doc => (
-                  <DocumentCard 
-                    key={doc.id} 
-                    doc={doc} 
-                    onView={(id) => alert(`Ver documento: ${id}`)}
-                    onDownload={(id) => alert(`Descargar archivo: ${id}`)}
-                    canDelete={isPrivileged}
-                  />
-                ))}
-              </div>
+          <div id="documentsContainer">
+            {filteredDocs.length > 0 ? (
+              currentView === 'cards' ? (
+                <div className="cards-grid">
+                  {filteredDocs.map(doc => (
+                    <DocumentCard 
+                      key={doc.id} 
+                      doc={doc} 
+                      onView={handleViewDocument}
+                      onDownload={handleDownloadDocument}
+                      onDelete={handleDeleteDocument}
+                      canDelete={isPrivileged}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <DocumentTable 
+                  documents={filteredDocs}
+                  onView={handleViewDocument}
+                  onDownload={handleDownloadDocument}
+                  onDelete={handleDeleteDocument}
+                  canDelete={isPrivileged}
+                />
+              )
             ) : (
-              <DocumentTable 
-                documents={filteredDocs}
-                onView={(id) => alert(`Ver documento: ${id}`)}
-                onDownload={(id) => alert(`Descargar archivo: ${id}`)}
-                canDelete={isPrivileged}
-              />
-            )
-          ) : (
-            <p style={{ color: 'var(--text-muted)' }}>No se encontraron registros en esta sección.</p>
-          )}
+              <p style={{ color: 'var(--text-muted)', padding: '2rem 1rem' }}>No se encontraron registros en esta sección.</p>
+            )}
+          </div>
         </main>
       </div>
 
@@ -193,6 +275,29 @@ export default function App() {
           setCurrentFolder('boveda');
         }} 
       />
+
+      {/* Modal para Ver Documento */}
+      <ViewModal 
+        isOpen={isViewModalOpen}
+        doc={selectedDocForView}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedDocForView(null);
+        }}
+        onDownload={handleDownloadDocument}
+      />
+
+      {/* Modal para Subir Documento */}
+      <UploadModal 
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        currentUser={currentUser}
+        onUploadSuccess={handleUploadSuccess}
+        existingCount={documents.length}
+      />
+
+      {/* Guía Interactiva Spotlight */}
+      <TourSpotlight currentUser={currentUser} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenUploadModal }) {
+export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenUploadModal, circularesCount = 0 }) {
   return (
     <header className="navbar">
       <div className="nav-left">
@@ -18,9 +18,9 @@ export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenU
       </div>
 
       <div className="nav-actions">
-        <div className="nav-notification-bell" title="Circulares sin leer">
+        <div className="nav-notification-bell" title="Circulares institucionales">
           <i className="ph-bold ph-bell"></i>
-          <span className="whatsapp-badge hidden">0</span>
+          <span className={`whatsapp-badge ${circularesCount === 0 ? 'hidden' : ''}`}>{circularesCount}</span>
         </div>
 
         <div className="user-chip">
@@ -31,7 +31,7 @@ export default function Navbar({ currentUser, onLogout, onToggleSidebar, onOpenU
           </div>
         </div>
 
-        <button className="btn btn-primary btn-upload-nav" onClick={onOpenUploadModal}>
+        <button id="btnOpenModal" className="btn btn-primary btn-upload-nav" onClick={onOpenUploadModal}>
           <i className="ph-bold ph-cloud-arrow-up"></i> <span>Subir Documento</span>
         </button>
         

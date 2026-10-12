@@ -1,5 +1,8 @@
-export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, onBovedaClick }) {
+export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, documents = [], circularesCount = 0 }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
+  const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
+  const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
+  const percentUsed = Math.min(100, Math.max(1, ((totalUsedBytes / (2 * 1024 * 1024 * 1024)) * 100))).toFixed(1);
 
   return (
     <aside className="sidebar" id="mainSidebar">
@@ -79,6 +82,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
           >
             <i className="ph-duotone ph-buildings"></i>
             <span>Institucional & Circulares</span>
+            {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}
           </button>
           
           <button 
@@ -116,6 +120,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
         {/* Bóveda protegida (Solo Rectora/Admin) */}
           {isPrivileged && (
             <button 
+              id="btnBovedaFolder"
               className={`folder-btn folder-boveda ${currentFolder === 'boveda' ? 'active' : ''}`}
               onClick={() => onFolderSelect('boveda')}
             >
@@ -134,11 +139,11 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
           <span>Almacenamiento del Sistema</span>
         </div>
         <div className="storage-bar-wrapper">
-          <div className="storage-bar-progress" style={{ width: '2%' }}></div>
+          <div className="storage-bar-progress" style={{ width: `${percentUsed}%` }}></div>
         </div>
         <div className="storage-labels">
-          <span>0 MB usados</span>
-          <span>{currentUser.maxUploadLabel} disponibles</span>
+          <span>{usedMB} MB usados</span>
+          <span>2 GB disponibles</span>
         </div>
         <p className="summary-reminder">
           Límite por subida: <strong>{currentUser.maxUploadLabel}</strong> por archivo.

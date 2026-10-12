@@ -1,4 +1,4 @@
-export default function DocumentCard({ doc, onView, onDownload, onDelete, canEdit, canDelete }) {
+export default function DocumentCard({ doc, onView, onDownload, onDelete, canDelete }) {
   
   // Mapeo de clases pastel según la carpeta
   const getFolderClass = (folder) => {
