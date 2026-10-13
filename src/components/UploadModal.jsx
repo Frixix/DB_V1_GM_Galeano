@@ -24,7 +24,7 @@ export default function UploadModal({
   const [grade, setGrade] = useState(isInst ? 'General' : (isBov ? 'Directivo' : 'Tercero (3°)'));
   const [subject, setSubject] = useState(isInst ? 'Institucional' : (isBov ? 'Directiva' : 'Matemáticas'));
   const [period, setPeriod] = useState('1° Periodo');
-  const [isPublic, setIsPublic] = useState(isInst);
+  const [isPublic, setIsPublic] = useState(initialFolder === 'publico' || isInst);
   const [notes, setNotes] = useState('');
 
   // Estados para Bóveda si aplica

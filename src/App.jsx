@@ -46,11 +46,18 @@ export default function App() {
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  // Circulares pendientes por leer (independiente por usuario, excluyendo al emisor)
-  const unreadCirculares = documents.filter(
-    d => d.folder === 'institucional' && d.teacher !== currentUser.name && !readCircularIds.includes(d.id)
-  );
-  const circularesCount = unreadCirculares.length;
+  // Identificar si un documento o circular está pendiente de revisión por el usuario actual
+  const isDocUnread = (doc) => {
+    const isSharedOrPublic = Boolean(doc.isPublic) || doc.folder === 'institucional';
+    const isFromOtherUser = doc.teacher !== currentUser.name;
+    const isNotReadYet = !readCircularIds.includes(doc.id);
+    return isSharedOrPublic && isFromOtherUser && isNotReadYet;
+  };
+
+  const unreadDocs = documents.filter(isDocUnread);
+  const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
+  const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
+  const totalUnreadCount = unreadDocs.length;
 
   // Manejador del clic en Bóveda y carpetas
   const handleFolderSelectWithBoveda = (folderKey) => {
@@ -62,24 +69,30 @@ export default function App() {
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
   };
 
-  // Manejador para abrir circulares desde la campanita
+  // Manejador para abrir novedades desde la campanita
   const handleOpenCircularesBell = () => {
-    setCurrentFolder('institucional');
-    if (unreadCirculares.length > 0) {
-      const target = unreadCirculares[0];
+    if (unreadDocs.length > 0) {
+      const target = unreadDocs[0];
+      if (target.folder === 'institucional') {
+        setCurrentFolder('institucional');
+      } else {
+        setCurrentFolder('publico');
+      }
       setSelectedDocForView(target);
       setIsViewModalOpen(true);
       markCircularAsRead(target.id);
+    } else {
+      setCurrentFolder('institucional');
     }
   };
 
-  // Manejador para ver documento (al leer una circular se apaga la notificación y el puntito)
+  // Manejador para ver documento (al leer una circular o compartido se apaga la notificación y el puntito)
   const handleViewDocument = (id) => {
     const doc = documents.find(d => d.id === id);
     if (doc) {
       setSelectedDocForView(doc);
       setIsViewModalOpen(true);
-      if (doc.folder === 'institucional') {
+      if (doc.isPublic || doc.folder === 'institucional') {
         markCircularAsRead(doc.id);
       }
     }
@@ -90,7 +103,7 @@ export default function App() {
     const doc = typeof docOrId === 'object' ? docOrId : documents.find(d => d.id === docOrId);
     if (!doc) return;
 
-    if (doc.folder === 'institucional') {
+    if (doc.isPublic || doc.folder === 'institucional') {
       markCircularAsRead(doc.id);
     }
 
@@ -145,28 +158,39 @@ export default function App() {
   };
 
   const filteredDocs = documents.filter(doc => {
+    // 1. Bóveda: solo si el usuario es privilegiado y está desbloqueada
     if (doc.folder === 'boveda' && (!isPrivileged || !isBovedaUnlocked)) return false;
 
+    // 2. Privacidad estricta para docentes:
+    // Si NO es admin/rectora, solo puede ver:
+    // - Documentos propios (doc.teacher === currentUser.name)
+    // - Documentos públicos o institucionales (doc.isPublic || doc.folder === 'institucional')
     if (!isPrivileged) {
-      const teacherMatch = doc.teacher === currentUser.name;
+      const isOwner = doc.teacher === currentUser.name;
       const isShared = Boolean(doc.isPublic) || doc.folder === 'institucional';
-      if (!teacherMatch && !isShared) return false;
+      if (!isOwner && !isShared) return false;
     }
 
+    // 3. Auditoría por docente (Rectoría / Admin)
     if (isPrivileged && currentTeacher !== 'all') {
       if (doc.teacher !== currentTeacher) return false;
     }
 
+    // 4. Filtrado por carpeta activa
     if (currentFolder === 'boveda') {
       if (doc.folder !== 'boveda') return false;
       if (bovedaYear !== 'all' && doc.bovedaYear !== bovedaYear) return false;
       if (bovedaSubfolder !== 'all' && doc.bovedaSubfolder !== bovedaSubfolder) return false;
     } else if (currentFolder === 'publico') {
-      if (!doc.isPublic) return false;
-    } else if (currentFolder !== 'all') {
-      if (doc.folder !== currentFolder) return false;
-    } else {
+      // Compartidos con Todos: cualquier documento público o institucional
+      if (!doc.isPublic && doc.folder !== 'institucional') return false;
+    } else if (currentFolder === 'all') {
       if (doc.folder === 'boveda') return false;
+      // Para docente en "Mis Documentos": mostrar exclusivamente sus documentos propios
+      if (!isPrivileged && doc.teacher !== currentUser.name) return false;
+    } else {
+      // Carpetas temáticas (planeaciones, calificaciones, talleres, observador, institucional):
+      if (doc.folder !== currentFolder) return false;
     }
 
     if (currentFolder !== 'boveda') {
@@ -195,7 +219,7 @@ export default function App() {
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenCirculares={handleOpenCircularesBell}
-        circularesCount={circularesCount}
+        circularesCount={totalUnreadCount}
       />
       
       <div className="app-layout">
@@ -207,7 +231,8 @@ export default function App() {
             currentTeacher={currentTeacher}
             onTeacherSelect={(t) => { setCurrentTeacher(t); setIsSidebarOpen(false); }}
             documents={documents}
-            circularesCount={circularesCount}
+            circularesCount={unreadCirculares.length}
+            unreadSharedCount={unreadSharedDocs.length}
           />
         </div>
 
@@ -271,7 +296,7 @@ export default function App() {
                       onDownload={handleDownloadDocument}
                       onDelete={handleDeleteDocument}
                       canDelete={isPrivileged}
-                      isUnread={doc.folder === 'institucional' && doc.teacher !== currentUser.name && !readCircularIds.includes(doc.id)}
+                      isUnread={isDocUnread(doc)}
                     />
                   ))}
                 </div>

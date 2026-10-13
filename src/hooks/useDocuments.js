@@ -90,14 +90,20 @@ export function useDocuments() {
           if (payload.eventType === 'INSERT') {
             const newDoc = mapDbToDoc(payload.new);
             setDocuments(prev => {
-              if (prev.some(d => d.id === newDoc.id)) return prev;
+              const existingIndex = prev.findIndex(d => d.id === newDoc.id);
+              if (existingIndex >= 0) {
+                const localDoc = prev[existingIndex];
+                const updatedList = [...prev];
+                updatedList[existingIndex] = { ...newDoc, fileBlob: localDoc.fileBlob || null };
+                return updatedList;
+              }
               return [newDoc, ...prev];
             });
           } else if (payload.eventType === 'DELETE') {
             setDocuments(prev => prev.filter(d => d.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
             const updatedDoc = mapDbToDoc(payload.new);
-            setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
+            setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? { ...updatedDoc, fileBlob: d.fileBlob || null } : d));
           }
         }
       )
@@ -118,11 +124,18 @@ export function useDocuments() {
 
     try {
       const dbPayload = mapDocToDb(newDoc);
-      const { error: insertErr } = await supabase
+      const { data, error: insertErr } = await supabase
         .from('documents')
-        .insert([dbPayload]);
+        .insert([dbPayload])
+        .select();
 
       if (insertErr) throw insertErr;
+
+      // Consolidar con los datos persistidos en la base de datos
+      if (data && data[0]) {
+        const persisted = mapDbToDoc(data[0]);
+        setDocuments(prev => prev.map(d => d.id === newDoc.id ? { ...persisted, fileBlob: newDoc.fileBlob || null } : d));
+      }
     } catch (err) {
       console.error('Error guardando en Supabase:', err);
       setError(err.message);

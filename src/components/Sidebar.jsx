@@ -1,4 +1,4 @@
-export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, documents = [], circularesCount = 0 }) {
+export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, documents = [], circularesCount = 0, unreadSharedCount = 0 }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
@@ -74,6 +74,7 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
           >
             <i className="ph-bold ph-globe"></i>
             <span>Compartidos con Todos</span>
+            {unreadSharedCount > 0 && <span className="whatsapp-badge">{unreadSharedCount}</span>}
           </button>
 
           <button 

@@ -42,14 +42,14 @@ export default function DocumentTable({ documents, onView, onDownload, onDelete,
         </thead>
         <tbody>
           {documents.map(doc => {
-            const isUnread = doc.folder === 'institucional' && doc.teacher !== currentUserName && !readCircularIds.includes(doc.id);
+            const isUnread = (Boolean(doc.isPublic) || doc.folder === 'institucional') && doc.teacher !== currentUserName && !readCircularIds.includes(doc.id);
             return (
               <tr key={doc.id} className={isUnread ? 'row-unread' : ''}>
                 <td><code>{doc.id}</code></td>
                 <td>
                   <strong>{doc.title}</strong>
                   {isUnread && (
-                    <span className="tag-unread-dot" style={{ marginLeft: '8px' }} title="Circular pendiente de lectura">
+                    <span className="tag-unread-dot" style={{ marginLeft: '8px' }} title="Documento o circular pendiente de revisión">
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span>
                       Sin leer
                     </span>
