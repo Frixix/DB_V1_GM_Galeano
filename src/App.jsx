@@ -10,6 +10,8 @@ import ViewModal from './components/ViewModal';
 import UploadModal from './components/UploadModal';
 import TourSpotlight from './components/TourSpotlight';
 import { useDocuments } from './hooks/useDocuments';
+import { useCircularReads } from './hooks/useCircularReads';
+import { downloadDocumentBlob } from './services/storageService';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -36,37 +38,13 @@ export default function App() {
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
   const { documents, addDocument, deleteDocument } = useDocuments();
-  const [readByUsers, setReadByUsers] = useState(() => {
-    try {
-      const stored = localStorage.getItem('read_circulares_v2');
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  });
+  const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
 
   if (!currentUser) {
     return <Login onLogin={setCurrentUser} />;
   }
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
-  const currentUserKey = `${currentUser.role}_${currentUser.name.replace(/\s+/g, '_').toLowerCase()}`;
-  const readCircularIds = readByUsers[currentUserKey] || [];
-
-  // Marcar una circular específica como leída solo para el usuario actual
-  const markCircularAsRead = (id) => {
-    setReadByUsers(prev => {
-      const currentList = prev[currentUserKey] || [];
-      if (currentList.includes(id)) return prev;
-      const updated = { ...prev, [currentUserKey]: [...currentList, id] };
-      try {
-        localStorage.setItem('read_circulares_v2', JSON.stringify(updated));
-      } catch {
-        // Ignorar
-      }
-      return updated;
-    });
-  };
 
   // Circulares pendientes por leer (independiente por usuario, excluyendo al emisor)
   const unreadCirculares = documents.filter(
@@ -108,7 +86,7 @@ export default function App() {
   };
 
   // Manejador para descargar archivo (también apaga la notificación y el puntito rojo)
-  const handleDownloadDocument = (docOrId) => {
+  const handleDownloadDocument = async (docOrId) => {
     const doc = typeof docOrId === 'object' ? docOrId : documents.find(d => d.id === docOrId);
     if (!doc) return;
 
@@ -116,8 +94,14 @@ export default function App() {
       markCircularAsRead(doc.id);
     }
 
-    if (doc.fileBlob instanceof Blob) {
-      const url = URL.createObjectURL(doc.fileBlob);
+    let downloadBlob = doc.fileBlob instanceof Blob ? doc.fileBlob : null;
+
+    if (!downloadBlob && doc.storageKey) {
+      downloadBlob = await downloadDocumentBlob(doc.storageKey);
+    }
+
+    if (downloadBlob instanceof Blob) {
+      const url = URL.createObjectURL(downloadBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = doc.fileName || `${doc.id}.pdf`;

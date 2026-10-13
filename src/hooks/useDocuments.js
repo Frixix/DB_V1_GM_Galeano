@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { initialDocuments } from '../data/initialDocs';
+import { deleteDocumentFile } from '../services/storageService';
 
 export function mapDbToDoc(row) {
   return {
@@ -130,12 +131,18 @@ export function useDocuments() {
 
   // Eliminar documento
   const deleteDocument = async (id) => {
+    const targetDoc = documents.find(doc => doc.id === id);
+
     // Actualización optimista local inmediata
     setDocuments(prev => prev.filter(doc => doc.id !== id));
 
     if (!isSupabaseConfigured || !supabase) return;
 
     try {
+      if (targetDoc?.storageKey) {
+        await deleteDocumentFile(targetDoc.storageKey);
+      }
+
       const { error: deleteErr } = await supabase
         .from('documents')
         .delete()

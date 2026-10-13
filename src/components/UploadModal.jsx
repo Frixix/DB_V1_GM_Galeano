@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatBytes, formatDateTime, generateRadicado } from '../utils/format';
 import { compressFileIfNeeded } from '../utils/compression';
+import { uploadDocumentFile } from '../services/storageService';
 
 export default function UploadModal({ 
   isOpen, 
@@ -98,7 +99,7 @@ export default function UploadModal({
     setErrorMessage('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedFile) {
@@ -111,33 +112,56 @@ export default function UploadModal({
       return;
     }
 
-    const radicado = generateRadicado(existingCount);
-    const rawBytes = selectedFile.size;
-    const finalSize = compressedInfo?.compressedBytes || rawBytes;
+    setIsProcessing(true);
+    setErrorMessage('');
 
-    const newDoc = {
-      id: radicado,
-      title: title.trim(),
-      folder,
-      grade: folder === 'boveda' ? 'Directivo' : grade,
-      subject: folder === 'boveda' ? 'Directiva' : subject,
-      teacher: currentUser.name,
-      period,
-      isPublic: Boolean(isPublic) || folder === 'institucional',
-      fileName: compressedInfo?.fileName || selectedFile.name,
-      fileSize: formatBytes(rawBytes),
-      compressedSize: compressedInfo?.isCompressed ? formatBytes(finalSize) : null,
-      rawBytes: finalSize,
-      ratio: compressedInfo?.ratio || null,
-      isCompressed: Boolean(compressedInfo?.isCompressed),
-      uploadedAt: formatDateTime(),
-      notes: notes.trim(),
-      ...(folder === 'boveda' ? { bovedaYear, bovedaSubfolder } : {}),
-      fileBlob: compressedInfo?.file || selectedFile,
-    };
+    try {
+      const radicado = generateRadicado(existingCount);
+      const rawBytes = selectedFile.size;
+      const fileToUpload = compressedInfo?.file || selectedFile;
+      const finalSize = compressedInfo?.compressedBytes || rawBytes;
 
-    onUploadSuccess(newDoc);
-    handleClose();
+      // Subir archivo al bucket de Supabase Storage
+      const { storageKey, error: uploadErr } = await uploadDocumentFile(
+        fileToUpload,
+        folder,
+        radicado
+      );
+
+      if (uploadErr) {
+        console.warn('Continuando con radicación local/metadatos tras advertencia en Storage:', uploadErr);
+      }
+
+      const newDoc = {
+        id: radicado,
+        title: title.trim(),
+        folder,
+        grade: folder === 'boveda' ? 'Directivo' : grade,
+        subject: folder === 'boveda' ? 'Directiva' : subject,
+        teacher: currentUser.name,
+        period,
+        isPublic: Boolean(isPublic) || folder === 'institucional',
+        fileName: compressedInfo?.fileName || selectedFile.name,
+        fileSize: formatBytes(rawBytes),
+        compressedSize: compressedInfo?.isCompressed ? formatBytes(finalSize) : null,
+        rawBytes: finalSize,
+        ratio: compressedInfo?.ratio || null,
+        isCompressed: Boolean(compressedInfo?.isCompressed),
+        uploadedAt: formatDateTime(),
+        notes: notes.trim(),
+        ...(folder === 'boveda' ? { bovedaYear, bovedaSubfolder } : {}),
+        storageKey: storageKey || null,
+        fileBlob: fileToUpload,
+      };
+
+      onUploadSuccess(newDoc);
+      handleClose();
+    } catch (err) {
+      console.error('Error durante la subida:', err);
+      setErrorMessage('Error al radicar el documento. Por favor intente nuevamente.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleClose = () => {
