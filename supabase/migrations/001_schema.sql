@@ -1,9 +1,9 @@
 -- ========================================================
 -- SISTEMA DOCUMENTAL — GIMNASIO MARTIN GALEANO
--- Migración 001: Esquema de Documentos y Políticas
+-- Migracion 001: Esquema de Documentos y Politicas
 -- ========================================================
 
--- 1. Secuencia y Función para Radicado Automático Institucional
+-- 1. Secuencia y Funcion para Radicado Automatico
 create sequence if not exists radicado_seq start 6;
 
 create or replace function next_radicado() returns text as $$
@@ -12,7 +12,7 @@ begin
 end;
 $$ language plpgsql;
 
--- 2. Creación de la Tabla Principal de Documentos
+-- 2. Tabla de Documentos
 create table if not exists documents (
   id text primary key default next_radicado(),
   title text not null,
@@ -36,26 +36,31 @@ create table if not exists documents (
   created_at timestamptz default now()
 );
 
--- 3. Habilitar Seguridad por Filas (Row Level Security - RLS)
+-- 3. Habilitar Seguridad RLS y Politicas Idempotentes
 alter table documents enable row level security;
 
--- Políticas de acceso para clientes autorizados (Anon y Authenticated)
-create policy "Lectura de documentos" on documents
-  for select using (true);
+drop policy if exists "Lectura de documentos" on documents;
+create policy "Lectura de documentos" on documents for select using (true);
 
-create policy "Inserción de documentos" on documents
-  for insert with check (true);
+drop policy if exists "Insercion de documentos" on documents;
+create policy "Insercion de documentos" on documents for insert with check (true);
 
-create policy "Actualización de documentos" on documents
-  for update using (true);
+drop policy if exists "Actualizacion de documentos" on documents;
+create policy "Actualizacion de documentos" on documents for update using (true);
 
-create policy "Eliminación de documentos" on documents
-  for delete using (true);
+drop policy if exists "Eliminacion de documentos" on documents;
+create policy "Eliminacion de documentos" on documents for delete using (true);
 
--- 4. Habilitar Supabase Realtime para notificaciones en vivo
-alter publication supabase_realtime add table documents;
+-- 4. Soporte para Realtime en Supabase
+do $$ 
+begin
+  alter publication supabase_realtime add table documents;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end $$;
 
--- 5. Semillas de Datos Iniciales (Evita duplicados con ON CONFLICT)
+-- 5. Datos Iniciales
 insert into documents (
   id, title, folder, grade, subject, teacher, period, is_public,
   file_name, file_size, compressed_size, raw_bytes, ratio, is_compressed,
@@ -83,7 +88,7 @@ insert into documents (
 ),
 (
   'MG-PRI-002',
-  '📢 Circular N° 01: Inicio de Bimestre y Directrices Institucionales',
+  'Circular N 01: Inicio de Bimestre y Directrices Institucionales',
   'institucional',
   'General',
   'Institucional',
@@ -143,7 +148,7 @@ insert into documents (
 ),
 (
   'MG-BOV-001',
-  'Acta Ordinaria N° 01 - Consejo Directivo 2026',
+  'Acta Ordinaria N 01 - Consejo Directivo 2026',
   'boveda',
   'Directivo',
   'Directiva',
