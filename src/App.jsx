@@ -9,7 +9,7 @@ import BovedaAuthModal from './components/BovedaAuthModal';
 import ViewModal from './components/ViewModal';
 import UploadModal from './components/UploadModal';
 import TourSpotlight from './components/TourSpotlight';
-import { initialDocuments } from './data/initialDocs';
+import { useDocuments } from './hooks/useDocuments';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -35,7 +35,7 @@ export default function App() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
-  const [documents, setDocuments] = useState(initialDocuments);
+  const { documents, addDocument, deleteDocument } = useDocuments();
   const [readByUsers, setReadByUsers] = useState(() => {
     try {
       const stored = localStorage.getItem('read_circulares_v2');
@@ -148,7 +148,7 @@ export default function App() {
       : `¿Está seguro de eliminar el registro ${id}?`;
 
     if (window.confirm(confirmMessage)) {
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
+      deleteDocument(id);
       if (selectedDocForView?.id === id) {
         setIsViewModalOpen(false);
       }
@@ -157,7 +157,7 @@ export default function App() {
 
   // Manejador para registrar nuevo documento
   const handleUploadSuccess = (newDoc) => {
-    setDocuments(prev => [newDoc, ...prev]);
+    addDocument(newDoc);
   };
 
   const filteredDocs = documents.filter(doc => {
