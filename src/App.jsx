@@ -9,6 +9,7 @@ import BovedaAuthModal from './components/BovedaAuthModal';
 import ViewModal from './components/ViewModal';
 import UploadModal from './components/UploadModal';
 import ProfileModal from './components/ProfileModal';
+import BovedaPasswordModal from './components/BovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
@@ -30,6 +31,7 @@ export default function App() {
   // Estados específicos de la Bóveda
   const [isBovedaUnlocked, setIsBovedaUnlocked] = useState(false);
   const [isBovedaModalOpen, setIsBovedaModalOpen] = useState(false);
+  const [isChangeBovedaModalOpen, setIsChangeBovedaModalOpen] = useState(false);
   const [bovedaYear, setBovedaYear] = useState('all');
   const [bovedaSubfolder, setBovedaSubfolder] = useState('all');
 
@@ -249,10 +251,36 @@ export default function App() {
           {currentFolder === 'boveda' && (
             <section className="boveda-controls">
               <div className="boveda-banner">
-                <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
-                <div>
-                  <h3>Bóveda Directiva de Alta Capacidad</h3>
-                  <p>Archivos institucionales organizados por año y subcarpeta.</p>
+                <div className="boveda-banner-left">
+                  <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
+                  <div>
+                    <h3>Bóveda Directiva de Alta Capacidad</h3>
+                    <p>Archivos institucionales organizados por año y subcarpeta (Doble acceso independiente activo).</p>
+                  </div>
+                </div>
+
+                <div className="boveda-banner-actions">
+                  <button 
+                    type="button" 
+                    className="btn btn-boveda-action"
+                    onClick={() => setIsChangeBovedaModalOpen(true)}
+                    title="Cambiar clave de acceso a la Bóveda (Doble llave concurrente)"
+                  >
+                    <i className="ph-bold ph-key"></i>
+                    <span>Cambiar Clave de Bóveda</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-boveda-lock"
+                    onClick={() => {
+                      setIsBovedaUnlocked(false);
+                      setCurrentFolder('all');
+                    }}
+                    title="Bloquear y salir de la Bóveda"
+                  >
+                    <i className="ph-bold ph-lock-key"></i>
+                    <span>Bloquear Bóveda</span>
+                  </button>
                 </div>
               </div>
               <div className="boveda-filters-row">
@@ -363,6 +391,16 @@ export default function App() {
         onProfileUpdated={(userKey) => {
           // Si el usuario actual actualiza su contraseña, mantenemos la sesión sincronizada
           console.log(`Credenciales institucionales actualizadas para: ${userKey}`);
+        }}
+      />
+
+      {/* Modal para Modificar Clave de la Bóveda (Doble llave concurrente) */}
+      <BovedaPasswordModal 
+        isOpen={isChangeBovedaModalOpen}
+        onClose={() => setIsChangeBovedaModalOpen(false)}
+        currentUser={currentUser}
+        onPasswordChanged={() => {
+          console.log('Clave de Bóveda actualizada exitosamente.');
         }}
       />
 

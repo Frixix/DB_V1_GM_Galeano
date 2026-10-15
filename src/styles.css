@@ -542,6 +542,14 @@ body {
 .boveda-banner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.boveda-banner-left {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
@@ -566,6 +574,56 @@ body {
 .boveda-banner p {
   font-size: 0.775rem;
   color: var(--text-muted);
+}
+
+.boveda-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-boveda-action {
+  background: #0f172a;
+  color: #ffffff;
+  border: 1px solid #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-boveda-action:hover {
+  background: #1e293b;
+  border-color: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-boveda-lock {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-boveda-lock:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+  transform: translateY(-1px);
 }
 
 .boveda-filters-row {
@@ -1871,4 +1929,163 @@ select {
   background: linear-gradient(135deg, #0f172a 0%, #020617 100%) !important;
   border-color: #d97706;
   transform: translateY(-1px);
+}
+
+/* =========================================================
+   MODAL DE SEGURIDAD DE LA BÓVEDA — DOBLE LLAVE
+   ========================================================= */
+
+.modal-boveda-password {
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 14px;
+}
+
+.modal-header-boveda {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-bottom: 2px solid #0284c7;
+}
+
+.modal-header-boveda h3 {
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.modal-header-boveda p {
+  color: #94a3b8;
+}
+
+.modal-header-boveda .btn-close {
+  color: #94a3b8;
+}
+
+.modal-header-boveda .btn-close:hover {
+  color: #ffffff;
+}
+
+.boveda-dual-key-banner {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.dual-key-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.dual-key-header i {
+  color: #0284c7;
+  font-size: 1.15rem;
+}
+
+.dual-key-desc {
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.4;
+  margin: 0 0 10px 0;
+}
+
+.dual-key-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .dual-key-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dual-key-badge-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.dual-key-badge-card.active-target {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.dual-key-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.dual-key-badge-card strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.dual-key-badge-card span {
+  font-size: 0.73rem;
+  color: #64748b;
+}
+
+.key-role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 500px) {
+  .key-role-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-key-selector {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.btn-key-selector:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.btn-key-selector.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.btn-key-selector.active i {
+  color: #38bdf8;
 }

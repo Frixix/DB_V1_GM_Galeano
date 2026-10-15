@@ -1,4 +1,4 @@
-import { USERS } from '../data/users.js';
+import { USERS, BOVEDA_PASSWORD } from '../data/users.js';
 import { obfuscatePassword, deobfuscatePassword } from '../utils/security.js';
 
 const STORAGE_VAULT_KEY = 'gm_galeano_auth_sec_vault';
@@ -145,3 +145,127 @@ export function changeUserPassword(userKey, currentPassword, newPassword) {
     updatedAt: creds[userKey].updatedAt,
   };
 }
+
+// =====================================================================
+// GESTIÓN DE SEGURIDAD DE LA BÓVEDA (DOBLE CONTRASEÑA CONCURRENTE)
+// =====================================================================
+
+/**
+ * Obtiene las contraseñas activas y descifradas para acceder a la Bóveda.
+ * Soporta dos llaves concurrentes: la de Rectoría y la de Administración.
+ */
+export function getBovedaCredentials() {
+  const creds = getStoredCredentials();
+  const bovedaData = creds.boveda || {};
+
+  // Llave de Administración (por defecto 'boveda2026' o personalizada)
+  let adminPass = BOVEDA_PASSWORD;
+  if (bovedaData.adminCipher) {
+    const dec = deobfuscatePassword(bovedaData.adminCipher);
+    if (dec) adminPass = dec;
+  }
+
+  // Llave de Rectoría (por defecto 'boveda2026' o la personalizada que modifique la rectora)
+  let rectoraPass = BOVEDA_PASSWORD;
+  if (bovedaData.rectoraCipher) {
+    const dec = deobfuscatePassword(bovedaData.rectoraCipher);
+    if (dec) rectoraPass = dec;
+  }
+
+  return {
+    adminPass,
+    rectoraPass,
+    isAdminCustom: Boolean(bovedaData.isAdminCustom),
+    isRectoraCustom: Boolean(bovedaData.isRectoraCustom),
+    adminUpdatedAt: bovedaData.adminUpdatedAt || null,
+    rectoraUpdatedAt: bovedaData.rectoraUpdatedAt || null,
+  };
+}
+
+/**
+ * Verifica si la clave ingresada coincide con CUALQUIERA de las dos llaves
+ * autorizadas de la Bóveda (la del Administrador o la de la Rectora).
+ */
+export function verifyBovedaPassword(inputPassword) {
+  if (!inputPassword || typeof inputPassword !== 'string') {
+    return { valid: false, error: 'Ingrese una contraseña válida.' };
+  }
+
+  const cleanInput = inputPassword.trim();
+  const { adminPass, rectoraPass } = getBovedaCredentials();
+
+  if (cleanInput === rectoraPass) {
+    return { valid: true, unlockedBy: 'rectora' };
+  }
+
+  if (cleanInput === adminPass) {
+    return { valid: true, unlockedBy: 'admin' };
+  }
+
+  return { valid: false, error: 'Clave de seguridad incorrecta. Acceso a la bóveda denegado.' };
+}
+
+/**
+ * Permite cambiar la clave de la Bóveda (solo accesible una vez dentro de la Bóveda).
+ * Permite actualizar la clave según el perfil solicitante (rectora o admin),
+ * manteniendo activas ambas llaves de forma concurrente.
+ */
+export function changeBovedaPassword({ keyRole = 'rectora', currentAuthPassword, newPassword, currentUser }) {
+  const cleanNew = (newPassword || '').trim();
+  if (cleanNew.length < 5) {
+    throw new Error('La nueva clave de la Bóveda debe tener al menos 5 caracteres.');
+  }
+
+  const { adminPass, rectoraPass } = getBovedaCredentials();
+  const cleanAuth = (currentAuthPassword || '').trim();
+
+  // Validación de autorización:
+  // Puede autorizarse con la clave actual de bóveda (rectora o admin) o con la clave institucional del usuario
+  const isAuthByBoveda = cleanAuth === rectoraPass || cleanAuth === adminPass;
+  let isAuthByUser = false;
+  if (currentUser) {
+    const userKey = resolveUserKey(currentUser);
+    if (userKey && verifyCredentials(userKey, cleanAuth)) {
+      isAuthByUser = true;
+    }
+  }
+
+  if (!isAuthByBoveda && !isAuthByUser) {
+    throw new Error('La contraseña de autorización ingresada es incorrecta.');
+  }
+
+  if (keyRole === 'rectora' && cleanNew === rectoraPass) {
+    throw new Error('La nueva clave de la Bóveda debe ser diferente a la clave actual de Rectoría.');
+  }
+  if (keyRole === 'admin' && cleanNew === adminPass) {
+    throw new Error('La nueva clave de la Bóveda debe ser diferente a la clave actual de Administración.');
+  }
+
+  // Ofuscar con algoritmo interno de la app (nunca guardada en texto plano)
+  const obfuscatedCipher = obfuscatePassword(cleanNew);
+
+  const creds = getStoredCredentials();
+  if (!creds.boveda) {
+    creds.boveda = {};
+  }
+
+  const now = new Date().toISOString();
+  if (keyRole === 'admin') {
+    creds.boveda.adminCipher = obfuscatedCipher;
+    creds.boveda.isAdminCustom = true;
+    creds.boveda.adminUpdatedAt = now;
+  } else {
+    creds.boveda.rectoraCipher = obfuscatedCipher;
+    creds.boveda.isRectoraCustom = true;
+    creds.boveda.rectoraUpdatedAt = now;
+  }
+
+  saveStoredCredentials(creds);
+
+  return {
+    success: true,
+    message: `Clave de Bóveda para ${keyRole === 'admin' ? 'Administrador' : 'Rectoría'} actualizada y protegida con éxito. Ambas llaves permanecen aceptadas concurrentemente.`,
+    updatedAt: now,
+  };
+}
+

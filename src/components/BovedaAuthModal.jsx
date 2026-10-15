@@ -1,17 +1,26 @@
 import { useState } from 'react';
+import { verifyBovedaPassword, getBovedaCredentials } from '../services/authService';
 
 export default function BovedaAuthModal({ isOpen, onClose, onSuccess }) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
+  const { isRectoraCustom, isAdminCustom } = getBovedaCredentials();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (password.trim() === 'boveda2026') {
+    setErrorMessage('');
+
+    const res = verifyBovedaPassword(password);
+    if (res.valid) {
       setPassword('');
+      setErrorMessage('');
       onSuccess(); // Desbloquea la bóveda
     } else {
-      alert('❌ Clave de seguridad incorrecta. Acceso a la bóveda denegado.');
+      setErrorMessage(res.error || '❌ Clave de seguridad incorrecta. Acceso a la bóveda denegado.');
       setPassword('');
     }
   };
@@ -26,29 +35,60 @@ export default function BovedaAuthModal({ isOpen, onClose, onSuccess }) {
             </div>
             <div>
               <h3>Bóveda de Archivos Confidencial</h3>
-              <p>Acceso restringido para Rectoría y Administrador</p>
+              <p>Doble acceso independiente • Rectoría & Administrador</p>
             </div>
           </div>
           <button className="btn-close" onClick={onClose}><i className="ph-bold ph-x"></i></button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <p style={{ fontSize: '0.85rem', color: '#475569' }}>
-            Esta área contiene archivos directivos de hasta 2 GB organizados por años y subcarpetas. Ingrese la clave para acceder:
+          <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.4 }}>
+            Esta área contiene archivos directivos de alta seguridad (hasta 2 GB). Ingrese la clave institucional para acceder:
           </p>
+
+          {errorMessage && (
+            <div className="alert-box alert-error" style={{ margin: 0, padding: '0.65rem 0.85rem' }}>
+              <i className="ph-bold ph-warning-circle"></i>
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="bovedaPassword">Clave de Seguridad de la Bóveda</label>
-            <input 
-              type="password" 
-              id="bovedaPassword" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Ingrese clave de bóveda" 
-              required 
-              autoFocus
-            />
-            <small className="helper-text">Clave de acceso: <code>boveda2026</code></small>
+            <div className="input-with-action">
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                id="bovedaPassword" 
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errorMessage) setErrorMessage('');
+                }}
+                placeholder="Ingrese clave de bóveda" 
+                required 
+                autoFocus
+              />
+              <button
+                type="button"
+                className="btn-toggle-visibility"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Ocultar' : 'Mostrar'}
+                tabIndex={-1}
+              >
+                <i className={`ph-bold ${showPassword ? 'ph-eye-slash' : 'ph-eye'}`}></i>
+              </button>
+            </div>
+            <small className="helper-text" style={{ marginTop: '6px' }}>
+              {isRectoraCustom ? (
+                <span style={{ color: '#059669', fontWeight: 600 }}>
+                  🔒 Rectoría cuenta con clave personalizada activa. (Se acepta la clave de la Rectora o la del Administrador).
+                </span>
+              ) : (
+                <>
+                  Sistema de doble llave aceptada: clave institucional de Rectoría o Administrador (inicial: <code>boveda2026</code>).
+                </>
+              )}
+            </small>
           </div>
 
           <div className="modal-footer" style={{ padding: 0, marginTop: '0.5rem' }}>
