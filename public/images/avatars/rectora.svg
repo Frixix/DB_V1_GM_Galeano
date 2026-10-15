@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <clipPath id="circleClip">
+      <circle cx="100" cy="100" r="94"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fondo circular oscuro institucional -->
+  <circle cx="100" cy="100" r="98" fill="url(#goldGrad)" />
+  <circle cx="100" cy="100" r="94" fill="url(#bgGrad)" />
+
+  <g clip-path="url(#circleClip)">
+    <!-- Silueta estilizada de Directiva / Rectora -->
+    <!-- Ropa / Traje institucional azul oscuro -->
+    <path d="M 40 200 C 40 150, 70 140, 100 140 C 130 140, 160 150, 160 200 Z" fill="#334155" />
+    <path d="M 75 140 L 100 175 L 125 140 L 115 200 L 85 200 Z" fill="#ffffff" opacity="0.9" />
+    <path d="M 94 150 L 100 162 L 106 150 L 102 200 L 98 200 Z" fill="#d97706" />
+
+    <!-- Cuello -->
+    <path d="M 88 120 L 112 120 L 110 145 L 90 145 Z" fill="#fed7aa" />
+
+    <!-- Rostro -->
+    <ellipse cx="100" cy="98" rx="28" ry="32" fill="#fed7aa" />
+
+    <!-- Cabello estilizado castaño/oscuro -->
+    <path d="M 68 95 C 68 62, 80 50, 100 50 C 120 50, 132 62, 132 95 C 132 120, 126 128, 126 128 C 120 108, 122 75, 100 75 C 78 75, 80 108, 74 128 C 74 128, 68 120, 68 95 Z" fill="#451a03" />
+
+    <!-- Detalles del rostro -->
+    <circle cx="89" cy="98" r="3" fill="#1e293b" />
+    <circle cx="111" cy="98" r="3" fill="#1e293b" />
+    <!-- Sonrisa amable -->
+    <path d="M 93 112 Q 100 118 107 112" stroke="#ea580c" stroke-width="2" fill="none" stroke-linecap="round" />
+  </g>
+
+  <!-- Corona dorada superior -->
+  <g transform="translate(100, 28) scale(0.75)">
+    <path d="M -24 0 L -30 -22 L -12 -12 L 0 -28 L 12 -12 L 30 -22 L 24 0 Z" fill="url(#goldGrad)" stroke="#78350f" stroke-width="1.5" />
+    <circle cx="-30" cy="-22" r="3" fill="#fbbf24" />
+    <circle cx="0" cy="-28" r="3.5" fill="#fef08a" />
+    <circle cx="30" cy="-22" r="3" fill="#fbbf24" />
+  </g>
+
+  <!-- Borde dorado sutil -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="url(#goldGrad)" stroke-width="3" />
+</svg>

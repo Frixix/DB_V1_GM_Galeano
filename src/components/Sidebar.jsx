@@ -57,7 +57,15 @@ export default function Sidebar({
               onClick={() => onTeacherSelect('Claudia (Rectora)')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="ph-bold ph-crown" style={{ color: '#d97706' }}></i>
+                <div className="teacher-avatar-mini">
+                  <img 
+                    src="/images/avatars/rectora.svg" 
+                    alt="Claudia" 
+                    className="teacher-avatar-img"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
+                  />
+                  <i className="ph-bold ph-crown" style={{ color: '#d97706', display: 'none' }}></i>
+                </div>
                 <span>Claudia (Rectora)</span>
               </div>
               {onOpenProfile && (

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Escudo Institucional Gimnasio Martin Galeano -->
+  <path d="M 100 15 C 145 15, 175 35, 175 80 C 175 140, 135 175, 100 190 C 65 175, 25 140, 25 80 C 25 35, 55 15, 100 15 Z" 
+        fill="url(#shieldGrad)" stroke="url(#goldBorder)" stroke-width="6" />
+
+  <path d="M 100 25 C 138 25, 163 42, 163 80 C 163 132, 128 163, 100 176 C 72 163, 37 132, 37 80 C 37 42, 62 25, 100 25 Z" 
+        fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+
+  <!-- Birrete superior -->
+  <g transform="translate(100, 62) scale(0.9)">
+    <path d="M 0 -22 L 40 -8 L 0 6 L -40 -8 Z" fill="#fbbf24" stroke="#92400e" stroke-width="2" />
+    <path d="M -22 0 L -22 14 Q 0 24 22 14 L 22 0 Z" fill="#d97706" />
+    <path d="M 28 -4 L 38 6 L 38 22" stroke="#fbbf24" stroke-width="2" fill="none" />
+    <circle cx="38" cy="22" r="3" fill="#fef08a" />
+  </g>
+
+  <!-- Libro abierto central -->
+  <g transform="translate(100, 115) scale(0.85)">
+    <!-- Páginas -->
+    <path d="M 0 0 C 15 -10, 35 -10, 50 -6 L 50 24 C 35 20, 15 20, 0 30 C -15 20, -35 20, -50 24 L -50 -6 C -35 -10, -15 -10, 0 0 Z" 
+          fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+    <!-- Líneas de texto simbólicas -->
+    <line x1="8" y1="4" x2="40" y2="2" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+    <line x1="8" y1="12" x2="36" y2="10" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-8" y1="4" x2="-40" y2="2" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-8" y1="12" x2="-36" y2="10" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Iniciales MG -->
+  <text x="100" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="16" fill="#fbbf24" letter-spacing="3">
+    M • G
+  </text>
+</svg>

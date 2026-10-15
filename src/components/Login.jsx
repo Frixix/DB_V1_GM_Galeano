@@ -33,7 +33,13 @@ export default function Login({ onLogin }) {
         
         <div className="login-brand">
           <div className="brand-icon-lg">
-            <i className="ph-bold ph-graduation-cap"></i>
+            <img 
+              src="/images/logos/logo.svg" 
+              alt="Logo Gimnasio Martin Galeano" 
+              className="brand-logo-img-lg"
+              onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'block'; }}
+            />
+            <i className="ph-bold ph-graduation-cap" style={{ display: 'none' }}></i>
           </div>
           <h2>Gimnasio Martin Galeano</h2>
           <p>Módulo Documental • Básica Primaria</p>

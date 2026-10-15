@@ -113,7 +113,17 @@ export default function ProfileModal({ isOpen, onClose, currentUser, onProfileUp
           {/* Tarjeta de Identidad y Rol */}
           <div className="profile-identity-card">
             <div className="profile-avatar-large">
-              <span className="profile-avatar-initial">{currentUser.initial}</span>
+              {currentUser.avatar ? (
+                <img 
+                  src={currentUser.avatar} 
+                  alt={currentUser.name} 
+                  className="profile-avatar-img-lg"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'flex'; }}
+                />
+              ) : null}
+              <span className="profile-avatar-initial" style={{ display: currentUser.avatar ? 'none' : 'flex' }}>
+                {currentUser.initial}
+              </span>
               {isRectora && <span className="profile-crown-badge">👑</span>}
             </div>
             <div className="profile-identity-details">

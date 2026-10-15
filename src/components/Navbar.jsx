@@ -18,7 +18,13 @@ export default function Navbar({
 
         <div className="nav-brand">
           <div className="brand-icon">
-            <i className="ph-bold ph-graduation-cap"></i>
+            <img 
+              src="/images/logos/logo.svg" 
+              alt="Logo" 
+              className="brand-logo-img"
+              onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'block'; }}
+            />
+            <i className="ph-bold ph-graduation-cap" style={{ display: 'none' }}></i>
           </div>
           <div>
             <h1>Gimnasio Martin Galeano</h1>
@@ -56,7 +62,17 @@ export default function Navbar({
           }}
         >
           <div className={`user-avatar ${isRectora ? 'avatar-rectora-chip' : ''}`}>
-            {currentUser.initial}
+            {currentUser.avatar ? (
+              <img 
+                src={currentUser.avatar} 
+                alt={currentUser.name}
+                className="user-avatar-img"
+                onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'flex'; }}
+              />
+            ) : null}
+            <span className="user-avatar-initial" style={{ display: currentUser.avatar ? 'none' : 'flex' }}>
+              {currentUser.initial}
+            </span>
             {isRectora && <span className="avatar-chip-crown">👑</span>}
           </div>
           <div className="user-info">
