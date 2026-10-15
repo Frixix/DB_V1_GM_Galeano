@@ -1492,3 +1492,383 @@ select {
   .breadcrumb-container { flex-direction: column; align-items: flex-start; gap: 8px; }
   .tour-box { width: 94%; padding: 1.25rem; }
 }
+
+/* =========================================================
+   PANEL DE PERFIL Y SEGURIDAD — RECTORÍA & USUARIOS
+   ========================================================= */
+
+.user-chip-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.user-chip-clickable:hover {
+  background-color: var(--surface-hover, #f1f5f9);
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.user-chip-clickable:active {
+  transform: translateY(0);
+}
+
+.user-chip-icon-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-left: 2px;
+  transition: transform 0.25s ease, color 0.2s ease;
+}
+
+.user-chip-clickable:hover .user-chip-icon-hint {
+  color: var(--primary);
+  transform: rotate(30deg);
+}
+
+.avatar-rectora-chip {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1.5px solid #d97706;
+  position: relative;
+}
+
+.avatar-chip-crown {
+  position: absolute;
+  top: -6px;
+  right: -5px;
+  font-size: 0.72rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.teacher-rectora-btn {
+  justify-content: space-between !important;
+}
+
+.sidebar-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-profile-badge:hover {
+  background-color: #d97706;
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+/* Modal de Perfil */
+.modal-profile {
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 14px;
+}
+
+.modal-header-profile {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-bottom: 2px solid #d97706;
+}
+
+.modal-header-profile h3 {
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.modal-header-profile p {
+  color: #94a3b8;
+}
+
+.modal-header-profile .btn-close {
+  color: #94a3b8;
+}
+
+.modal-header-profile .btn-close:hover {
+  color: #ffffff;
+}
+
+.profile-avatar-rectora {
+  background: #d97706 !important;
+  color: #ffffff !important;
+}
+
+.modal-body-profile {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-identity-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.15rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.profile-avatar-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 2px solid #d97706;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.profile-crown-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.15rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.profile-identity-details h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text-main, #0f172a);
+}
+
+.profile-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+}
+
+.profile-institution-text {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.profile-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.profile-features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.profile-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0.75rem 0.9rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+
+.profile-feature-item .feature-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: #e2e8f0;
+  color: #334155;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.profile-feature-item .feature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-feature-item strong {
+  color: #0f172a;
+}
+
+.profile-feature-item span {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+/* Banners de estado de seguridad */
+.security-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.security-status-banner.secure {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.security-status-banner.warning {
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  color: #92400e;
+}
+
+.security-status-banner .status-icon {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.security-status-banner .status-text strong {
+  display: block;
+  font-size: 0.86rem;
+  margin-bottom: 4px;
+}
+
+.security-status-banner .status-text p {
+  font-size: 0.79rem;
+  line-height: 1.35;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.security-status-banner .status-date {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  opacity: 0.8;
+}
+
+/* Alertas de formulario */
+.alert-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+  line-height: 1.35;
+}
+
+.alert-box.alert-success {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.alert-box.alert-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+/* Formulario de contraseña */
+.password-change-form {
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.input-with-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-action input {
+  width: 100%;
+  padding-right: 2.4rem;
+}
+
+.btn-toggle-visibility {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.btn-toggle-visibility:hover {
+  color: #0f172a;
+}
+
+.form-row-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .form-row-two {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-form-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-save-password {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #334155;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  padding: 0.65rem 1.15rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.btn-save-password:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0f172a 0%, #020617 100%) !important;
+  border-color: #d97706;
+  transform: translateY(-1px);
+}

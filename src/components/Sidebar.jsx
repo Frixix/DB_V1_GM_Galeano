@@ -1,4 +1,14 @@
-export default function Sidebar({ currentUser, currentFolder, onFolderSelect, currentTeacher, onTeacherSelect, documents = [], circularesCount = 0, unreadSharedCount = 0 }) {
+export default function Sidebar({ 
+  currentUser, 
+  currentFolder, 
+  onFolderSelect, 
+  currentTeacher, 
+  onTeacherSelect, 
+  documents = [], 
+  circularesCount = 0, 
+  unreadSharedCount = 0,
+  onOpenProfile
+}) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
@@ -43,11 +53,27 @@ export default function Sidebar({ currentUser, currentFolder, onFolderSelect, cu
               <span>Elcy</span>
             </button>
             <button 
-              className={`teacher-btn ${currentTeacher === 'Claudia (Rectora)' ? 'active' : ''}`}
+              className={`teacher-btn teacher-rectora-btn ${currentTeacher === 'Claudia (Rectora)' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Claudia (Rectora)')}
             >
-              <i className="ph-bold ph-crown"></i>
-              <span>Claudia (Rectora)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="ph-bold ph-crown" style={{ color: '#d97706' }}></i>
+                <span>Claudia (Rectora)</span>
+              </div>
+              {onOpenProfile && (
+                <span 
+                  className="sidebar-profile-badge"
+                  title="Abrir perfil institucional y ajustes de la Rectora"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenProfile();
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <i className="ph-bold ph-sliders"></i>
+                </span>
+              )}
             </button>
           </nav>
         </div>

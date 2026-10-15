@@ -1,25 +1,30 @@
 import { useState } from 'react';
 import { USERS } from '../data/users';
+import { verifyCredentials, hasCustomPassword } from '../services/authService';
 
 export default function Login({ onLogin }) {
   const [userKey, setUserKey] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoginError('');
+
     if (!userKey || !USERS[userKey]) {
-      alert("Por favor selecciona un usuario institucional.");
+      setLoginError("Por favor selecciona un usuario institucional.");
       return;
     }
     
     const expectedUser = USERS[userKey];
-    if (password !== expectedUser.pass) {
-      alert(`Contraseña incorrecta para ${expectedUser.name}.`);
+    if (!verifyCredentials(userKey, password)) {
+      setLoginError(`Contraseña incorrecta para ${expectedUser.name}.`);
       setPassword('');
       return;
     }
     
-    onLogin(expectedUser);
+    onLogin({ ...expectedUser, key: userKey });
   };
 
   return (
@@ -54,18 +59,67 @@ export default function Login({ onLogin }) {
             </select>
           </div>
 
+          {loginError && (
+            <div className="login-error-alert" style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#b91c1c',
+              fontSize: '0.82rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <i className="ph-bold ph-warning-circle"></i>
+              <span>{loginError}</span>
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="loginPassword">Contraseña</label>
-            <input 
-              type="password" 
-              id="loginPassword" 
-              placeholder="Ingrese contraseña" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
+            <div className="input-with-action" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                id="loginPassword" 
+                placeholder="Ingrese contraseña" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+                style={{ width: '100%', paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                className="btn-toggle-visibility"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Ocultar' : 'Mostrar'}
+                tabIndex={-1}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  fontSize: '1.1rem',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <i className={`ph-bold ${showPassword ? 'ph-eye-slash' : 'ph-eye'}`}></i>
+              </button>
+            </div>
             <small className="helper-text">
-              Claves: <code>induccionrectora2026</code>, <code>induccion2026</code>, <code>rectora2026</code>, <code>jessica2026</code>, <code>admin2026</code>
+              {userKey && hasCustomPassword(userKey) ? (
+                <span style={{ color: '#059669', fontWeight: 600 }}>
+                  🔒 Este perfil tiene una contraseña personalizada activa y protegida.
+                </span>
+              ) : (
+                <>
+                  Claves iniciales: <code>induccionrectora2026</code>, <code>induccion2026</code>,{' '}
+                  <code>rectora2026</code>, <code>jessica2026</code>, <code>admin2026</code>
+                </>
+              )}
             </small>
           </div>
 

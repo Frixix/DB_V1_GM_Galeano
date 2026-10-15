@@ -8,6 +8,7 @@ import DocumentTable from './components/DocumentTable';
 import BovedaAuthModal from './components/BovedaAuthModal';
 import ViewModal from './components/ViewModal';
 import UploadModal from './components/UploadModal';
+import ProfileModal from './components/ProfileModal';
 import TourSpotlight from './components/TourSpotlight';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
@@ -35,6 +36,7 @@ export default function App() {
   // Modales interactivos
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
   const { documents, addDocument, deleteDocument } = useDocuments();
@@ -220,6 +222,7 @@ export default function App() {
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenCirculares={handleOpenCircularesBell}
         circularesCount={totalUnreadCount}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
       
       <div className="app-layout">
@@ -233,6 +236,7 @@ export default function App() {
             documents={documents}
             circularesCount={unreadCirculares.length}
             unreadSharedCount={unreadSharedDocs.length}
+            onOpenProfile={() => setIsProfileModalOpen(true)}
           />
         </div>
 
@@ -349,6 +353,17 @@ export default function App() {
         onUploadSuccess={handleUploadSuccess}
         existingCount={documents.length}
         initialFolder={currentFolder}
+      />
+
+      {/* Modal de Perfil Institucional y Seguridad */}
+      <ProfileModal 
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        currentUser={currentUser}
+        onProfileUpdated={(userKey) => {
+          // Si el usuario actual actualiza su contraseña, mantenemos la sesión sincronizada
+          console.log(`Credenciales institucionales actualizadas para: ${userKey}`);
+        }}
       />
 
       {/* Guía Interactiva Spotlight */}
