@@ -1,12 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { USERS } from '../data/users';
-import { verifyCredentials, hasCustomPassword } from '../services/authService';
+import { verifyCredentials, hasCustomPassword, syncVaultWithSupabase, subscribeToVaultChanges } from '../services/authService';
 
 export default function Login({ onLogin }) {
   const [userKey, setUserKey] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [, setVaultTick] = useState(0);
+
+  useEffect(() => {
+    // Sincronizar credenciales ofuscadas desde la nube al cargar
+    syncVaultWithSupabase().catch(() => {});
+    
+    // Escuchar cambios en tiempo real si otra pestaña o dispositivo actualiza la bóveda
+    const unsubscribe = subscribeToVaultChanges(() => {
+      setVaultTick((prev) => prev + 1);
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();

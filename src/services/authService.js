@@ -1,5 +1,6 @@
 import { USERS, BOVEDA_PASSWORD } from '../data/users.js';
 import { obfuscatePassword, deobfuscatePassword } from '../utils/security.js';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 
 const STORAGE_VAULT_KEY = 'gm_galeano_auth_sec_vault';
 
@@ -25,6 +26,175 @@ export function saveStoredCredentials(credentials) {
   } catch (err) {
     console.error('Error al guardar credenciales en el almacenamiento:', err);
   }
+}
+
+/**
+ * Sube o actualiza una clave ofuscada individual en la tabla institutional_vault de Supabase
+ */
+export async function upsertVaultKey(userKey, cipher, defaultInvalidated = true, updatedAt = new Date().toISOString()) {
+  if (!isSupabaseConfigured || !supabase || !userKey || !cipher) {
+    return null;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('institutional_vault')
+      .upsert(
+        {
+          user_key: userKey,
+          cipher,
+          default_invalidated: defaultInvalidated,
+          updated_at: updatedAt,
+        },
+        { onConflict: 'user_key' }
+      );
+
+    if (error) {
+      console.warn(`[Vault] Advertencia al sincronizar clave de '${userKey}' en Supabase:`, error);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn(`[Vault] Error de conexión al sincronizar '${userKey}':`, err);
+    return null;
+  }
+}
+
+/**
+ * Sincroniza bidireccionalmente el almacén local con la tabla institutional_vault en Supabase:
+ * 1. Descarga todas las claves ofuscadas de Supabase y las almacena en memoria y localStorage.
+ * 2. Si existen credenciales locales previas que aún no estén en Supabase, las sube automáticamente.
+ */
+export async function syncVaultWithSupabase() {
+  if (!isSupabaseConfigured || !supabase) {
+    return { synced: false, reason: 'Supabase no configurado' };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('institutional_vault')
+      .select('user_key, cipher, default_invalidated, updated_at');
+
+    if (error) {
+      console.warn('[Vault] Error al consultar institutional_vault en Supabase:', error);
+      return { synced: false, error };
+    }
+
+    const creds = getStoredCredentials();
+    let localChanged = false;
+    const remoteKeys = new Set();
+
+    if (Array.isArray(data)) {
+      for (const row of data) {
+        remoteKeys.add(row.user_key);
+
+        if (row.user_key === 'boveda_rectora') {
+          if (!creds.boveda) creds.boveda = {};
+          creds.boveda.rectoraCipher = row.cipher;
+          creds.boveda.isRectoraCustom = true;
+          creds.boveda.rectoraUpdatedAt = row.updated_at;
+          localChanged = true;
+        } else if (row.user_key === 'boveda_admin') {
+          if (!creds.boveda) creds.boveda = {};
+          creds.boveda.adminCipher = row.cipher;
+          creds.boveda.isAdminCustom = true;
+          creds.boveda.adminUpdatedAt = row.updated_at;
+          localChanged = true;
+        } else {
+          creds[row.user_key] = {
+            cipher: row.cipher,
+            defaultInvalidated: row.default_invalidated !== false,
+            updatedAt: row.updated_at,
+          };
+          localChanged = true;
+
+          // Actualizar contraseña en memoria si es descifrable por el motor
+          const deciphered = deobfuscatePassword(row.cipher);
+          if (deciphered && USERS[row.user_key]) {
+            USERS[row.user_key].pass = deciphered;
+          }
+        }
+      }
+    }
+
+    // Migración automática de credenciales locales previas que aún no estén en Supabase
+    const toPush = [];
+    for (const [key, val] of Object.entries(creds)) {
+      if (key === 'boveda') {
+        if (val.rectoraCipher && !remoteKeys.has('boveda_rectora')) {
+          toPush.push({
+            user_key: 'boveda_rectora',
+            cipher: val.rectoraCipher,
+            default_invalidated: true,
+            updated_at: val.rectoraUpdatedAt || new Date().toISOString(),
+          });
+        }
+        if (val.adminCipher && !remoteKeys.has('boveda_admin')) {
+          toPush.push({
+            user_key: 'boveda_admin',
+            cipher: val.adminCipher,
+            default_invalidated: true,
+            updated_at: val.adminUpdatedAt || new Date().toISOString(),
+          });
+        }
+      } else if (val && val.cipher && !remoteKeys.has(key)) {
+        toPush.push({
+          user_key: key,
+          cipher: val.cipher,
+          default_invalidated: Boolean(val.defaultInvalidated),
+          updated_at: val.updatedAt || new Date().toISOString(),
+        });
+      }
+    }
+
+    if (toPush.length > 0) {
+      await supabase.from('institutional_vault').upsert(toPush, { onConflict: 'user_key' });
+    }
+
+    if (localChanged) {
+      saveStoredCredentials(creds);
+    }
+
+    return { synced: true, count: data?.length || 0, migrated: toPush.length };
+  } catch (err) {
+    console.warn('[Vault] Excepción al sincronizar bóveda con Supabase:', err);
+    return { synced: false, error: err };
+  }
+}
+
+/**
+ * Suscripción en tiempo real a cambios en la tabla institutional_vault de Supabase
+ */
+export function subscribeToVaultChanges(callback) {
+  if (!isSupabaseConfigured || !supabase) {
+    return () => {};
+  }
+
+  try {
+    const channel = supabase
+      .channel('institutional_vault_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'institutional_vault' },
+        async (payload) => {
+          await syncVaultWithSupabase();
+          if (callback) callback(payload);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  } catch (err) {
+    console.warn('[Vault] No se pudo activar suscripción en tiempo real:', err);
+    return () => {};
+  }
+}
+
+// Auto-sincronización inicial no bloqueante en navegador
+if (typeof window !== 'undefined') {
+  syncVaultWithSupabase().catch(() => {});
 }
 
 /**
@@ -102,7 +272,7 @@ export function verifyCredentials(userKey, inputPassword) {
  * - Ofusca la nueva contraseña para que no quede legible ni expuesta en el repositorio
  * - Guarda el registro cifrado en el almacén de la aplicación
  */
-export function changeUserPassword(userKey, currentPassword, newPassword) {
+export async function changeUserPassword(userKey, currentPassword, newPassword) {
   if (!userKey || !USERS[userKey]) {
     throw new Error('Usuario institucional no válido.');
   }
@@ -137,6 +307,13 @@ export function changeUserPassword(userKey, currentPassword, newPassword) {
   // 5. Actualizar en memoria para la sesión activa
   if (USERS[userKey]) {
     USERS[userKey].pass = cleanNewPass;
+  }
+
+  // 6. Respaldar en la nube con Supabase de forma segura
+  try {
+    await upsertVaultKey(userKey, obfuscatedCipher, true, creds[userKey].updatedAt);
+  } catch (syncErr) {
+    console.warn('[Vault] No se pudo respaldar de inmediato en Supabase:', syncErr);
   }
 
   return {
@@ -210,7 +387,7 @@ export function verifyBovedaPassword(inputPassword) {
  * Permite actualizar la clave según el perfil solicitante (rectora o admin),
  * manteniendo activas ambas llaves de forma concurrente.
  */
-export function changeBovedaPassword({ keyRole = 'rectora', currentAuthPassword, newPassword, currentUser }) {
+export async function changeBovedaPassword({ keyRole = 'rectora', currentAuthPassword, newPassword, currentUser }) {
   const cleanNew = (newPassword || '').trim();
   if (cleanNew.length < 5) {
     throw new Error('La nueva clave de la Bóveda debe tener al menos 5 caracteres.');
@@ -261,6 +438,18 @@ export function changeBovedaPassword({ keyRole = 'rectora', currentAuthPassword,
   }
 
   saveStoredCredentials(creds);
+
+  // Sincronizar en la nube con Supabase de forma segura
+  try {
+    await upsertVaultKey(
+      keyRole === 'admin' ? 'boveda_admin' : 'boveda_rectora',
+      obfuscatedCipher,
+      true,
+      now
+    );
+  } catch (syncErr) {
+    console.warn('[Vault] No se pudo sincronizar de inmediato la Bóveda con Supabase:', syncErr);
+  }
 
   return {
     success: true,

@@ -37,7 +37,7 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setStatusMessage(null);
     setErrorMessage(null);
@@ -59,7 +59,7 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
 
     setIsSubmitting(true);
     try {
-      const res = changeBovedaPassword({
+      const res = await changeBovedaPassword({
         keyRole: targetKeyRole,
         currentAuthPassword,
         newPassword,

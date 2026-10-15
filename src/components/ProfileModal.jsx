@@ -38,7 +38,7 @@ export default function ProfileModal({ isOpen, onClose, currentUser, onProfileUp
 
   const isRectora = currentUser.role === 'rectora' || currentUser.role === 'induccion_rectora';
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setStatusMessage(null);
     setErrorMessage(null);
@@ -65,7 +65,7 @@ export default function ProfileModal({ isOpen, onClose, currentUser, onProfileUp
 
     setIsSubmitting(true);
     try {
-      const result = changeUserPassword(userKey, currentPassword, newPassword);
+      const result = await changeUserPassword(userKey, currentPassword, newPassword);
       setStatusMessage(
         '¡Contraseña actualizada con éxito! La clave anterior por defecto fue eliminada del sistema y la nueva ha quedado ofuscada de forma segura.'
       );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -14,6 +14,7 @@ import TourSpotlight from './components/TourSpotlight';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
 import { downloadDocumentBlob } from './services/storageService';
+import { syncVaultWithSupabase, subscribeToVaultChanges } from './services/authService';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -43,6 +44,14 @@ export default function App() {
 
   const { documents, addDocument, deleteDocument } = useDocuments();
   const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
+
+  useEffect(() => {
+    syncVaultWithSupabase().catch(() => {});
+    const unsubscribe = subscribeToVaultChanges();
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   if (!currentUser) {
     return <Login onLogin={setCurrentUser} />;
