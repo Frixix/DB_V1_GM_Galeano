@@ -68,9 +68,13 @@ bash
 npm install
 npm run dev
 🔐 Seguridad
-Los permisos los aplica RLS en la base de datos, no la interfaz.
-Los límites de tamaño se revalidan en el servidor.
-Descargas con URL firmada que expira en ~5 minutos.
-Las llaves de R2 y la clave de la bóveda viven solo en el servidor.
+- Las contraseñas nunca se guardan en texto plano en el repositorio ni en la base de datos; viajan ofuscadas bajo el algoritmo criptográfico institucional (`GM_SEC_v1$...`) y se sincronizan con la tabla `institutional_vault` en Supabase.
+- Sistema de doble llave concurrente para la Bóveda Directiva (Rectoría + Respaldo Administrador).
+- Los permisos los aplica RLS en la base de datos, no solo la interfaz.
+- Los límites de tamaño se validan de forma estricta.
+
+📂 Especificaciones y Módulos en Espera
+- 📄 [Módulo "Despacho Rectora - Docentes"](docs/MODULO_RECTORA_DOCENTES.md): Propuesta de arquitectura, flujos bidireccionales y guía de entrevista para la Rectora (en espera de validación directiva).
+
 ⚠️ Pendiente
-Hacer export periódico de la tabla documents (el plan Free de Supabase no incluye backups).
+- Hacer export periódico de la tabla documents (el plan Free de Supabase no incluye backups).
