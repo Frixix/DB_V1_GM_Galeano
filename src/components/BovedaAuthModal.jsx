@@ -81,7 +81,7 @@ export default function BovedaAuthModal({ isOpen, onClose, onSuccess, currentUse
             </div>
             <small className="helper-text" style={{ marginTop: '6px' }}>
               {isAdmin ? (
-                <span style={{ color: '#0284c7', fontWeight: 600 }}>
+                <span style={{ color: '#065f46', fontWeight: 600 }}>
                   ⚙️ Modo Administrador: Sistema de respaldo y doble llave activa.
                 </span>
               ) : isRectoraCustom ? (

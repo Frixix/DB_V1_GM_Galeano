@@ -117,7 +117,7 @@ export default function Login({ onLogin }) {
             </div>
             <small className="helper-text">
               {userKey && hasCustomPassword(userKey) ? (
-                <span style={{ color: '#059669', fontWeight: 600 }}>
+                <span style={{ color: '#065f46', fontWeight: 600 }}>
                   🔒 Este perfil tiene una contraseña personalizada activa y protegida.
                 </span>
               ) : (
