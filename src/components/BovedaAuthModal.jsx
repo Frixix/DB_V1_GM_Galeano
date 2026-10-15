@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { verifyBovedaPassword, getBovedaCredentials } from '../services/authService';
 
-export default function BovedaAuthModal({ isOpen, onClose, onSuccess }) {
+export default function BovedaAuthModal({ isOpen, onClose, onSuccess, currentUser }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
-  const { isRectoraCustom, isAdminCustom } = getBovedaCredentials();
+  const isAdmin = currentUser?.role === 'admin';
+  const { isRectoraCustom } = getBovedaCredentials();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -35,7 +36,7 @@ export default function BovedaAuthModal({ isOpen, onClose, onSuccess }) {
             </div>
             <div>
               <h3>Bóveda de Archivos Confidencial</h3>
-              <p>Doble acceso independiente • Rectoría & Administrador</p>
+              <p>Acceso restringido • Documentación de Alta Seguridad</p>
             </div>
           </div>
           <button className="btn-close" onClick={onClose}><i className="ph-bold ph-x"></i></button>
@@ -79,13 +80,17 @@ export default function BovedaAuthModal({ isOpen, onClose, onSuccess }) {
               </button>
             </div>
             <small className="helper-text" style={{ marginTop: '6px' }}>
-              {isRectoraCustom ? (
+              {isAdmin ? (
+                <span style={{ color: '#0284c7', fontWeight: 600 }}>
+                  ⚙️ Modo Administrador: Sistema de respaldo y doble llave activa.
+                </span>
+              ) : isRectoraCustom ? (
                 <span style={{ color: '#059669', fontWeight: 600 }}>
-                  🔒 Rectoría cuenta con clave personalizada activa. (Se acepta la clave de la Rectora o la del Administrador).
+                  🔒 Clave de seguridad de la Bóveda activa y protegida.
                 </span>
               ) : (
                 <>
-                  Sistema de doble llave aceptada: clave institucional de Rectoría o Administrador (inicial: <code>boveda2026</code>).
+                  Clave de acceso requerida (inicial institucional: <code>boveda2026</code>).
                 </>
               )}
             </small>

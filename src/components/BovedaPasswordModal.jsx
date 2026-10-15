@@ -8,8 +8,8 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
   const isRectora = currentUser?.role === 'rectora' || currentUser?.role === 'induccion_rectora';
   const isAdmin = currentUser?.role === 'admin';
 
-  // Por defecto, la rectora modifica su llave de rectoría, y el admin la de admin
-  const [targetKeyRole, setTargetKeyRole] = useState(isRectora ? 'rectora' : 'admin');
+  // Si es rectora, modifica directamente la llave de rectoría. El admin puede gestionar ambas.
+  const [targetKeyRole, setTargetKeyRole] = useState(isAdmin ? 'admin' : 'rectora');
   const [currentAuthPassword, setCurrentAuthPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -26,14 +26,14 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
 
   useEffect(() => {
     if (isOpen) {
-      setTargetKeyRole(isRectora ? 'rectora' : 'admin');
+      setTargetKeyRole(isAdmin ? 'admin' : 'rectora');
       setCurrentAuthPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setStatusMessage(null);
       setErrorMessage(null);
     }
-  }, [isOpen, isRectora]);
+  }, [isOpen, isAdmin]);
 
   if (!isOpen) return null;
 
@@ -66,11 +66,18 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
         currentUser
       });
 
-      setStatusMessage(
-        `¡Clave de la Bóveda actualizada con éxito! La nueva clave para ${
-          targetKeyRole === 'rectora' ? 'Rectoría' : 'Administrador'
-        } ha quedado ofuscada de forma segura. Ambas llaves (Rectora y Admin) permanecen válidas concurrentemente.`
-      );
+      if (isAdmin) {
+        setStatusMessage(
+          `¡Clave de la Bóveda actualizada con éxito! La clave para ${
+            targetKeyRole === 'rectora' ? 'Rectoría' : 'Administrador (Respaldo)'
+          } ha quedado ofuscada de forma segura.`
+        );
+      } else {
+        setStatusMessage(
+          '¡Clave de la Bóveda actualizada con éxito! La nueva clave ha quedado guardada y ofuscada de forma segura.'
+        );
+      }
+
       setCurrentAuthPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -97,7 +104,9 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
               <i className="ph-bold ph-key"></i>
             </div>
             <div>
-              <h3 id="bovedaPasswordTitle">Seguridad de la Bóveda • Doble Llave</h3>
+              <h3 id="bovedaPasswordTitle">
+                {isAdmin ? 'Seguridad de la Bóveda • Doble Llave (Respaldo)' : 'Seguridad de la Bóveda • Clave de Acceso'}
+              </h3>
               <p>Solo configurable desde el interior de la Bóveda Confidencial</p>
             </div>
           </div>
@@ -108,64 +117,89 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
 
         {/* Cuerpo del Modal */}
         <div className="modal-body-profile">
-          {/* Banner de Doble Llave de Acceso */}
-          <div className="boveda-dual-key-banner">
-            <div className="dual-key-header">
-              <i className="ph-bold ph-shield-check"></i>
-              <strong>Sistema de Doble Llave Concurrente</strong>
-            </div>
-            <p className="dual-key-desc">
-              La Bóveda está diseñada para que <strong>tanto la Rectora como el Administrador</strong> puedan entrar 
-              con sus contraseñas independientes a la misma bóveda institucional:
-            </p>
+          {/* Si es ADMINISTRADOR: Muestra la información de Respaldo y Doble Llave */}
+          {isAdmin ? (
+            <div className="boveda-dual-key-banner">
+              <div className="dual-key-header">
+                <i className="ph-bold ph-shield-check"></i>
+                <strong>Panel de Administración • Respaldo Principal de Seguridad</strong>
+              </div>
+              <p className="dual-key-desc">
+                Como Administrador General, actúas como el <strong>respaldo principal</strong> en caso de contingencia. 
+                El sistema mantiene una llave administrativa activa junto a la llave de Rectoría:
+              </p>
 
-            <div className="dual-key-grid">
-              <div className={`dual-key-badge-card ${targetKeyRole === 'rectora' ? 'active-target' : ''}`}>
-                <div className="dual-key-icon"><i className="ph-bold ph-crown"></i></div>
-                <div>
-                  <strong>Llave de Rectoría</strong>
-                  <span>
-                    {bovedaCreds.isRectoraCustom 
-                      ? '🔒 Personalizada y ofuscada' 
-                      : '⚙️ Clave inicial por defecto'}
-                  </span>
+              <div className="dual-key-grid">
+                <div className={`dual-key-badge-card ${targetKeyRole === 'rectora' ? 'active-target' : ''}`}>
+                  <div className="dual-key-icon"><i className="ph-bold ph-crown"></i></div>
+                  <div>
+                    <strong>Llave de Rectoría</strong>
+                    <span>
+                      {bovedaCreds.isRectoraCustom 
+                        ? '🔒 Personalizada y ofuscada' 
+                        : '⚙️ Clave inicial'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={`dual-key-badge-card ${targetKeyRole === 'admin' ? 'active-target' : ''}`}>
+                  <div className="dual-key-icon"><i className="ph-bold ph-user-gear"></i></div>
+                  <div>
+                    <strong>Llave de Respaldo Admin</strong>
+                    <span>
+                      {bovedaCreds.isAdminCustom 
+                        ? '🔒 Personalizada y ofuscada' 
+                        : '⚙️ Clave inicial activa'}
+                    </span>
+                  </div>
                 </div>
               </div>
-
-              <div className={`dual-key-badge-card ${targetKeyRole === 'admin' ? 'active-target' : ''}`}>
-                <div className="dual-key-icon"><i className="ph-bold ph-user-gear"></i></div>
-                <div>
-                  <strong>Llave de Administración</strong>
-                  <span>
-                    {bovedaCreds.isAdminCustom 
-                      ? '🔒 Personalizada y ofuscada' 
-                      : '⚙️ Clave administrativa activa'}
-                  </span>
+            </div>
+          ) : (
+            /* Si es RECTORA: Vista limpia enfocada exclusivamente en su clave de bóveda */
+            bovedaCreds.isRectoraCustom ? (
+              <div className="security-status-banner secure" style={{ margin: 0 }}>
+                <div className="status-icon"><i className="ph-bold ph-shield-check"></i></div>
+                <div className="status-text">
+                  <strong>Clave de Bóveda personalizada y protegida</strong>
+                  <p>
+                    Su clave actual de la bóveda se encuentra ofuscada con cifrado institucional y resguardada de manera segura.
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
+            ) : (
+              <div className="security-status-banner warning" style={{ margin: 0 }}>
+                <div className="status-icon"><i className="ph-bold ph-warning"></i></div>
+                <div className="status-text">
+                  <strong>Clave inicial por defecto en uso</strong>
+                  <p>
+                    Actualmente la bóveda utiliza la clave institucional inicial. Le sugerimos actualizarla a continuación por una de su preferencia.
+                  </p>
+                </div>
+              </div>
+            )
+          )}
 
-          {/* Selector de Llave a Modificar (si es privilegiado) */}
-          {(isRectora || isAdmin) && (
+          {/* Selector de Llave a Modificar (SOLO VISIBLE PARA EL ADMINISTRADOR) */}
+          {isAdmin && (
             <div className="form-group">
-              <label>Seleccione la llave que desea modificar:</label>
+              <label>Seleccione la llave que desea gestionar:</label>
               <div className="key-role-selector">
-                <button
-                  type="button"
-                  className={`btn-key-selector ${targetKeyRole === 'rectora' ? 'active' : ''}`}
-                  onClick={() => setTargetKeyRole('rectora')}
-                >
-                  <i className="ph-bold ph-crown"></i>
-                  <span>Modificar Clave de Rectoría</span>
-                </button>
                 <button
                   type="button"
                   className={`btn-key-selector ${targetKeyRole === 'admin' ? 'active' : ''}`}
                   onClick={() => setTargetKeyRole('admin')}
                 >
                   <i className="ph-bold ph-user-gear"></i>
-                  <span>Modificar Clave de Administrador</span>
+                  <span>Llave de Respaldo (Admin)</span>
+                </button>
+                <button
+                  type="button"
+                  className={`btn-key-selector ${targetKeyRole === 'rectora' ? 'active' : ''}`}
+                  onClick={() => setTargetKeyRole('rectora')}
+                >
+                  <i className="ph-bold ph-crown"></i>
+                  <span>Llave Directiva (Rectoría)</span>
                 </button>
               </div>
             </div>
@@ -210,13 +244,15 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
                 </button>
               </div>
               <small className="helper-text">
-                Para verificar su identidad institucional antes de aplicar el cambio.
+                Para verificar su autorización antes de aplicar el cambio.
               </small>
             </div>
 
             <div className="form-row-two">
               <div className="form-group">
-                <label htmlFor="bovedaNewPass">Nueva Clave de Bóveda</label>
+                <label htmlFor="bovedaNewPass">
+                  {isAdmin ? `Nueva Clave (${targetKeyRole === 'admin' ? 'Admin' : 'Rectoría'})` : 'Nueva Clave de Bóveda'}
+                </label>
                 <div className="input-with-action">
                   <input
                     type={showNew ? 'text' : 'password'}

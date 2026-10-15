@@ -255,7 +255,7 @@ export default function App() {
                   <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
                   <div>
                     <h3>Bóveda Directiva de Alta Capacidad</h3>
-                    <p>Archivos institucionales organizados por año y subcarpeta (Doble acceso independiente activo).</p>
+                    <p>Archivos institucionales organizados por año y subcarpeta.</p>
                   </div>
                 </div>
 
@@ -354,6 +354,7 @@ export default function App() {
       <BovedaAuthModal 
         isOpen={isBovedaModalOpen} 
         onClose={() => setIsBovedaModalOpen(false)} 
+        currentUser={currentUser}
         onSuccess={() => {
           setIsBovedaUnlocked(true);
           setIsBovedaModalOpen(false);
