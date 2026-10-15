@@ -92,15 +92,19 @@ body {
 }
 
 .brand-icon-lg {
-  width: 58px;
-  height: 58px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  color: #fff;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-size: 32px;
-  margin: 0 auto 1rem;
+  width: 96px;
+  height: 96px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin: 0 auto 1.25rem;
+  color: var(--primary);
+  font-size: 42px;
 }
 
 .login-brand h2 {
@@ -168,30 +172,39 @@ body {
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  color: #fff;
-  border-radius: var(--radius-sm);
-  display: grid;
-  place-items: center;
-  font-size: 22px;
+  width: 56px;
+  height: 56px;
+  background: #ffffff;
+  border: 1.5px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
   flex-shrink: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brand-icon:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .nav-brand h1 {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: var(--primary);
   line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
@@ -260,16 +273,18 @@ body {
 }
 
 .user-avatar {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background-color: var(--primary);
   color: #fff;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   flex-shrink: 0;
+  position: relative;
 }
 
 .user-info {
@@ -1588,9 +1603,11 @@ select {
 }
 
 .avatar-rectora-chip {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-  border: 1.5px solid #d97706;
+  background: #ffffff !important;
+  border: 2px solid #d97706;
   position: relative;
+  overflow: visible;
+  padding: 1px;
 }
 
 .avatar-chip-crown {
@@ -1679,20 +1696,21 @@ select {
 }
 
 .profile-avatar-large {
-  width: 60px;
-  height: 60px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  border: 2px solid #d97706;
+  border: 2.5px solid #d97706;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  padding: 2px;
 }
 
 .profile-crown-badge {
@@ -2111,15 +2129,19 @@ select {
 }
 
 .brand-logo-img {
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
+  max-width: 48px;
+  max-height: 48px;
   object-fit: contain;
   display: block;
 }
 
 .brand-logo-img-lg {
-  width: 52px;
-  height: 52px;
+  width: 100%;
+  height: 100%;
+  max-width: 82px;
+  max-height: 82px;
   object-fit: contain;
   display: block;
 }
