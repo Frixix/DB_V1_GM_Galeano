@@ -1,9 +1,18 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { 
+  r2Client, 
+  isR2Configured, 
+  R2_BUCKET_NAME, 
+  R2_PUBLIC_DOMAIN, 
+  PutObjectCommand, 
+  GetObjectCommand, 
+  DeleteObjectCommand 
+} from '../lib/r2Client';
 
 export const STORAGE_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'documentos-galeano';
 
 /**
- * Sanitiza el nombre del archivo para evitar caracteres inválidos en Storage de Supabase.
+ * Sanitiza el nombre del archivo para evitar caracteres inválidos en Storage.
  */
 function sanitizeFileName(name) {
   return name
@@ -13,68 +22,112 @@ function sanitizeFileName(name) {
 }
 
 /**
- * Sube un archivo binario directamente al bucket de Supabase Storage.
+ * Sube un archivo binario directamente a Cloudflare R2 (con respaldo en Supabase Storage).
  * @param {File|Blob} file 
  * @param {string} folder 
  * @param {string} radicado 
- * @returns {Promise<{ storageKey: string|null, error: any }>}
+ * @returns {Promise<{ storageKey: string|null, error: any, provider?: string }>}
  */
 export async function uploadDocumentFile(file, folder = 'general', radicado = 'DOC') {
-  if (!isSupabaseConfigured || !supabase || !file) {
+  if (!file) {
     return { storageKey: null, error: null };
   }
 
-  try {
-    const rawName = file.name || 'documento.bin';
-    const cleanName = sanitizeFileName(rawName);
-    const cleanFolder = (folder || 'general').toLowerCase();
-    const filePath = `${cleanFolder}/${radicado}_${cleanName}`;
+  const rawName = file.name || 'documento.bin';
+  const cleanName = sanitizeFileName(rawName);
+  const cleanFolder = (folder || 'general').toLowerCase();
+  const filePath = `${cleanFolder}/${radicado}_${cleanName}`;
 
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true,
+  // 1. Prioridad: Cloudflare R2 (10 GB gratis, $0 Egress)
+  if (isR2Configured && r2Client) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const command = new PutObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: filePath,
+        Body: new Uint8Array(arrayBuffer),
+        ContentType: file.type || 'application/octet-stream',
       });
 
-    if (error) {
-      console.warn('Advertencia al subir archivo a Supabase Storage:', error);
-      return { storageKey: null, error };
+      await r2Client.send(command);
+      return { storageKey: filePath, error: null, provider: 'cloudflare-r2' };
+    } catch (r2Err) {
+      console.warn('[R2 Storage] Advertencia al subir a Cloudflare R2, intentando respaldo con Supabase:', r2Err);
     }
-
-    return { storageKey: data?.path || filePath, error: null };
-  } catch (err) {
-    console.error('Error inesperado al subir archivo:', err);
-    return { storageKey: null, error: err };
   }
+
+  // 2. Respaldo: Supabase Storage
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (error) {
+        console.warn('Advertencia al subir archivo a Supabase Storage:', error);
+        return { storageKey: null, error };
+      }
+
+      return { storageKey: data?.path || filePath, error: null, provider: 'supabase' };
+    } catch (err) {
+      console.error('Error inesperado al subir archivo:', err);
+      return { storageKey: null, error: err };
+    }
+  }
+
+  return { storageKey: null, error: null };
 }
 
 /**
- * Descarga el archivo desde Supabase Storage como Blob para asegurar
- * descarga local fiable independientemente de CORS.
+ * Descarga el archivo desde Cloudflare R2 o Supabase Storage como Blob
+ * para asegurar descarga fiable independientemente del navegador.
  * @param {string} storageKey 
  * @returns {Promise<Blob|null>}
  */
 export async function downloadDocumentBlob(storageKey) {
-  if (!isSupabaseConfigured || !supabase || !storageKey) {
-    return null;
+  if (!storageKey) return null;
+
+  // 1. Intentar descargar desde Cloudflare R2
+  if (isR2Configured && r2Client) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: storageKey,
+      });
+
+      const response = await r2Client.send(command);
+      if (response && response.Body) {
+        const byteArray = await response.Body.transformToByteArray();
+        return new Blob([byteArray], { type: response.ContentType || 'application/octet-stream' });
+      }
+    } catch (r2Err) {
+      console.warn('[R2 Storage] No se pudo obtener de R2 o no existe allí, intentando Supabase:', r2Err);
+    }
   }
 
-  try {
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .download(storageKey);
+  // 2. Respaldo: Supabase Storage
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .download(storageKey);
 
-    if (error) {
-      console.warn('Error descargando Blob de Supabase Storage:', error);
+      if (error) {
+        console.warn('Error descargando Blob de Supabase Storage:', error);
+        return null;
+      }
+
+      return data; // Retorna Blob
+    } catch (err) {
+      console.error('Fallo de red al descargar Blob de Supabase:', err);
       return null;
     }
-
-    return data; // Retorna Blob
-  } catch (err) {
-    console.error('Fallo de red al descargar Blob de Storage:', err);
-    return null;
   }
+
+  return null;
 }
 
 /**
@@ -83,36 +136,57 @@ export async function downloadDocumentBlob(storageKey) {
  * @returns {string|null}
  */
 export function getDocumentPublicUrl(storageKey) {
-  if (!isSupabaseConfigured || !supabase || !storageKey) {
-    return null;
+  if (!storageKey) return null;
+
+  // Si se configuró dominio público en R2 (r2.dev o subdominio propio)
+  if (R2_PUBLIC_DOMAIN) {
+    const base = R2_PUBLIC_DOMAIN.endsWith('/') ? R2_PUBLIC_DOMAIN.slice(0, -1) : R2_PUBLIC_DOMAIN;
+    return `${base}/${storageKey}`;
   }
 
-  try {
-    const { data } = supabase.storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl(storageKey);
+  // Respaldo con URL de Supabase Storage
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(storageKey);
 
-    return data?.publicUrl || null;
-  } catch (err) {
-    console.error('Error obteniendo URL pública de Supabase:', err);
-    return null;
+      return data?.publicUrl || null;
+    } catch (err) {
+      console.error('Error obteniendo URL pública de Supabase:', err);
+      return null;
+    }
   }
+
+  return null;
 }
 
 /**
- * Elimina un archivo de Supabase Storage.
+ * Elimina un archivo de Cloudflare R2 y de Supabase Storage.
  * @param {string} storageKey 
  */
 export async function deleteDocumentFile(storageKey) {
-  if (!isSupabaseConfigured || !supabase || !storageKey) {
-    return;
+  if (!storageKey) return;
+
+  if (isR2Configured && r2Client) {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: storageKey,
+      });
+      await r2Client.send(command);
+    } catch (r2Err) {
+      console.warn('[R2 Storage] Advertencia al eliminar archivo de R2:', r2Err);
+    }
   }
 
-  try {
-    await supabase.storage
-      .from(STORAGE_BUCKET)
-      .remove([storageKey]);
-  } catch (err) {
-    console.warn('Error al eliminar archivo de Supabase Storage:', err);
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.storage
+        .from(STORAGE_BUCKET)
+        .remove([storageKey]);
+    } catch (err) {
+      console.warn('Error al eliminar archivo de Supabase Storage:', err);
+    }
   }
 }
