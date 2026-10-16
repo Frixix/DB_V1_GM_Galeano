@@ -7,7 +7,7 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
   const [previewError, setPreviewError] = useState(false);
 
   const fileName = doc?.fileName || '';
-  const isImage = /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(fileName);
+  const isImage = /\.(jpe?g|png|gif|webp|svg|bmp|jfif|pjpeg|pjp|avif|ico|tiff?)$/i.test(fileName) || fileName.toLowerCase().endsWith('.jfif');
   const isPdf = /\.pdf$/i.test(fileName);
 
   useEffect(() => {

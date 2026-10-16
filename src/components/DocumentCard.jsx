@@ -46,7 +46,7 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete, canDel
         </div>
       </div>
 
-      <h4 className="doc-card-title">{doc.title}</h4>
+      <h4 className="doc-card-title" onClick={() => onView(doc.id)} style={{ cursor: 'pointer' }} title="Clic para ver">{doc.title}</h4>
 
       <div className="doc-meta">
         <div className="doc-meta-item">
@@ -60,7 +60,7 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete, canDel
         
         <div className="file-attachment-badge">
           <div className="file-attachment-badge-left">
-            <i className="ph-bold ph-file-pdf"></i>
+            <i className={`ph-bold ${/\.(jpe?g|png|gif|webp|svg|bmp|jfif|pjpeg|pjp|avif|ico|tiff?)$/i.test(doc.fileName || '') ? 'ph-file-image' : 'ph-file-pdf'}`}></i>
             <span>{doc.fileName}</span>
           </div>
           <span className="savings-pill"><i className="ph-bold ph-file-zip"></i> -{doc.ratio}</span>

@@ -100,8 +100,20 @@ export async function downloadDocumentBlob(storageKey) {
 
       const response = await r2Client.send(command);
       if (response && response.Body) {
-        const byteArray = await response.Body.transformToByteArray();
-        return new Blob([byteArray], { type: response.ContentType || 'application/octet-stream' });
+        if (response.Body instanceof Blob) {
+          return response.Body;
+        }
+        if (typeof response.Body.transformToByteArray === 'function') {
+          const byteArray = await response.Body.transformToByteArray();
+          return new Blob([byteArray], { type: response.ContentType || 'application/octet-stream' });
+        }
+        // Fallback estándar de navegador con Web Streams API
+        try {
+          const res = new Response(response.Body);
+          return await res.blob();
+        } catch {
+          // Si falla Response wrapper, retornar null para que continúe
+        }
       }
     } catch (r2Err) {
       console.warn('[R2 Storage] No se pudo obtener de R2 o no existe allí, intentando Supabase:', r2Err);
