@@ -102,3 +102,16 @@ Para evitar implementar suposiciones y ajustar el desarrollo a la realidad de la
 ---
 
 > 💡 **Próximo Paso:** Una vez la Rectora responda estas preguntas o dé sus indicaciones exactas, activaremos este módulo paso a paso según sus prioridades.
+
+---
+
+## 6. 📡 Supervisión de Conexiones del Personal (Arquitectura Ligera a Cero Acumulación)
+
+### A. Política de Almacenamiento Ultra-Ligero implementada:
+- **0 Bytes para estado "En Línea":** Se procesa en memoria viva mediante canales de presencia WebSockets de Supabase Realtime mientras el usuario tiene la aplicación abierta.
+- **Sobrescribir siempre la última conexión (Cero Acumulación):** Para cada docente o directivo existe únicamente **un solo registro único** (`presence_user_[userKey]`). Cuando el usuario ingresa hoy, **elimina/sobrescribe la fecha anterior y conserva únicamente la más reciente**. El peso total en base de datos para los 7 usuarios del colegio es inferior a **1 Kilobyte** (~0.0002% de la cuota gratuita de 500 MB) y **nunca crece**.
+- **Acceso Exclusivo:** Solo perfiles directivos (`rectora` y `admin`) pueden consultar el panel de asistencia y conexiones. Para las docentes el módulo es 100% invisible.
+
+### B. Opción de Expansión Futura (A solicitud de Rectoría):
+- Si en el futuro la institución requiere una bitácora histórica completa (ej: exportar en Excel todos los ingresos y salidas del mes para nómina o control estricto de asistencia), se puede activar una tabla dedicada `user_attendance_logs` con retención rotativa (ej: últimos 30 días).
+

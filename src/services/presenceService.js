@@ -1,17 +1,16 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 import { USERS } from '../data/users.js';
 
+// Prefijo único: exactamente 1 registro por usuario (se sobrescribe en cada conexión)
 const PRESENCE_USER_PREFIX = 'presence_user_';
-const PRESENCE_LOG_PREFIX = 'presence_log_';
 const PRESENCE_CHANNEL_NAME = 'gm_presence_room';
 const PRESENCE_LOCAL_CACHE_KEY = 'gm_presence_cache_v1';
-const PRESENCE_LOGS_CACHE_KEY = 'gm_presence_logs_cache_v1';
 
-// Límite de inactividad (3 minutos y medio) tras el cual se considera desconectado
+// Límite de inactividad (3.5 minutos) tras el cual se considera desconectado automáticamente
 const HEARTBEAT_OFFLINE_THRESHOLD_MS = 3.5 * 60 * 1000;
 
 /**
- * Detecta dispositivo y navegador de forma amigable para las directivas
+ * Detecta dispositivo y navegador de forma amigable para la Rectora
  */
 export function getDeviceSummary() {
   if (typeof window === 'undefined' || !navigator) return 'Navegador Web';
@@ -58,30 +57,8 @@ export function saveStoredPresenceCache(data) {
 }
 
 /**
- * Lee caché local de historial
- */
-export function getStoredLogsCache() {
-  try {
-    const raw = localStorage.getItem(PRESENCE_LOGS_CACHE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Guarda caché local de historial
- */
-export function saveStoredLogsCache(logs) {
-  try {
-    localStorage.setItem(PRESENCE_LOGS_CACHE_KEY, JSON.stringify(logs.slice(0, 60)));
-  } catch {
-    // Ignorar errores de cuota local
-  }
-}
-
-/**
- * Registra el inicio de sesión y conexión activa del usuario
+ * Registra o SOBRESCRIBE la última conexión del usuario.
+ * Solo almacena la última fecha y hora, reemplazando cualquier conexión anterior.
  */
 export async function recordUserLogin(currentUser) {
   if (!currentUser || !currentUser.key) return null;
@@ -94,51 +71,28 @@ export async function recordUserLogin(currentUser) {
     name: currentUser.name,
     role: currentUser.role,
     isOnline: true,
-    connectedAt: nowIso,
+    lastConnectedAt: nowIso,
     lastSeenAt: nowIso,
     disconnectedAt: null,
     device,
   };
 
-  // Actualizar caché local de inmediato
+  // Actualizar caché local
   const cache = getStoredPresenceCache();
   cache[currentUser.key] = userStatus;
   saveStoredPresenceCache(cache);
 
-  // Registrar evento en historial local
-  const logItem = {
-    id: `log_${Date.now()}_${currentUser.key}`,
-    userKey: currentUser.key,
-    name: currentUser.name,
-    role: currentUser.role,
-    type: 'login',
-    timestamp: nowIso,
-    device,
-  };
-  const logs = getStoredLogsCache();
-  const updatedLogs = [logItem, ...logs.filter((l) => l.id !== logItem.id)].slice(0, 60);
-  saveStoredLogsCache(updatedLogs);
-
-  // Sincronizar en Supabase si está disponible
+  // Sobrescribir en Supabase: Reemplaza la fecha anterior dejando solo la última
   if (isSupabaseConfigured && supabase) {
     try {
-      // 1. Guardar estado activo del usuario
       await supabase.from('institutional_vault').upsert({
         user_key: `${PRESENCE_USER_PREFIX}${currentUser.key}`,
         cipher: JSON.stringify(userStatus),
         default_invalidated: false,
         updated_at: nowIso,
       }, { onConflict: 'user_key' });
-
-      // 2. Guardar registro en historial
-      await supabase.from('institutional_vault').upsert({
-        user_key: `${PRESENCE_LOG_PREFIX}${Date.now()}_${currentUser.key}`,
-        cipher: JSON.stringify(logItem),
-        default_invalidated: false,
-        updated_at: nowIso,
-      }, { onConflict: 'user_key' });
     } catch (err) {
-      console.warn('[Presence] Advertencia al registrar conexión en Supabase:', err);
+      console.warn('[Presence] Advertencia al actualizar estado en Supabase:', err);
     }
   }
 
@@ -166,7 +120,7 @@ export async function recordUserHeartbeat(currentUser) {
         name: currentUser.name,
         role: currentUser.role,
         isOnline: true,
-        connectedAt: nowIso,
+        lastConnectedAt: nowIso,
         lastSeenAt: nowIso,
         device: getDeviceSummary(),
       };
@@ -180,13 +134,13 @@ export async function recordUserHeartbeat(currentUser) {
         updated_at: nowIso,
       }, { onConflict: 'user_key' });
     } catch {
-      // Silencioso en heartbeat
+      // Silencioso en latidos periódicos
     }
   }
 }
 
 /**
- * Registra el cierre de sesión voluntario del usuario
+ * Registra el cierre de sesión voluntario (actualiza el mismo registro único)
  */
 export async function recordUserLogout(currentUser) {
   if (!currentUser || !currentUser.key) return;
@@ -200,20 +154,6 @@ export async function recordUserLogout(currentUser) {
     saveStoredPresenceCache(cache);
   }
 
-  const logItem = {
-    id: `log_${Date.now()}_${currentUser.key}`,
-    userKey: currentUser.key,
-    name: currentUser.name,
-    role: currentUser.role,
-    type: 'logout',
-    timestamp: nowIso,
-    device: getDeviceSummary(),
-  };
-
-  const logs = getStoredLogsCache();
-  const updatedLogs = [logItem, ...logs].slice(0, 60);
-  saveStoredLogsCache(updatedLogs);
-
   if (isSupabaseConfigured && supabase) {
     try {
       const finalStatus = {
@@ -221,7 +161,7 @@ export async function recordUserLogout(currentUser) {
         name: currentUser.name,
         role: currentUser.role,
         isOnline: false,
-        connectedAt: cache[currentUser.key]?.connectedAt || nowIso,
+        lastConnectedAt: cache[currentUser.key]?.lastConnectedAt || nowIso,
         lastSeenAt: nowIso,
         disconnectedAt: nowIso,
         device: getDeviceSummary(),
@@ -233,13 +173,6 @@ export async function recordUserLogout(currentUser) {
         default_invalidated: false,
         updated_at: nowIso,
       }, { onConflict: 'user_key' });
-
-      await supabase.from('institutional_vault').upsert({
-        user_key: `${PRESENCE_LOG_PREFIX}${Date.now()}_${currentUser.key}`,
-        cipher: JSON.stringify(logItem),
-        default_invalidated: false,
-        updated_at: nowIso,
-      }, { onConflict: 'user_key' });
     } catch (err) {
       console.warn('[Presence] Error registrando salida:', err);
     }
@@ -247,51 +180,31 @@ export async function recordUserLogout(currentUser) {
 }
 
 /**
- * Obtiene la visión completa del personal: quién está conectado, desconectado,
- * a qué horas se conectaron y el historial cronológico de conexiones.
+ * Obtiene el estado actual del personal institucional (exactamente 1 fila por usuario)
  */
 export async function fetchPresenceOverview(activeRealtimeKeys = new Set()) {
   const localCache = getStoredPresenceCache();
   let remoteStatusMap = { ...localCache };
-  let remoteLogs = getStoredLogsCache();
 
   if (isSupabaseConfigured && supabase) {
     try {
-      // Consultar estados actuales e historial
       const { data, error } = await supabase
         .from('institutional_vault')
         .select('user_key, cipher, updated_at')
-        .like('user_key', 'presence_%')
-        .order('updated_at', { ascending: false })
-        .limit(100);
+        .like('user_key', `${PRESENCE_USER_PREFIX}%`);
 
       if (!error && Array.isArray(data)) {
-        const fetchedLogs = [];
         for (const row of data) {
-          if (row.user_key.startsWith(PRESENCE_USER_PREFIX)) {
-            const key = row.user_key.replace(PRESENCE_USER_PREFIX, '');
-            try {
-              const parsed = JSON.parse(row.cipher);
-              remoteStatusMap[key] = {
-                ...parsed,
-                updatedAt: row.updated_at,
-              };
-            } catch {
-              // Ignorar formato inválido
-            }
-          } else if (row.user_key.startsWith(PRESENCE_LOG_PREFIX)) {
-            try {
-              const parsed = JSON.parse(row.cipher);
-              fetchedLogs.push(parsed);
-            } catch {
-              // Ignorar
-            }
+          const key = row.user_key.replace(PRESENCE_USER_PREFIX, '');
+          try {
+            const parsed = JSON.parse(row.cipher);
+            remoteStatusMap[key] = {
+              ...parsed,
+              updatedAt: row.updated_at,
+            };
+          } catch {
+            // Ignorar formato inválido
           }
-        }
-
-        if (fetchedLogs.length > 0) {
-          remoteLogs = fetchedLogs;
-          saveStoredLogsCache(remoteLogs);
         }
         saveStoredPresenceCache(remoteStatusMap);
       }
@@ -307,8 +220,8 @@ export async function fetchPresenceOverview(activeRealtimeKeys = new Set()) {
     const statusData = remoteStatusMap[userKey];
     
     // Está en línea si:
-    // 1. Está activo en el canal Realtime WebSocket (activeRealtimeKeys.has(userKey)), Ó
-    // 2. Su registro marca isOnline=true y su último latido fue hace menos del umbral permitido
+    // 1. Está activo en WebSockets Realtime (activeRealtimeKeys.has(userKey)), Ó
+    // 2. Marca isOnline=true y su último latido fue hace menos de 3.5 minutos
     const isWebSocketOnline = activeRealtimeKeys.has(userKey);
     const lastSeenMs = statusData?.lastSeenAt ? new Date(statusData.lastSeenAt).getTime() : 0;
     const isHeartbeatActive = Boolean(statusData?.isOnline && (nowMs - lastSeenMs < HEARTBEAT_OFFLINE_THRESHOLD_MS));
@@ -322,34 +235,26 @@ export async function fetchPresenceOverview(activeRealtimeKeys = new Set()) {
       initial: userInfo.initial,
       avatar: userInfo.avatar,
       isOnline,
-      connectedAt: statusData?.connectedAt || null,
+      lastConnectedAt: statusData?.lastConnectedAt || statusData?.connectedAt || null,
       lastSeenAt: statusData?.lastSeenAt || null,
       disconnectedAt: statusData?.disconnectedAt || null,
       device: statusData?.device || null,
     };
   });
 
-  // Ordenar: primero los que están en línea, luego por última conexión reciente
+  // Ordenar: primero los que están en línea, luego por última conexión
   usersOverview.sort((a, b) => {
     if (a.isOnline && !b.isOnline) return -1;
     if (!a.isOnline && b.isOnline) return 1;
-    const timeA = a.lastSeenAt ? new Date(a.lastSeenAt).getTime() : 0;
-    const timeB = b.lastSeenAt ? new Date(b.lastSeenAt).getTime() : 0;
+    const timeA = a.lastConnectedAt ? new Date(a.lastConnectedAt).getTime() : 0;
+    const timeB = b.lastConnectedAt ? new Date(b.lastConnectedAt).getTime() : 0;
     return timeB - timeA;
-  });
-
-  // Ordenar logs cronológicamente (más recientes primero)
-  const sortedLogs = [...remoteLogs].sort((a, b) => {
-    const tA = new Date(a.timestamp).getTime();
-    const tB = new Date(b.timestamp).getTime();
-    return tB - tA;
   });
 
   return {
     users: usersOverview,
     onlineCount: usersOverview.filter((u) => u.isOnline).length,
     offlineCount: usersOverview.filter((u) => !u.isOnline).length,
-    logs: sortedLogs,
   };
 }
 
@@ -366,17 +271,16 @@ export function initPresenceTracker(currentUser, onPresenceChange) {
   let presenceChannel = null;
   const activeRealtimeKeys = new Set();
 
-  // 1. Registrar login inmediatamente
+  // 1. Sobrescribir última conexión
   recordUserLogin(currentUser).then(() => {
     if (isMounted && onPresenceChange) {
       fetchPresenceOverview(activeRealtimeKeys).then(onPresenceChange);
     }
   });
 
-  // 2. Conectar a Supabase Realtime si está configurado
+  // 2. Conectar a Supabase Realtime WebSockets (0 bytes en disco)
   if (isSupabaseConfigured && supabase) {
     try {
-      // Canal Realtime WebSocket de Presencia
       presenceChannel = supabase.channel(PRESENCE_CHANNEL_NAME, {
         config: {
           presence: {
@@ -416,7 +320,7 @@ export function initPresenceTracker(currentUser, onPresenceChange) {
           (payload) => {
             if (!isMounted) return;
             const key = payload.new?.user_key || payload.old?.user_key || '';
-            if (key.startsWith('presence_')) {
+            if (key.startsWith(PRESENCE_USER_PREFIX)) {
               fetchPresenceOverview(activeRealtimeKeys).then((overview) => {
                 if (isMounted && onPresenceChange) onPresenceChange(overview);
               });
@@ -429,7 +333,7 @@ export function initPresenceTracker(currentUser, onPresenceChange) {
               userKey: currentUser.key,
               name: currentUser.name,
               role: currentUser.role,
-              connectedAt: new Date().toISOString(),
+              lastConnectedAt: new Date().toISOString(),
               device: getDeviceSummary(),
             });
           }
@@ -445,9 +349,8 @@ export function initPresenceTracker(currentUser, onPresenceChange) {
     recordUserHeartbeat(currentUser);
   }, 40000);
 
-  // 4. Salida ungraceful al cerrar ventana
+  // 4. Salida al cerrar ventana
   const handleBeforeUnload = () => {
-    // Almacenar localmente desconexión
     const cache = getStoredPresenceCache();
     if (cache[currentUser.key]) {
       cache[currentUser.key].isOnline = false;
@@ -457,7 +360,7 @@ export function initPresenceTracker(currentUser, onPresenceChange) {
   };
   window.addEventListener('beforeunload', handleBeforeUnload);
 
-  // Función de limpieza al desmontar o cerrar sesión
+  // Función de limpieza
   return () => {
     isMounted = false;
     window.removeEventListener('beforeunload', handleBeforeUnload);
