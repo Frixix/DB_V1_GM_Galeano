@@ -86,6 +86,9 @@ export async function syncVaultWithSupabase() {
 
     if (Array.isArray(data)) {
       for (const row of data) {
+        if (!row?.user_key || row.user_key.startsWith('presence_') || row.user_key.startsWith('session_')) {
+          continue;
+        }
         remoteKeys.add(row.user_key);
 
         if (row.user_key === 'boveda_rectora') {

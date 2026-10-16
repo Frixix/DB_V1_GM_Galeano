@@ -5,9 +5,12 @@ export default function Navbar({
   onOpenUploadModal, 
   onOpenCirculares, 
   circularesCount = 0,
-  onOpenProfile
+  onOpenProfile,
+  onOpenConnectionsModal,
+  onlineCount = 0
 }) {
   const isRectora = currentUser.role === 'rectora' || currentUser.role === 'induccion_rectora';
+  const isPrivileged = currentUser.role === 'admin' || isRectora;
 
   return (
     <header className="navbar">
@@ -34,6 +37,23 @@ export default function Navbar({
       </div>
 
       <div className="nav-actions">
+        {/* Botón de Supervisión de Conexiones en Vivo (Exclusivo Rectora y Admin) */}
+        {isPrivileged && onOpenConnectionsModal && (
+          <button 
+            type="button"
+            className="btn-presence-nav" 
+            onClick={onOpenConnectionsModal}
+            title="Supervisión en vivo: Ver quién está conectado y a qué horas se conectaron"
+            aria-label="Ver control de conexiones del personal"
+          >
+            <span className="live-status-pulse"></span>
+            <span className="live-status-nav-label">
+              <strong>{onlineCount}</strong> en línea
+            </span>
+            <i className="ph-bold ph-shield-check"></i>
+          </button>
+        )}
+
         <div 
           className="nav-notification-bell" 
           title={circularesCount > 0 ? `${circularesCount} circular(es) pendiente(s) por leer` : "Circulares institucionales al día"}

@@ -11,8 +11,10 @@ import UploadModal from './components/UploadModal';
 import ProfileModal from './components/ProfileModal';
 import BovedaPasswordModal from './components/BovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
+import ConnectionsModal from './components/ConnectionsModal';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
+import { useUserPresence } from './hooks/useUserPresence';
 import { downloadDocumentBlob } from './services/storageService';
 import { syncVaultWithSupabase, subscribeToVaultChanges } from './services/authService';
 
@@ -40,10 +42,21 @@ export default function App() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
   const { documents, addDocument, deleteDocument } = useDocuments();
   const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
+
+  // Control de asistencia y conexiones en tiempo real
+  const {
+    presenceData,
+    onlineMap,
+    onlineCount,
+    refresh: refreshPresence,
+    loading: presenceLoading,
+    handleLogout: presenceLogout,
+  } = useUserPresence(currentUser);
 
   useEffect(() => {
     syncVaultWithSupabase().catch(() => {});
@@ -228,12 +241,18 @@ export default function App() {
     <div id="appContainer">
       <Navbar 
         currentUser={currentUser} 
-        onLogout={() => { setCurrentUser(null); setIsBovedaUnlocked(false); }} 
+        onLogout={async () => {
+          await presenceLogout();
+          setCurrentUser(null);
+          setIsBovedaUnlocked(false);
+        }} 
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenCirculares={handleOpenCircularesBell}
         circularesCount={totalUnreadCount}
         onOpenProfile={() => setIsProfileModalOpen(true)}
+        onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+        onlineCount={onlineCount}
       />
       
       <div className="app-layout">
@@ -248,6 +267,9 @@ export default function App() {
             circularesCount={unreadCirculares.length}
             unreadSharedCount={unreadSharedDocs.length}
             onOpenProfile={() => setIsProfileModalOpen(true)}
+            onlineMap={onlineMap}
+            onlineCount={onlineCount}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           />
         </div>
 
@@ -412,6 +434,20 @@ export default function App() {
         onPasswordChanged={() => {
           console.log('Clave de Bóveda actualizada exitosamente.');
         }}
+      />
+
+      {/* Modal de Control de Asistencia y Conexiones en Vivo (Exclusivo Rectora/Admin) */}
+      <ConnectionsModal 
+        isOpen={isConnectionsModalOpen}
+        onClose={() => setIsConnectionsModalOpen(false)}
+        presenceData={presenceData}
+        currentUser={currentUser}
+        onSelectTeacher={(teacherName) => {
+          setCurrentTeacher(teacherName);
+          setCurrentFolder('all');
+        }}
+        onRefresh={refreshPresence}
+        loading={presenceLoading}
       />
 
       {/* Guía Interactiva Spotlight */}

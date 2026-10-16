@@ -7,7 +7,10 @@ export default function Sidebar({
   documents = [], 
   circularesCount = 0, 
   unreadSharedCount = 0,
-  onOpenProfile
+  onOpenProfile,
+  onlineMap = {},
+  onlineCount = 0,
+  onOpenConnectionsModal
 }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
@@ -19,9 +22,22 @@ export default function Sidebar({
       {/* Sección de Auditoría por Docente (Solo Rectora/Admin) */}
       {isPrivileged && (
         <div className="sidebar-section" id="adminTeacherSection">
-          <div className="sidebar-header">
-            <i className="ph-bold ph-users"></i>
-            <span>Ver por Docente</span>
+          <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <i className="ph-bold ph-users"></i>
+              <span>Ver por Docente</span>
+            </div>
+            {onOpenConnectionsModal && (
+              <button 
+                type="button" 
+                className="btn-header-presence-pill"
+                onClick={onOpenConnectionsModal}
+                title="Abrir panel de horarios y conexiones"
+              >
+                <span className="live-status-pulse"></span>
+                <span>{onlineCount} en línea</span>
+              </button>
+            )}
           </div>
           <nav className="teacher-list">
             <button 
@@ -35,28 +51,46 @@ export default function Sidebar({
               className={`teacher-btn ${currentTeacher === 'Jessica' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Jessica')}
             >
-              <i className="ph-bold ph-user"></i>
-              <span>Jessica</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <i className="ph-bold ph-user"></i>
+                <span>Jessica</span>
+              </div>
+              <span 
+                className={`teacher-status-indicator ${onlineMap['jessica'] || onlineMap['Jessica'] ? 'online' : 'offline'}`}
+                title={onlineMap['jessica'] || onlineMap['Jessica'] ? "En línea ahora" : "Desconectado"}
+              ></span>
             </button>
             <button 
               className={`teacher-btn ${currentTeacher === 'Yuri' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Yuri')}
             >
-              <i className="ph-bold ph-user"></i>
-              <span>Yuri</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <i className="ph-bold ph-user"></i>
+                <span>Yuri</span>
+              </div>
+              <span 
+                className={`teacher-status-indicator ${onlineMap['yuri'] || onlineMap['Yuri'] ? 'online' : 'offline'}`}
+                title={onlineMap['yuri'] || onlineMap['Yuri'] ? "En línea ahora" : "Desconectado"}
+              ></span>
             </button>
             <button 
               className={`teacher-btn ${currentTeacher === 'Elcy' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Elcy')}
             >
-              <i className="ph-bold ph-user"></i>
-              <span>Elcy</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <i className="ph-bold ph-user"></i>
+                <span>Elcy</span>
+              </div>
+              <span 
+                className={`teacher-status-indicator ${onlineMap['elcy'] || onlineMap['Elcy'] ? 'online' : 'offline'}`}
+                title={onlineMap['elcy'] || onlineMap['Elcy'] ? "En línea ahora" : "Desconectado"}
+              ></span>
             </button>
             <button 
               className={`teacher-btn teacher-rectora-btn ${currentTeacher === 'Claudia (Rectora)' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Claudia (Rectora)')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                 <div className="teacher-avatar-mini">
                   <img 
                     src="/images/avatars/rectora.svg" 
@@ -68,6 +102,10 @@ export default function Sidebar({
                 </div>
                 <span>Claudia (Rectora)</span>
               </div>
+              <span 
+                className={`teacher-status-indicator ${onlineMap['claudia'] || onlineMap['Claudia (Rectora)'] ? 'online' : 'offline'}`}
+                title={onlineMap['claudia'] || onlineMap['Claudia (Rectora)'] ? "En línea ahora" : "Desconectado"}
+              ></span>
               {onOpenProfile && (
                 <span 
                   className="sidebar-profile-badge"
