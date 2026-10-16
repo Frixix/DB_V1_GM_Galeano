@@ -18,6 +18,7 @@ export default function ProfileModal({
   isOpen, 
   onClose, 
   currentUser, 
+  initialTargetUserKey,
   onProfileUpdated,
   onAvatarUpdated 
 }) {
@@ -39,7 +40,7 @@ export default function ProfileModal({
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
 
   // Usuario seleccionado para editar su logo (para Rectora/Admin pueden seleccionar cualquier docente)
-  const [targetUserKey, setTargetUserKey] = useState(currentUserKey || 'claudia');
+  const [targetUserKey, setTargetUserKey] = useState(initialTargetUserKey || currentUserKey || 'claudia');
   const [pendingAvatar, setPendingAvatar] = useState(null);
   const [avatarStatus, setAvatarStatus] = useState(null);
   const [avatarError, setAvatarError] = useState(null);
@@ -48,19 +49,7 @@ export default function ProfileModal({
 
   const fileInputRef = useRef(null);
 
-  // Resolver información del usuario objetivo
-  const targetUser = USERS[targetUserKey] || currentUser;
-  const targetUserAvatar = pendingAvatar !== null ? pendingAvatar : getUserAvatar(targetUserKey);
-  const isTargetRectora = targetUser.role === 'rectora' || targetUser.role === 'induccion_rectora';
-
-  // Sincronizar targetUserKey cuando cambie el currentUser
-  useEffect(() => {
-    if (currentUserKey) {
-      setTargetUserKey(currentUserKey);
-    }
-  }, [currentUserKey]);
-
-  // Limpiar campos y estados al abrir / cerrar
+  // Sincronizar targetUserKey cuando se abre el modal o cambia initialTargetUserKey
   useEffect(() => {
     if (isOpen) {
       setCurrentPassword('');
@@ -71,13 +60,24 @@ export default function ProfileModal({
       setAvatarStatus(null);
       setAvatarError(null);
       setPendingAvatar(null);
-      if (currentUserKey) {
-        setTargetUserKey(currentUserKey);
+
+      const chosenKey = initialTargetUserKey || currentUserKey || 'claudia';
+      setTargetUserKey(chosenKey);
+
+      // Si se abre para un usuario distinto al logueado, enfocar automáticamente en la pestaña de Logo
+      if (initialTargetUserKey && initialTargetUserKey !== currentUserKey) {
+        setActiveTab('avatar');
       }
     }
-  }, [isOpen, currentUserKey]);
+  }, [isOpen, initialTargetUserKey, currentUserKey]);
 
-  // Cuando cambia el usuario objetivo a editar, reiniciar pendingAvatar y mensajes
+  // Resolver información del usuario objetivo
+  const targetUser = USERS[targetUserKey] || currentUser;
+  const isEditingSelf = targetUserKey === currentUserKey;
+  const isTargetRectora = targetUser?.role === 'rectora' || targetUser?.role === 'induccion_rectora';
+  const targetUserAvatar = pendingAvatar !== null ? pendingAvatar : (getUserAvatar(targetUserKey) || targetUser?.avatar || null);
+
+  // Cuando cambia el usuario objetivo a editar
   const handleSelectTargetUser = (key) => {
     setTargetUserKey(key);
     setPendingAvatar(null);
@@ -108,7 +108,6 @@ export default function ProfileModal({
       setAvatarError(err.message || 'Error al procesar la imagen.');
     } finally {
       setIsProcessingImage(false);
-      // Reset input value so same file can be re-selected if desired
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -137,11 +136,11 @@ export default function ProfileModal({
       const result = await saveUserAvatar(targetUserKey, pendingAvatar, currentUser.name);
       const targetName = USERS[targetUserKey]?.name || targetUserKey;
       
-      setAvatarStatus(`¡Logo de "${targetName}" guardado y persistido en la nube con éxito! Se sincronizará en todos los dispositivos en tiempo real.`);
+      setAvatarStatus(`¡Logo de "${targetName}" guardado y persistido en la nube con éxito! Todos los perfiles verán este cambio de inmediato.`);
       setPendingAvatar(null);
 
       if (onAvatarUpdated) {
-        onAvatarUpdated(targetUserKey, pendingAvatar);
+        onAvatarUpdated(targetUserKey, result.avatar);
       }
     } catch (err) {
       setAvatarError(err.message || 'Error al persistir el avatar en la nube.');
@@ -173,7 +172,7 @@ export default function ProfileModal({
     }
   };
 
-  // Manejador del cambio de contraseña
+  // Manejador del cambio de contraseña (para la cuenta activa)
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordStatus(null);
@@ -226,17 +225,23 @@ export default function ProfileModal({
         role="dialog"
         aria-labelledby="profileModalTitle"
       >
-        {/* Encabezado del Modal */}
+        {/* Encabezado del Modal Dinámico */}
         <div className="modal-header modal-header-profile">
           <div className="modal-title-wrap">
-            <div className={`modal-icon ${isRectora ? 'profile-avatar-rectora' : ''}`}>
-              {isRectora ? <i className="ph-bold ph-crown"></i> : <i className="ph-bold ph-user"></i>}
+            <div className={`modal-icon ${isTargetRectora ? 'profile-avatar-rectora' : ''}`}>
+              {isTargetRectora ? <i className="ph-bold ph-crown"></i> : <i className="ph-bold ph-user"></i>}
             </div>
             <div>
               <h3 id="profileModalTitle">
-                {isRectora ? 'Perfil Directivo • Rectoría' : `Perfil Institucional • ${currentUser.name}`}
+                {isEditingSelf 
+                  ? (isRectora ? 'Perfil Directivo • Rectoría' : `Perfil Institucional • ${currentUser.name}`)
+                  : `Personalizar Perfil & Logo • ${targetUser.name}`}
               </h3>
-              <p>Gimnasio Martin Galeano • Básica Primaria</p>
+              <p>
+                {isEditingSelf 
+                  ? 'Gimnasio Martin Galeano • Básica Primaria'
+                  : `Gestión Institucional de Usuario • ${targetUser.label}`}
+              </p>
             </div>
           </div>
           <button className="btn-close" onClick={onClose} aria-label="Cerrar modal">
@@ -246,13 +251,13 @@ export default function ProfileModal({
 
         {/* Contenido del Modal */}
         <div className="modal-body-profile">
-          {/* Tarjeta de Identidad y Rol */}
+          {/* Tarjeta de Identidad y Rol Dinámica según el Usuario Seleccionado */}
           <div className="profile-identity-card">
             <div className="profile-avatar-large">
-              {currentUser.avatar ? (
+              {targetUserAvatar ? (
                 <img 
-                  src={currentUser.avatar} 
-                  alt={currentUser.name} 
+                  src={targetUserAvatar} 
+                  alt={targetUser.name} 
                   className="profile-avatar-img-lg"
                   onError={(e) => { 
                     e.currentTarget.style.display = 'none'; 
@@ -261,15 +266,33 @@ export default function ProfileModal({
                   }}
                 />
               ) : null}
-              <span className="profile-avatar-initial" style={{ display: currentUser.avatar ? 'none' : 'flex' }}>
-                {currentUser.initial}
+              <span className="profile-avatar-initial" style={{ display: targetUserAvatar ? 'none' : 'flex' }}>
+                {targetUser.initial || targetUser.name?.charAt(0)}
               </span>
-              {isRectora && <span className="profile-crown-badge">👑</span>}
+              {isTargetRectora && <span className="profile-crown-badge">👑</span>}
             </div>
             <div className="profile-identity-details">
-              <h4>{currentUser.name}</h4>
-              <span className="profile-role-tag">
-                <i className="ph-bold ph-shield-check"></i> {currentUser.label}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <h4 style={{ margin: 0 }}>{targetUser.name}</h4>
+                {!isEditingSelf && (
+                  <span style={{ 
+                    fontSize: '0.72rem', 
+                    background: '#ecfdf5', 
+                    color: '#065f46', 
+                    border: '1px solid #a7f3d0',
+                    padding: '2px 8px', 
+                    borderRadius: '12px', 
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <i className="ph-bold ph-sliders"></i> Editando a este docente
+                  </span>
+                )}
+              </div>
+              <span className="profile-role-tag" style={{ marginTop: '5px' }}>
+                <i className="ph-bold ph-shield-check"></i> {targetUser.label}
               </span>
               <p className="profile-institution-text">
                 Gestión Académica y Documental • Sede Básica Primaria
@@ -291,14 +314,16 @@ export default function ProfileModal({
               </span>
             </button>
 
-            <button 
-              type="button" 
-              className={`profile-tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-              onClick={() => setActiveTab('security')}
-            >
-              <i className="ph-bold ph-lock-key"></i>
-              <span>Contraseña & Seguridad</span>
-            </button>
+            {isEditingSelf && (
+              <button 
+                type="button" 
+                className={`profile-tab-btn ${activeTab === 'security' ? 'active' : ''}`}
+                onClick={() => setActiveTab('security')}
+              >
+                <i className="ph-bold ph-lock-key"></i>
+                <span>Contraseña & Seguridad</span>
+              </button>
+            )}
 
             <button 
               type="button" 
@@ -322,7 +347,7 @@ export default function ProfileModal({
                     <i className="ph-bold ph-users-three"></i>
                     <div>
                       <strong>Personalizar Logo de:</strong>
-                      <span className="target-selector-subtitle">Como Directivo o Administrador, puedes actualizar el logo de cualquier usuario del colegio.</span>
+                      <span className="target-selector-subtitle">Selecciona a qué docente o directivo deseas actualizarle el logo o foto de perfil:</span>
                     </div>
                   </div>
                   <select 
@@ -374,11 +399,11 @@ export default function ProfileModal({
                       </span>
                     </div>
                     <p className="avatar-meta-desc">
-                      Este logo se mostrará en la barra superior, en el menú lateral, en el registro de conexiones y en las circulares emitidas.
+                      Este logo se mostrará en la barra superior, en el menú lateral, en el registro de conexiones y en las circulares emitidas por {targetUser.name}.
                     </p>
                     {pendingAvatar && (
                       <span className="avatar-pending-indicator">
-                        <i className="ph-bold ph-pencil-simple"></i> Cambio pendiente por guardar
+                        <i className="ph-bold ph-pencil-simple"></i> Cambio seleccionado pendiente por guardar
                       </span>
                     )}
                   </div>
@@ -635,18 +660,18 @@ export default function ProfileModal({
           {activeTab === 'features' && (
             <div className="profile-section">
               <h5 className="profile-section-title">
-                <i className="ph-bold ph-sparkle"></i> Características y Atribuciones del Perfil
+                <i className="ph-bold ph-sparkle"></i> Características y Atribuciones de {targetUser.name}
               </h5>
               <div className="profile-features-grid">
                 <div className="profile-feature-item">
                   <div className="feature-icon"><i className="ph-bold ph-hard-drives"></i></div>
                   <div className="feature-info">
                     <strong>Capacidad de Almacenamiento</strong>
-                    <span>Límite de {currentUser.maxUploadLabel} por archivo ({currentUser.maxUploadBytes > 50 * 1024 * 1024 ? 'Modo Directivo Ampliado' : 'Estándar'})</span>
+                    <span>Límite de {targetUser.maxUploadLabel || '15 MB'} por archivo ({targetUser.maxUploadBytes > 50 * 1024 * 1024 ? 'Modo Directivo Ampliado' : 'Estándar'})</span>
                   </div>
                 </div>
 
-                {isRectora && (
+                {isTargetRectora && (
                   <>
                     <div className="profile-feature-item">
                       <div className="feature-icon"><i className="ph-bold ph-vault"></i></div>

@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 import { USERS } from '../data/users.js';
+import { getUserAvatar } from './avatarService.js';
 
 // Prefijo único: exactamente 1 registro por usuario (se sobrescribe en cada conexión)
 const PRESENCE_USER_PREFIX = 'presence_user_';
@@ -233,7 +234,7 @@ export async function fetchPresenceOverview(activeRealtimeKeys = new Set()) {
       role: userInfo.role,
       label: userInfo.label,
       initial: userInfo.initial,
-      avatar: userInfo.avatar,
+      avatar: getUserAvatar(userKey) || userInfo.avatar || null,
       isOnline,
       lastConnectedAt: statusData?.lastConnectedAt || statusData?.connectedAt || null,
       lastSeenAt: statusData?.lastSeenAt || null,

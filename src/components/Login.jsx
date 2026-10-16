@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { USERS } from '../data/users';
 import { verifyCredentials, hasCustomPassword, syncVaultWithSupabase, subscribeToVaultChanges } from '../services/authService';
+import { syncAvatarsFromCloud, getUserAvatar } from '../services/avatarService';
 
 export default function Login({ onLogin }) {
   const [userKey, setUserKey] = useState('');
@@ -10,8 +11,9 @@ export default function Login({ onLogin }) {
   const [, setVaultTick] = useState(0);
 
   useEffect(() => {
-    // Sincronizar credenciales ofuscadas desde la nube al cargar
+    // Sincronizar credenciales ofuscadas y avatares desde la nube al cargar
     syncVaultWithSupabase().catch(() => {});
+    syncAvatarsFromCloud().catch(() => {});
     
     // Escuchar cambios en tiempo real si otra pestaña o dispositivo actualiza la bóveda
     const unsubscribe = subscribeToVaultChanges(() => {
@@ -39,7 +41,8 @@ export default function Login({ onLogin }) {
       return;
     }
     
-    onLogin({ ...expectedUser, key: userKey });
+    const activeAvatar = getUserAvatar(userKey) || expectedUser.avatar || null;
+    onLogin({ ...expectedUser, key: userKey, avatar: activeAvatar });
   };
 
   return (

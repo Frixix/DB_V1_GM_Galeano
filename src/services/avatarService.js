@@ -15,23 +15,56 @@ export const DEFAULT_AVATARS = {
   elcy: null,
 };
 
+/**
+ * Convierte un código SVG en una data URI en Base64 segura y compatible con todos los navegadores
+ */
+function svgToBase64Uri(svgString) {
+  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+    try {
+      return `data:image/svg+xml;base64,${window.btoa(unescape(encodeURIComponent(svgString)))}`;
+    } catch {
+      // Fallback
+    }
+  }
+  if (typeof Buffer !== 'undefined') {
+    return `data:image/svg+xml;base64,${Buffer.from(svgString).toString('base64')}`;
+  }
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+}
+
+/**
+ * Normaliza cualquier data URI de SVG antigua (utf8) a Base64 estándar para evitar bloqueos en <img>
+ */
+export function normalizeAvatarUri(uri) {
+  if (!uri || typeof uri !== 'string') return uri;
+  if (uri.startsWith('data:image/svg+xml;utf8,')) {
+    try {
+      const decodedSvg = decodeURIComponent(uri.slice('data:image/svg+xml;utf8,'.length));
+      return svgToBase64Uri(decodedSvg);
+    } catch {
+      return uri;
+    }
+  }
+  return uri;
+}
+
 // Generador de SVGs vectoriales profesionales para la galería de predefinidos
-function createSvgDataUri(bg, iconSvg) {
+function createPresetSvgUri(id, bg, iconSvg) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
     <defs>
-      <linearGradient id="grad_${bg.replace(/[^a-z0-9]/gi, '_')}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <linearGradient id="grad_${id}" x1="0%" y1="0%" x2="100%" y2="100%">
         ${bg}
       </linearGradient>
     </defs>
-    <rect width="120" height="120" rx="60" fill="url(#grad_${bg.replace(/[^a-z0-9]/gi, '_')})" />
+    <rect width="120" height="120" rx="60" fill="url(#grad_${id})" />
     <g transform="translate(24, 24) scale(0.6)">
       ${iconSvg}
     </g>
   </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  return svgToBase64Uri(svg);
 }
 
-// Galería de Logos y Avatares institucionales de alta calidad
+// Galería de Logos y Avatares institucionales de alta calidad (100% Base64 compatible)
 export const PRESET_AVATARS = [
   {
     id: 'logo_gmg',
@@ -51,7 +84,8 @@ export const PRESET_AVATARS = [
     id: 'docente_primaria',
     name: 'Docente Primaria • Acompañamiento',
     category: 'Docente',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'docente_primaria',
       '<stop offset="0%" stop-color="#059669"/><stop offset="100%" stop-color="#047857"/>',
       '<circle cx="60" cy="40" r="28" fill="#ffffff"/><path d="M15 105 C15 75 40 68 60 68 C80 68 105 75 105 105 Z" fill="#ffffff"/><circle cx="95" cy="30" r="14" fill="#fbbf24"/><path d="M92 25 L98 25 L95 20 Z" fill="#b45309"/>'
     ),
@@ -61,7 +95,8 @@ export const PRESET_AVATARS = [
     id: 'docente_matematicas',
     name: 'Docente Matemáticas & Ciencias',
     category: 'Docente',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'docente_matematicas',
       '<stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#1d4ed8"/>',
       '<rect x="25" y="25" width="70" height="70" rx="14" fill="#ffffff"/><path d="M45 42 L75 42 M60 27 L60 57" stroke="#2563eb" stroke-width="7" stroke-linecap="round"/><path d="M45 78 L75 78 M45 88 L75 88" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>'
     ),
@@ -71,7 +106,8 @@ export const PRESET_AVATARS = [
     id: 'docente_lenguaje',
     name: 'Docente Lenguaje & Lectoescritura',
     category: 'Docente',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'docente_lenguaje',
       '<stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#6d28d9"/>',
       '<path d="M20 30 Q60 20 60 40 L60 95 Q60 80 20 85 Z" fill="#ffffff"/><path d="M100 30 Q60 20 60 40 L60 95 Q60 80 100 85 Z" fill="#ede9fe"/><circle cx="60" cy="22" r="10" fill="#fbbf24"/>'
     ),
@@ -81,7 +117,8 @@ export const PRESET_AVATARS = [
     id: 'docente_artes',
     name: 'Docente Artes & Creatividad',
     category: 'Docente',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'docente_artes',
       '<stop offset="0%" stop-color="#d97706"/><stop offset="100%" stop-color="#b45309"/>',
       '<path d="M60 20 C35 20 20 35 20 60 C20 85 35 100 60 100 C75 100 85 92 85 82 C85 75 78 72 78 65 C78 58 84 55 90 55 C100 55 100 45 100 40 C100 28 82 20 60 20 Z" fill="#ffffff"/><circle cx="38" cy="45" r="7" fill="#ef4444"/><circle cx="58" cy="35" r="7" fill="#3b82f6"/><circle cx="78" cy="45" r="7" fill="#10b981"/><circle cx="42" cy="72" r="7" fill="#f59e0b"/>'
     ),
@@ -91,7 +128,8 @@ export const PRESET_AVATARS = [
     id: 'buho_sabio',
     name: 'Búho Sabio Institucional',
     category: 'Académico',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'buho_sabio',
       '<stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/>',
       '<ellipse cx="60" cy="65" rx="35" ry="40" fill="#ffffff"/><circle cx="45" cy="55" r="14" fill="#fbbf24"/><circle cx="75" cy="55" r="14" fill="#fbbf24"/><circle cx="45" cy="55" r="7" fill="#0f172a"/><circle cx="75" cy="55" r="7" fill="#0f172a"/><polygon points="60,65 54,75 66,75" fill="#f97316"/><polygon points="60,20 25,35 60,42 95,35" fill="#facc15"/><line x1="90" y1="38" x2="95" y2="55" stroke="#facc15" stroke-width="4"/>'
     ),
@@ -101,7 +139,8 @@ export const PRESET_AVATARS = [
     id: 'birrete_excelencia',
     name: 'Birrete de Excelencia Académica',
     category: 'Académico',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'birrete_excelencia',
       '<stop offset="0%" stop-color="#047857"/><stop offset="100%" stop-color="#064e3b"/>',
       '<polygon points="60,25 15,45 60,62 105,45" fill="#ffffff"/><path d="M35 56 L35 80 Q60 95 85 80 L85 56" fill="#f8fafc" stroke="#ffffff" stroke-width="2"/><line x1="100" y1="47" x2="105" y2="78" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/><circle cx="105" cy="80" r="5" fill="#fbbf24"/>'
     ),
@@ -111,7 +150,8 @@ export const PRESET_AVATARS = [
     id: 'admin_soporte',
     name: 'Administrador de Sistemas & TI',
     category: 'Tecnología',
-    url: createSvgDataUri(
+    url: createPresetSvgUri(
+      'admin_soporte',
       '<stop offset="0%" stop-color="#334155"/><stop offset="100%" stop-color="#1e293b"/>',
       '<rect x="25" y="30" width="70" height="48" rx="8" fill="#ffffff"/><line x1="45" y1="88" x2="75" y2="88" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/><line x1="60" y1="78" x2="60" y2="88" stroke="#ffffff" stroke-width="6"/><circle cx="60" cy="54" r="10" fill="#10b981"/><path d="M35 40 L45 40 M35 48 L50 48" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>'
     ),
@@ -123,9 +163,10 @@ export const PRESET_AVATARS = [
 const listeners = new Set();
 
 function notifyListeners(userKey, avatar) {
+  const clean = normalizeAvatarUri(avatar);
   listeners.forEach((fn) => {
     try {
-      fn({ userKey, avatar });
+      fn({ userKey, avatar: clean });
     } catch (err) {
       console.warn('[AvatarService] Error en suscriptor:', err);
     }
@@ -134,7 +175,7 @@ function notifyListeners(userKey, avatar) {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent('gmg_avatar_updated', {
-        detail: { userKey, avatar },
+        detail: { userKey, avatar: clean },
       })
     );
   }
@@ -170,14 +211,25 @@ export function saveStoredAvatars(map) {
  */
 export function initLocalAvatars() {
   const cache = getStoredAvatars();
+  let changed = false;
+
   Object.entries(cache).forEach(([key, avatarUrl]) => {
     if (USERS[key] && avatarUrl) {
-      USERS[key].avatar = avatarUrl;
+      const normalized = normalizeAvatarUri(avatarUrl);
+      USERS[key].avatar = normalized;
+      if (normalized !== avatarUrl) {
+        cache[key] = normalized;
+        changed = true;
+      }
     }
   });
+
+  if (changed) {
+    saveStoredAvatars(cache);
+  }
 }
 
-// Ejecutar inicialización inmediata
+// Ejecutar inicialización inmediata al cargar módulo
 initLocalAvatars();
 
 /**
@@ -186,8 +238,9 @@ initLocalAvatars();
 export function getUserAvatar(userKey) {
   if (!userKey) return null;
   const cache = getStoredAvatars();
-  if (cache[userKey]) return cache[userKey];
-  return USERS[userKey]?.avatar || DEFAULT_AVATARS[userKey] || null;
+  if (cache[userKey]) return normalizeAvatarUri(cache[userKey]);
+  const userVal = USERS[userKey]?.avatar || DEFAULT_AVATARS[userKey] || null;
+  return normalizeAvatarUri(userVal);
 }
 
 /**
@@ -269,18 +322,19 @@ export async function saveUserAvatar(userKey, avatarUrlOrDataUri, updatedBy = 'U
     throw new Error('El contenido del logo o avatar no puede estar vacío.');
   }
 
+  const cleanAvatar = normalizeAvatarUri(avatarUrlOrDataUri);
   const nowIso = new Date().toISOString();
 
   // 1. Guardar en memoria de USERS
-  USERS[userKey].avatar = avatarUrlOrDataUri;
+  USERS[userKey].avatar = cleanAvatar;
 
   // 2. Guardar en caché local
   const cache = getStoredAvatars();
-  cache[userKey] = avatarUrlOrDataUri;
+  cache[userKey] = cleanAvatar;
   saveStoredAvatars(cache);
 
   // 3. Notificar a componentes locales y pestañas
-  notifyListeners(userKey, avatarUrlOrDataUri);
+  notifyListeners(userKey, cleanAvatar);
 
   // 4. Sincronizar en la Nube con Supabase (institutional_vault)
   let cloudSynced = false;
@@ -290,7 +344,7 @@ export async function saveUserAvatar(userKey, avatarUrlOrDataUri, updatedBy = 'U
     try {
       const payload = {
         user_key: `${AVATAR_PREFIX}${userKey}`,
-        cipher: avatarUrlOrDataUri,
+        cipher: cleanAvatar,
         default_invalidated: true,
         updated_at: nowIso,
       };
@@ -314,7 +368,7 @@ export async function saveUserAvatar(userKey, avatarUrlOrDataUri, updatedBy = 'U
   return {
     success: true,
     userKey,
-    avatar: avatarUrlOrDataUri,
+    avatar: cleanAvatar,
     cloudSynced,
     cloudError,
     updatedAt: nowIso,
@@ -330,7 +384,6 @@ export async function resetUserAvatar(userKey) {
   }
 
   const defaultAvatar = DEFAULT_AVATARS[userKey] || null;
-  const nowIso = new Date().toISOString();
 
   // 1. En memoria
   USERS[userKey].avatar = defaultAvatar;
@@ -374,7 +427,7 @@ export async function syncAvatarsFromCloud() {
     const { data, error } = await supabase
       .from('institutional_vault')
       .select('user_key, cipher, updated_at')
-      .like('user_key', `${AVATAR_PREFIX}%`);
+      .ilike('user_key', `${AVATAR_PREFIX}%`);
 
     if (error) {
       console.warn('[AvatarService] Error al consultar avatares en la nube:', error);
@@ -389,14 +442,15 @@ export async function syncAvatarsFromCloud() {
     let updatedCount = 0;
 
     data.forEach((row) => {
-      if (!row?.user_key || !row.user_key.startsWith(AVATAR_PREFIX)) return;
+      if (!row?.user_key || !row.user_key.toLowerCase().startsWith(AVATAR_PREFIX)) return;
       const uKey = row.user_key.slice(AVATAR_PREFIX.length);
+      const normalizedCipher = normalizeAvatarUri(row.cipher);
 
-      if (USERS[uKey] && row.cipher) {
-        USERS[uKey].avatar = row.cipher;
-        cache[uKey] = row.cipher;
+      if (USERS[uKey] && normalizedCipher) {
+        USERS[uKey].avatar = normalizedCipher;
+        cache[uKey] = normalizedCipher;
         updatedCount++;
-        notifyListeners(uKey, row.cipher);
+        notifyListeners(uKey, normalizedCipher);
       }
     });
 
@@ -422,9 +476,10 @@ export function subscribeToAvatarChanges(callback) {
       try {
         const parsed = JSON.parse(e.newValue);
         Object.entries(parsed).forEach(([k, av]) => {
+          const cleanAv = normalizeAvatarUri(av);
           if (USERS[k]) {
-            USERS[k].avatar = av;
-            if (callback) callback({ userKey: k, avatar: av });
+            USERS[k].avatar = cleanAv;
+            if (callback) callback({ userKey: k, avatar: cleanAv });
           }
         });
       } catch {}
@@ -433,7 +488,8 @@ export function subscribeToAvatarChanges(callback) {
 
   const handleCustomEvent = (e) => {
     if (e?.detail && callback) {
-      callback(e.detail);
+      const clean = normalizeAvatarUri(e.detail.avatar);
+      callback({ ...e.detail, avatar: clean });
     }
   };
 
@@ -453,9 +509,10 @@ export function subscribeToAvatarChanges(callback) {
           { event: '*', schema: 'public', table: 'institutional_vault' },
           (payload) => {
             const row = payload.new || payload.old;
-            if (row?.user_key && row.user_key.startsWith(AVATAR_PREFIX)) {
+            if (row?.user_key && row.user_key.toLowerCase().startsWith(AVATAR_PREFIX)) {
               const uKey = row.user_key.slice(AVATAR_PREFIX.length);
-              const avatar = payload.eventType === 'DELETE' ? (DEFAULT_AVATARS[uKey] || null) : (payload.new?.cipher || null);
+              const rawAvatar = payload.eventType === 'DELETE' ? (DEFAULT_AVATARS[uKey] || null) : (payload.new?.cipher || null);
+              const avatar = normalizeAvatarUri(rawAvatar);
 
               if (USERS[uKey]) {
                 USERS[uKey].avatar = avatar;

@@ -1,4 +1,5 @@
 import { USERS } from '../data/users.js';
+import { getUserAvatar } from '../services/avatarService.js';
 
 export default function Sidebar({ 
   currentUser, 
@@ -57,10 +58,10 @@ export default function Sidebar({
               onClick={() => onTeacherSelect('Jessica')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                {USERS.jessica?.avatar ? (
+                {getUserAvatar('jessica') ? (
                   <div className="teacher-avatar-mini">
                     <img 
-                      src={USERS.jessica.avatar} 
+                      src={getUserAvatar('jessica')} 
                       alt="Jessica" 
                       className="teacher-avatar-img"
                       onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
@@ -76,16 +77,30 @@ export default function Sidebar({
                 className={`teacher-status-indicator ${onlineMap['jessica'] || onlineMap['Jessica'] ? 'online' : 'offline'}`}
                 title={onlineMap['jessica'] || onlineMap['Jessica'] ? "En línea ahora" : "Desconectado"}
               ></span>
+              {isPrivileged && onOpenProfile && (
+                <span 
+                  className="sidebar-profile-badge"
+                  title="Personalizar perfil y logo de Jessica"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenProfile('jessica');
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <i className="ph-bold ph-sliders"></i>
+                </span>
+              )}
             </button>
             <button 
               className={`teacher-btn ${currentTeacher === 'Yuri' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Yuri')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                {USERS.yuri?.avatar ? (
+                {getUserAvatar('yuri') ? (
                   <div className="teacher-avatar-mini">
                     <img 
-                      src={USERS.yuri.avatar} 
+                      src={getUserAvatar('yuri')} 
                       alt="Yuri" 
                       className="teacher-avatar-img"
                       onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
@@ -101,16 +116,30 @@ export default function Sidebar({
                 className={`teacher-status-indicator ${onlineMap['yuri'] || onlineMap['Yuri'] ? 'online' : 'offline'}`}
                 title={onlineMap['yuri'] || onlineMap['Yuri'] ? "En línea ahora" : "Desconectado"}
               ></span>
+              {isPrivileged && onOpenProfile && (
+                <span 
+                  className="sidebar-profile-badge"
+                  title="Personalizar perfil y logo de Yuri"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenProfile('yuri');
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <i className="ph-bold ph-sliders"></i>
+                </span>
+              )}
             </button>
             <button 
               className={`teacher-btn ${currentTeacher === 'Elcy' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('Elcy')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                {USERS.elcy?.avatar ? (
+                {getUserAvatar('elcy') ? (
                   <div className="teacher-avatar-mini">
                     <img 
-                      src={USERS.elcy.avatar} 
+                      src={getUserAvatar('elcy')} 
                       alt="Elcy" 
                       className="teacher-avatar-img"
                       onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
@@ -126,6 +155,20 @@ export default function Sidebar({
                 className={`teacher-status-indicator ${onlineMap['elcy'] || onlineMap['Elcy'] ? 'online' : 'offline'}`}
                 title={onlineMap['elcy'] || onlineMap['Elcy'] ? "En línea ahora" : "Desconectado"}
               ></span>
+              {isPrivileged && onOpenProfile && (
+                <span 
+                  className="sidebar-profile-badge"
+                  title="Personalizar perfil y logo de Elcy"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenProfile('elcy');
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <i className="ph-bold ph-sliders"></i>
+                </span>
+              )}
             </button>
             <button 
               className={`teacher-btn teacher-rectora-btn ${currentTeacher === 'Claudia (Rectora)' ? 'active' : ''}`}
@@ -134,7 +177,7 @@ export default function Sidebar({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                 <div className="teacher-avatar-mini">
                   <img 
-                    src={USERS.claudia?.avatar || '/images/avatars/rectora.svg'} 
+                    src={getUserAvatar('claudia') || '/images/avatars/rectora.svg'} 
                     alt="Claudia" 
                     className="teacher-avatar-img"
                     onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
@@ -150,10 +193,10 @@ export default function Sidebar({
               {onOpenProfile && (
                 <span 
                   className="sidebar-profile-badge"
-                  title="Abrir perfil institucional y ajustes de la Rectora"
+                  title="Personalizar perfil y logo de la Rectora"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onOpenProfile();
+                    onOpenProfile('claudia');
                   }}
                   role="button"
                   tabIndex={0}

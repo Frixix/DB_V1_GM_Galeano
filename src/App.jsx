@@ -45,8 +45,15 @@ export default function App() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileTargetUserKey, setProfileTargetUserKey] = useState(null);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
+
+  const handleOpenProfile = (targetUserKey = null) => {
+    const resolved = targetUserKey || currentUser?.key || 'claudia';
+    setProfileTargetUserKey(resolved);
+    setIsProfileModalOpen(true);
+  };
 
   const { documents, addDocument, deleteDocument } = useDocuments();
   const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
@@ -278,7 +285,7 @@ export default function App() {
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenCirculares={handleOpenCircularesBell}
         circularesCount={totalUnreadCount}
-        onOpenProfile={() => setIsProfileModalOpen(true)}
+        onOpenProfile={() => handleOpenProfile(currentUser?.key)}
         onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
         onlineCount={onlineCount}
       />
@@ -295,7 +302,7 @@ export default function App() {
             documents={documents}
             circularesCount={unreadCirculares.length}
             unreadSharedCount={unreadSharedDocs.length}
-            onOpenProfile={() => setIsProfileModalOpen(true)}
+            onOpenProfile={handleOpenProfile}
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
@@ -450,6 +457,7 @@ export default function App() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         currentUser={currentUser}
+        initialTargetUserKey={profileTargetUserKey}
         onProfileUpdated={(userKey) => {
           // Si el usuario actual actualiza su contraseña, mantenemos la sesión sincronizada
           console.log(`Credenciales institucionales actualizadas para: ${userKey}`);
