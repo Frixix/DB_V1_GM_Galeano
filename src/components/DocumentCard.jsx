@@ -40,9 +40,12 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete, canDel
           )}
         </div>
         <div className="doc-meta-subtle">
-          <span>{doc.uploadedAt}</span>
-          <span className="dot-separator">•</span>
-          <code>{doc.id}</code>
+          <span className="doc-meta-date" title={`Fecha de registro: ${doc.uploadedAt}`}>
+            <i className="ph-bold ph-calendar-blank"></i> {doc.uploadedAt}
+          </span>
+          <span className="doc-radicado-chip" title={`Radicado institucional único: ${doc.id}`}>
+            <code>{doc.id}</code>
+          </span>
         </div>
       </div>
 
