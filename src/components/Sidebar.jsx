@@ -13,9 +13,12 @@ export default function Sidebar({
   onOpenConnectionsModal
 }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
+  const SYSTEM_CAPACITY = 3 * 1024 * 1024 * 1024; // 3 GB
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
-  const percentUsed = Math.min(100, Math.max(1, ((totalUsedBytes / (2 * 1024 * 1024 * 1024)) * 100))).toFixed(1);
+  const percentUsed = Math.min(100, Math.max(1, ((totalUsedBytes / SYSTEM_CAPACITY) * 100))).toFixed(1);
+  const isStorageFull = totalUsedBytes >= SYSTEM_CAPACITY;
+  const isStorageNearFull = !isStorageFull && (totalUsedBytes / SYSTEM_CAPACITY) >= 0.85;
 
   return (
     <aside className="sidebar" id="mainSidebar">
@@ -205,22 +208,52 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* Almacenamiento */}
-      <div className="db-summary-card" id="sidebarStorageCard">
-        <div className="summary-title">
-          <i className="ph-bold ph-hard-drive"></i>
-          <span>Almacenamiento del Sistema</span>
+      {/* Almacenamiento en la parte inferior */}
+      <div 
+        className={`db-summary-card ${isStorageFull ? 'storage-card-full' : (isStorageNearFull ? 'storage-card-warning' : '')}`} 
+        id="sidebarStorageCard"
+      >
+        <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <i className="ph-bold ph-hard-drive"></i>
+            <span>Almacenamiento</span>
+          </div>
+          <span className={`storage-plan-pill ${isStorageFull ? 'full' : (isStorageNearFull ? 'warning' : '')}`}>
+            {isStorageFull ? '3 GB Lleno' : 'Fase de Prueba'}
+          </span>
         </div>
+
         <div className="storage-bar-wrapper">
-          <div className="storage-bar-progress" style={{ width: `${percentUsed}%` }}></div>
+          <div 
+            className={`storage-bar-progress ${isStorageFull ? 'progress-full' : (isStorageNearFull ? 'progress-warning' : '')}`} 
+            style={{ width: `${percentUsed}%` }}
+          ></div>
         </div>
+
         <div className="storage-labels">
-          <span>{usedMB} MB usados</span>
-          <span>2 GB disponibles</span>
+          <span>{usedMB} MB usados ({percentUsed}%)</span>
+          <span>3 GB disponibles</span>
         </div>
-        <p className="summary-reminder">
-          Límite por subida: <strong>{currentUser.maxUploadLabel}</strong> por archivo.
-        </p>
+
+        {isStorageFull ? (
+          <div className="summary-alert-full">
+            <div className="summary-alert-header">
+              <i className="ph-bold ph-warning-octagon"></i>
+              <strong>Capacidad Agotada (3 GB)</strong>
+            </div>
+            <p>
+              Has alcanzado el límite de 3 GB de la <strong>fase de prueba</strong>. Para continuar almacenando documentos, contacte al administrador.
+            </p>
+          </div>
+        ) : (
+          <p className="summary-reminder">
+            {isStorageNearFull ? (
+              <>⚠️ <strong>Cerca del límite:</strong> 85%+ de capacidad utilizada de los 3 GB de prueba.</>
+            ) : (
+              <>Fase de prueba: <strong>3 GB asignados</strong> para evaluación institucional.</>
+            )}
+          </p>
+        )}
       </div>
     </aside>
   );

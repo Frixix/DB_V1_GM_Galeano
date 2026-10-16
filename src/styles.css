@@ -1500,8 +1500,8 @@ select {
 
 .btn-floating-tour {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 66px;
+  right: 20px;
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: #fff;
   border: none;
@@ -1578,7 +1578,7 @@ select {
   .main-content { padding: 1rem; }
   .form-grid-3, .form-grid-2 { grid-template-columns: 1fr; }
   .cards-grid { grid-template-columns: 1fr; }
-  .btn-floating-tour { bottom: 16px; right: 16px; padding: 0.65rem 1rem; font-size: 0.78rem; }
+  .btn-floating-tour { bottom: 58px; right: 14px; padding: 0.65rem 1rem; font-size: 0.78rem; }
 }
 
 @media (min-width: 901px) {
@@ -3065,4 +3065,283 @@ select {
   margin-bottom: 8px;
   opacity: 0.5;
 }
+
+/* ============================================================
+   MARCA DE AGUA (FASE DE PRUEBA) - INFERIOR DERECHA
+   ============================================================ */
+.trial-watermark-wrapper {
+  position: fixed;
+  bottom: 16px;
+  right: 20px;
+  z-index: 95;
+  font-family: inherit;
+}
+
+.trial-watermark-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px dashed rgba(6, 78, 59, 0.45);
+  border-radius: 999px;
+  padding: 6px 14px;
+  box-shadow: 0 4px 15px rgba(6, 78, 59, 0.12);
+  color: var(--primary, #064e3b);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.trial-watermark-pill:hover {
+  background: #ffffff;
+  border-color: var(--accent, #10b981);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(6, 78, 59, 0.18);
+}
+
+.trial-watermark-pill.watermark-full {
+  border-color: #ef4444;
+  color: #b91c1c;
+  background: rgba(254, 242, 242, 0.96);
+}
+
+.watermark-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.watermark-dot.dot-full {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.watermark-text {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Popover explicativo al hacer clic en la marca de agua */
+.trial-watermark-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  width: 310px;
+  background: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-md, 12px);
+  padding: 1rem 1.15rem;
+  box-shadow: var(--shadow-lg);
+  animation: popoverFadeIn 0.2s ease-out;
+  z-index: 100;
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.popover-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--primary, #064e3b);
+}
+
+.popover-close-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  font-size: 0.95rem;
+  border-radius: 4px;
+}
+
+.popover-close-btn:hover {
+  color: #1e293b;
+}
+
+.popover-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 0.75rem;
+}
+
+.popover-storage-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.popover-storage-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.popover-bar-track {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.popover-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #064e3b);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.popover-bar-fill.full {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.popover-desc {
+  font-size: 0.73rem;
+  color: #475569;
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .trial-watermark-wrapper {
+    bottom: 12px;
+    right: 14px;
+  }
+  .trial-watermark-pill {
+    padding: 5px 11px;
+  }
+  .watermark-text {
+    font-size: 0.68rem;
+  }
+  .trial-watermark-popover {
+    width: 280px;
+    right: 0;
+  }
+}
+
+/* ============================================================
+   ESTILOS DE LÍMITE DE 3 GB EN SIDEBAR
+   ============================================================ */
+.storage-plan-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.storage-plan-pill.warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.storage-plan-pill.full {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.storage-card-full {
+  border-color: #fca5a5 !important;
+  background-color: #fff5f5 !important;
+}
+
+.storage-card-warning {
+  border-color: #fde68a !important;
+}
+
+.storage-bar-progress.progress-warning {
+  background: linear-gradient(90deg, #10b981, #f59e0b);
+}
+
+.storage-bar-progress.progress-full {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.summary-alert-full {
+  margin-top: 0.5rem;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  color: #991b1b;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.summary-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+/* ============================================================
+   ESTILOS DE LÍMITE DE 3 GB EN UPLOAD MODAL
+   ============================================================ */
+.upload-storage-full-alert {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #991b1b;
+  margin-bottom: 1rem;
+}
+
+.upload-storage-full-alert .alert-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.upload-storage-full-alert p {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.file-dropzone.dropzone-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
 

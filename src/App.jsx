@@ -12,6 +12,7 @@ import ProfileModal from './components/ProfileModal';
 import BovedaPasswordModal from './components/BovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import ConnectionsModal from './components/ConnectionsModal';
+import TrialWatermark from './components/TrialWatermark';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
 import { useUserPresence } from './hooks/useUserPresence';
@@ -48,6 +49,8 @@ export default function App() {
   const { documents, addDocument, deleteDocument } = useDocuments();
   const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
 
+  const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
+
   // Control de asistencia y conexiones en tiempo real
   const {
     presenceData,
@@ -67,7 +70,12 @@ export default function App() {
   }, []);
 
   if (!currentUser) {
-    return <Login onLogin={setCurrentUser} />;
+    return (
+      <>
+        <Login onLogin={setCurrentUser} />
+        <TrialWatermark documents={documents} />
+      </>
+    );
   }
 
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
@@ -413,6 +421,7 @@ export default function App() {
         onUploadSuccess={handleUploadSuccess}
         existingCount={documents.length}
         initialFolder={currentFolder}
+        totalUsedBytes={totalUsedBytes}
       />
 
       {/* Modal de Perfil Institucional y Seguridad */}
@@ -452,6 +461,9 @@ export default function App() {
 
       {/* Guía Interactiva Spotlight */}
       <TourSpotlight currentUser={currentUser} />
+
+      {/* Marca de Agua Inferior Derecha: Fase de Prueba */}
+      <TrialWatermark documents={documents} />
     </div>
   );
 }

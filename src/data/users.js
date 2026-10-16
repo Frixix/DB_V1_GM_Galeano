@@ -72,4 +72,4 @@ export const USERS = {
 }
 
 export const BOVEDA_PASSWORD = 'boveda2026'
-export const SYSTEM_STORAGE_CAPACITY_BYTES = 2 * GB
+export const SYSTEM_STORAGE_CAPACITY_BYTES = 3 * GB

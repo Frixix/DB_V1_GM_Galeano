@@ -9,8 +9,13 @@ export default function UploadModal({
   currentUser, 
   onUploadSuccess, 
   existingCount = 0,
-  initialFolder = 'planeaciones'
+  initialFolder = 'planeaciones',
+  totalUsedBytes = 0
 }) {
+  const SYSTEM_STORAGE_CAPACITY = 3 * 1024 * 1024 * 1024; // 3 GB
+  const remainingBytes = Math.max(0, SYSTEM_STORAGE_CAPACITY - totalUsedBytes);
+  const isStorageFull = totalUsedBytes >= SYSTEM_STORAGE_CAPACITY;
+
   const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
   const defaultFolder = (initialFolder && initialFolder !== 'all' && initialFolder !== 'publico')
@@ -65,9 +70,25 @@ export default function UploadModal({
 
     setErrorMessage('');
 
+    // Validar si la cuota global de 3 GB de la Fase de Prueba ya está llena
+    if (isStorageFull) {
+      setErrorMessage('El almacenamiento asignado para la fase de prueba (3 GB) se encuentra lleno. Contacte a la administración para habilitar espacio adicional.');
+      setSelectedFile(null);
+      setCompressedInfo(null);
+      return;
+    }
+
     // Validar límite de peso según el rol
     if (file.size > currentUser.maxUploadBytes) {
       setErrorMessage(`El archivo pesa ${formatBytes(file.size)}, superando el límite de ${currentUser.maxUploadLabel} asignado a tu perfil.`);
+      setSelectedFile(null);
+      setCompressedInfo(null);
+      return;
+    }
+
+    // Validar si este archivo sobrepasa el espacio restante para alcanzar los 3 GB
+    if (file.size > remainingBytes) {
+      setErrorMessage(`El archivo pesa ${formatBytes(file.size)}, superando el espacio disponible restante en la fase de prueba (${formatBytes(remainingBytes)} disponibles de 3 GB).`);
       setSelectedFile(null);
       setCompressedInfo(null);
       return;
@@ -102,6 +123,11 @@ export default function UploadModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isStorageFull) {
+      setErrorMessage('La fase de prueba ha alcanzado el límite de 3 GB. Contacte a la administración para continuar.');
+      return;
+    }
+
     if (!selectedFile) {
       setErrorMessage('Por favor seleccione un archivo para adjuntar.');
       return;
@@ -112,12 +138,19 @@ export default function UploadModal({
       return;
     }
 
+    const rawBytes = selectedFile.size;
+    const finalSize = compressedInfo?.compressedBytes || rawBytes;
+
+    if (totalUsedBytes + finalSize > SYSTEM_STORAGE_CAPACITY) {
+      setErrorMessage(`Este documento supera la capacidad máxima de 3 GB de la fase de prueba. Quedan solo ${formatBytes(remainingBytes)} disponibles.`);
+      return;
+    }
+
     setIsProcessing(true);
     setErrorMessage('');
 
     try {
       const radicado = generateRadicado(existingCount);
-      const rawBytes = selectedFile.size;
       const fileToUpload = compressedInfo?.file || selectedFile;
       const finalSize = compressedInfo?.compressedBytes || rawBytes;
 
@@ -192,6 +225,18 @@ export default function UploadModal({
         </div>
 
         <form id="docForm" onSubmit={handleSubmit}>
+          {isStorageFull && (
+            <div className="upload-storage-full-alert">
+              <div className="alert-header">
+                <i className="ph-bold ph-lock-key"></i>
+                <strong>Capacidad de 3 GB Alcanzada (Fase de Prueba)</strong>
+              </div>
+              <p>
+                El almacenamiento asignado para la <strong>fase de prueba (3 GB)</strong> se encuentra lleno. Para radicar nuevos documentos, contacte a la administración.
+              </p>
+            </div>
+          )}
+
           {errorMessage && (
             <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem' }}>
               <i className="ph-bold ph-warning-circle" style={{ marginRight: '6px' }}></i>
@@ -311,17 +356,31 @@ export default function UploadModal({
           <div className="form-group">
             <label>Archivo Adjunto *</label>
             {!selectedFile ? (
-              <div className="file-dropzone" tabIndex="0">
-                <i className="ph-bold ph-cloud-arrow-up"></i>
-                <div className="drop-text">Haga clic o arrastre su archivo aquí</div>
+              <div 
+                className={`file-dropzone ${isStorageFull ? 'dropzone-disabled' : ''}`} 
+                tabIndex={isStorageFull ? -1 : 0}
+              >
+                <i className={`ph-bold ${isStorageFull ? 'ph-lock-key' : 'ph-cloud-arrow-up'}`}></i>
+                <div className="drop-text">
+                  {isStorageFull 
+                    ? 'Subidas bloqueadas: Capacidad de 3 GB agotada' 
+                    : 'Haga clic o arrastre su archivo aquí'}
+                </div>
                 <div className="file-hint">
-                  Límite para tu perfil: <strong>{currentUser.maxUploadLabel}</strong> por archivo.
+                  {isStorageFull ? (
+                    <span style={{ color: '#b91c1c', fontWeight: 600 }}>Límite de almacenamiento de prueba alcanzado</span>
+                  ) : (
+                    <>
+                      Límite perfil: <strong>{currentUser.maxUploadLabel}</strong> • Espacio restante: <strong>{formatBytes(remainingBytes)}</strong>
+                    </>
+                  )}
                 </div>
                 <input 
                   type="file" 
                   className="file-hidden-input" 
                   onChange={handleFileChange} 
                   required
+                  disabled={isStorageFull}
                 />
               </div>
             ) : (
@@ -358,9 +417,9 @@ export default function UploadModal({
             <button type="button" className="btn btn-secondary" onClick={handleClose} disabled={isProcessing}>
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary" disabled={isProcessing}>
+            <button type="submit" className="btn btn-primary" disabled={isProcessing || isStorageFull}>
               <i className="ph-bold ph-check"></i>
-              {isProcessing ? 'Procesando...' : 'Guardar y Radicar'}
+              {isProcessing ? 'Procesando...' : (isStorageFull ? 'Límite de 3 GB Alcanzado' : 'Guardar y Radicar')}
             </button>
           </div>
         </form>
