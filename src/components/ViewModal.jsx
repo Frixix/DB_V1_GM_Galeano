@@ -5,10 +5,34 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
   const [blobUrl, setBlobUrl] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const fileName = doc?.fileName || '';
   const isImage = /\.(jpe?g|png|gif|webp|svg|bmp|jfif|pjpeg|pjp|avif|ico|tiff?)$/i.test(fileName) || fileName.toLowerCase().endsWith('.jfif');
   const isPdf = /\.pdf$/i.test(fileName);
+
+  // Cerrar lightbox si se cierra el modal o cambia el documento
+  useEffect(() => {
+    if (!isOpen) {
+      setIsLightboxOpen(false);
+    }
+  }, [isOpen, doc?.id]);
+
+  // Manejo de la tecla Escape para cerrar el lightbox sin cerrar el modal principal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isLightboxOpen) {
+        e.stopPropagation();
+        setIsLightboxOpen(false);
+      }
+    };
+    if (isLightboxOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isLightboxOpen]);
 
   useEffect(() => {
     let active = true;
@@ -85,7 +109,8 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
   };
 
   return (
-    <div className="modal-backdrop show" onClick={onClose}>
+    <>
+      <div className="modal-backdrop show" onClick={onClose}>
       <div 
         className="modal modal-preview" 
         onClick={(e) => e.stopPropagation()}
@@ -154,19 +179,19 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
             {/* PREVISUALIZADOR EN VIVO (IMÁGENES) */}
             {isImage && (
               <div style={{ marginTop: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <i className="ph-bold ph-eye"></i> Vista Previa de la Imagen (Cloudflare R2):
                   </label>
                   {blobUrl && (
-                    <a 
-                      href={blobUrl} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      style={{ fontSize: '0.72rem', color: 'var(--primary-light)', textDecoration: 'none', fontWeight: 600 }}
+                    <button 
+                      type="button" 
+                      onClick={() => setIsLightboxOpen(true)}
+                      className="btn-preview-lightbox-trigger"
+                      title="Ver imagen en tamaño completo dentro de la app"
                     >
-                      Abrir en tamaño completo ↗
-                    </a>
+                      <i className="ph-bold ph-arrows-out-simple"></i> Ver completo
+                    </button>
                   )}
                 </div>
 
@@ -176,12 +201,19 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
                     Cargando vista previa desde Cloudflare R2...
                   </div>
                 ) : blobUrl ? (
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', maxHeight: '440px', overflow: 'hidden' }}>
+                  <div 
+                    className="image-preview-thumbnail-wrapper"
+                    onClick={() => setIsLightboxOpen(true)}
+                    title="Haga clic para ampliar en tamaño completo"
+                  >
                     <img 
                       src={blobUrl} 
                       alt={doc.title} 
-                      style={{ maxWidth: '100%', maxHeight: '410px', objectFit: 'contain', borderRadius: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} 
+                      className="image-preview-thumbnail" 
                     />
+                    <div className="image-preview-thumbnail-overlay">
+                      <i className="ph-bold ph-magnifying-glass-plus"></i> Clic para ver en tamaño completo
+                    </div>
                   </div>
                 ) : previewError ? (
                   <div style={{ padding: '1rem', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
@@ -194,19 +226,19 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
             {/* PREVISUALIZADOR EN VIVO (PDF) */}
             {isPdf && (
               <div style={{ marginTop: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <i className="ph-bold ph-file-pdf"></i> Visor de Documento PDF (Cloudflare R2):
                   </label>
                   {blobUrl && (
-                    <a 
-                      href={blobUrl} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      style={{ fontSize: '0.72rem', color: 'var(--primary-light)', textDecoration: 'none', fontWeight: 600 }}
+                    <button 
+                      type="button" 
+                      onClick={() => setIsLightboxOpen(true)}
+                      className="btn-preview-lightbox-trigger"
+                      title="Maximizar visor en pantalla completa dentro de la app"
                     >
-                      Abrir en pestaña nueva ↗
-                    </a>
+                      <i className="ph-bold ph-arrows-out-simple"></i> Maximizar visor
+                    </button>
                   )}
                 </div>
 
@@ -259,5 +291,66 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
         </div>
       </div>
     </div>
+
+    {/* VISOR EN TAMAÑO COMPLETO (LIGHTBOX IN-TAB SIN SALIR DE LA PÁGINA) */}
+    {isLightboxOpen && blobUrl && (
+      <div 
+        className="image-lightbox-overlay" 
+        onClick={() => setIsLightboxOpen(false)}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Visor a pantalla completa"
+      >
+        {/* Barra superior con radicado, nombre y botón X de cierre a la derecha */}
+        <div className="lightbox-topbar" onClick={(e) => e.stopPropagation()}>
+          <div className="lightbox-info">
+            <span className="lightbox-badge">{doc.id}</span>
+            <span className="lightbox-title" title={doc.title}>{doc.title}</span>
+            {fileName && <small className="lightbox-filename">({fileName})</small>}
+          </div>
+          <button 
+            type="button" 
+            className="lightbox-close-btn"
+            onClick={() => setIsLightboxOpen(false)}
+            title="Cerrar vista completa (o presiona Esc)"
+            aria-label="Cerrar vista completa"
+          >
+            <span>Cerrar</span>
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        {/* Área central: Clic afuera en el fondo oscuro cierra la vista */}
+        <div className="lightbox-content" onClick={() => setIsLightboxOpen(false)}>
+          {isImage && (
+            <img 
+              src={blobUrl} 
+              alt={doc.title} 
+              className="lightbox-image" 
+              onClick={(e) => e.stopPropagation()} 
+            />
+          )}
+          {isPdf && (
+            <div 
+              className="lightbox-pdf-container"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <iframe 
+                src={blobUrl} 
+                title={doc.title} 
+                className="lightbox-iframe" 
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Guía inferior para las profesoras */}
+        <div className="lightbox-bottom-hint" onClick={(e) => e.stopPropagation()}>
+          <i className="ph-bold ph-info"></i>
+          <span>Haz clic en la <strong>X</strong> de la esquina derecha o <strong>afuera de la imagen</strong> para regresar.</span>
+        </div>
+      </div>
+    )}
+  </>
   );
 }
