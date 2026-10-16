@@ -46,8 +46,17 @@ export default function ProfileModal({
   const [avatarError, setAvatarError] = useState(null);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [showSavedChulito, setShowSavedChulito] = useState(false);
 
   const fileInputRef = useRef(null);
+  const chulitoTimerRef = useRef(null);
+
+  // Limpiar temporizador al desmontar
+  useEffect(() => {
+    return () => {
+      if (chulitoTimerRef.current) clearTimeout(chulitoTimerRef.current);
+    };
+  }, []);
 
   // Sincronizar targetUserKey cuando se abre el modal o cambia initialTargetUserKey
   useEffect(() => {
@@ -60,6 +69,7 @@ export default function ProfileModal({
       setAvatarStatus(null);
       setAvatarError(null);
       setPendingAvatar(null);
+      setShowSavedChulito(false);
 
       const chosenKey = initialTargetUserKey || currentUserKey || 'claudia';
       setTargetUserKey(chosenKey);
@@ -83,6 +93,7 @@ export default function ProfileModal({
     setPendingAvatar(null);
     setAvatarStatus(null);
     setAvatarError(null);
+    setShowSavedChulito(false);
   };
 
   if (!isOpen || !currentUser) return null;
@@ -98,6 +109,7 @@ export default function ProfileModal({
 
     setAvatarError(null);
     setAvatarStatus(null);
+    setShowSavedChulito(false);
     setIsProcessingImage(true);
 
     try {
@@ -118,6 +130,7 @@ export default function ProfileModal({
   const handleSelectPreset = (presetUrl) => {
     setAvatarError(null);
     setAvatarStatus(null);
+    setShowSavedChulito(false);
     setPendingAvatar(presetUrl);
   };
 
@@ -138,6 +151,12 @@ export default function ProfileModal({
       
       setAvatarStatus(`¡Logo de "${targetName}" guardado y persistido en la nube con éxito! Todos los perfiles verán este cambio de inmediato.`);
       setPendingAvatar(null);
+      setShowSavedChulito(true);
+
+      if (chulitoTimerRef.current) clearTimeout(chulitoTimerRef.current);
+      chulitoTimerRef.current = setTimeout(() => {
+        setShowSavedChulito(false);
+      }, 4500);
 
       if (onAvatarUpdated) {
         onAvatarUpdated(targetUserKey, result.avatar);
@@ -161,6 +180,12 @@ export default function ProfileModal({
       
       setPendingAvatar(null);
       setAvatarStatus(`¡Logo de "${targetName}" restaurado al formato inicial del colegio!`);
+      setShowSavedChulito(true);
+
+      if (chulitoTimerRef.current) clearTimeout(chulitoTimerRef.current);
+      chulitoTimerRef.current = setTimeout(() => {
+        setShowSavedChulito(false);
+      }, 4500);
 
       if (onAvatarUpdated) {
         onAvatarUpdated(targetUserKey, result.avatar);
@@ -270,6 +295,11 @@ export default function ProfileModal({
                 {targetUser.initial || targetUser.name?.charAt(0)}
               </span>
               {isTargetRectora && <span className="profile-crown-badge">👑</span>}
+              {showSavedChulito && (
+                <span className="chulito-floating-badge" title="¡Foto actualizada con éxito!">
+                  <i className="ph-bold ph-check"></i> ¡Foto Guardada!
+                </span>
+              )}
             </div>
             <div className="profile-identity-details">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -389,6 +419,11 @@ export default function ProfileModal({
                       {targetUser.initial || targetUser.name?.charAt(0)}
                     </span>
                     {isTargetRectora && <span className="preview-crown-badge">👑</span>}
+                    {showSavedChulito && (
+                      <div className="chulito-avatar-overlay" title="¡Cambio guardado en la nube!">
+                        <i className="ph-bold ph-check"></i>
+                      </div>
+                    )}
                   </div>
 
                   <div className="avatar-preview-meta">
@@ -409,13 +444,23 @@ export default function ProfileModal({
                   </div>
                 </div>
 
-                {/* Mensajes de Alerta / Éxito para Avatares */}
-                {avatarStatus && (
+                {/* Mensajes de Alerta / Éxito para Avatares con Chulito Animado */}
+                {showSavedChulito ? (
+                  <div className="alert-success-chulito" style={{ marginTop: '0.85rem' }}>
+                    <div className="chulito-icon-wrap">
+                      <i className="ph-bold ph-check"></i>
+                    </div>
+                    <div className="chulito-text">
+                      <strong>¡Foto de perfil actualizada con éxito!</strong>
+                      <span>El nuevo logo de {targetUser.name} ha sido guardado y sincronizado en la nube para todos los dispositivos.</span>
+                    </div>
+                  </div>
+                ) : avatarStatus ? (
                   <div className="alert-box alert-success" style={{ marginTop: '0.85rem' }}>
                     <i className="ph-bold ph-check-circle"></i>
                     <span>{avatarStatus}</span>
                   </div>
-                )}
+                ) : null}
 
                 {avatarError && (
                   <div className="alert-box alert-error" style={{ marginTop: '0.85rem' }}>
@@ -503,12 +548,16 @@ export default function ProfileModal({
 
                 <button 
                   type="button" 
-                  className="btn btn-primary btn-save-avatar"
+                  className={`btn btn-primary btn-save-avatar ${showSavedChulito ? 'btn-chulito-success' : ''}`}
                   onClick={handleSaveAvatar}
                   disabled={isSavingAvatar || isProcessingImage || !pendingAvatar}
                 >
-                  <i className={`ph-bold ${isSavingAvatar ? 'ph-arrows-clockwise ph-spin' : 'ph-cloud-arrow-up'}`}></i>
-                  <span>{isSavingAvatar ? 'Guardando en la Nube...' : 'Guardar y Sincronizar en la Nube'}</span>
+                  <i className={`ph-bold ${isSavingAvatar ? 'ph-arrows-clockwise ph-spin' : (showSavedChulito ? 'ph-check' : 'ph-cloud-arrow-up')}`}></i>
+                  <span>
+                    {isSavingAvatar 
+                      ? 'Guardando en la Nube...' 
+                      : (showSavedChulito ? '¡Foto Guardada con Éxito!' : 'Guardar y Sincronizar en la Nube')}
+                  </span>
                 </button>
               </div>
             </div>

@@ -46,6 +46,7 @@ export default function App() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileTargetUserKey, setProfileTargetUserKey] = useState(null);
+  const [avatarToast, setAvatarToast] = useState(null);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
@@ -463,6 +464,7 @@ export default function App() {
           console.log(`Credenciales institucionales actualizadas para: ${userKey}`);
         }}
         onAvatarUpdated={(targetKey, newAvatar) => {
+          const targetName = USERS[targetKey]?.name || targetKey;
           setCurrentUser((prev) => {
             if (prev && (prev.key === targetKey || prev.role === targetKey)) {
               return { ...prev, avatar: newAvatar };
@@ -470,6 +472,11 @@ export default function App() {
             return prev;
           });
           setAvatarTick((t) => t + 1);
+          setAvatarToast({ name: targetName });
+          setTimeout(() => {
+            setAvatarToast(null);
+          }, 4500);
+
           if (typeof refreshPresence === 'function') {
             refreshPresence();
           }
@@ -505,6 +512,27 @@ export default function App() {
 
       {/* Marca de Agua Inferior Derecha: Fase de Prueba */}
       <TrialWatermark documents={documents} />
+
+      {/* Notificación Toast Global con Chulito al Cambiar Foto de Perfil */}
+      {avatarToast && (
+        <div className="avatar-global-toast-notification">
+          <div className="toast-chulito-icon">
+            <i className="ph-bold ph-check"></i>
+          </div>
+          <div className="toast-chulito-content">
+            <strong>¡Foto de perfil actualizada!</strong>
+            <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
+          </div>
+          <button 
+            type="button" 
+            className="toast-close-btn" 
+            onClick={() => setAvatarToast(null)} 
+            aria-label="Cerrar notificación"
+          >
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
