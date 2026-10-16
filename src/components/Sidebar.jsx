@@ -1,3 +1,5 @@
+import { USERS } from '../data/users.js';
+
 export default function Sidebar({ 
   currentUser, 
   currentFolder, 
@@ -55,7 +57,19 @@ export default function Sidebar({
               onClick={() => onTeacherSelect('Jessica')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <i className="ph-bold ph-user"></i>
+                {USERS.jessica?.avatar ? (
+                  <div className="teacher-avatar-mini">
+                    <img 
+                      src={USERS.jessica.avatar} 
+                      alt="Jessica" 
+                      className="teacher-avatar-img"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
+                    />
+                    <i className="ph-bold ph-user" style={{ display: 'none' }}></i>
+                  </div>
+                ) : (
+                  <i className="ph-bold ph-user"></i>
+                )}
                 <span>Jessica</span>
               </div>
               <span 
@@ -68,7 +82,19 @@ export default function Sidebar({
               onClick={() => onTeacherSelect('Yuri')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <i className="ph-bold ph-user"></i>
+                {USERS.yuri?.avatar ? (
+                  <div className="teacher-avatar-mini">
+                    <img 
+                      src={USERS.yuri.avatar} 
+                      alt="Yuri" 
+                      className="teacher-avatar-img"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
+                    />
+                    <i className="ph-bold ph-user" style={{ display: 'none' }}></i>
+                  </div>
+                ) : (
+                  <i className="ph-bold ph-user"></i>
+                )}
                 <span>Yuri</span>
               </div>
               <span 
@@ -81,7 +107,19 @@ export default function Sidebar({
               onClick={() => onTeacherSelect('Elcy')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <i className="ph-bold ph-user"></i>
+                {USERS.elcy?.avatar ? (
+                  <div className="teacher-avatar-mini">
+                    <img 
+                      src={USERS.elcy.avatar} 
+                      alt="Elcy" 
+                      className="teacher-avatar-img"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
+                    />
+                    <i className="ph-bold ph-user" style={{ display: 'none' }}></i>
+                  </div>
+                ) : (
+                  <i className="ph-bold ph-user"></i>
+                )}
                 <span>Elcy</span>
               </div>
               <span 
@@ -96,7 +134,7 @@ export default function Sidebar({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                 <div className="teacher-avatar-mini">
                   <img 
-                    src="/images/avatars/rectora.svg" 
+                    src={USERS.claudia?.avatar || '/images/avatars/rectora.svg'} 
                     alt="Claudia" 
                     className="teacher-avatar-img"
                     onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}

@@ -86,7 +86,7 @@ export async function syncVaultWithSupabase() {
 
     if (Array.isArray(data)) {
       for (const row of data) {
-        if (!row?.user_key || row.user_key.startsWith('presence_') || row.user_key.startsWith('session_')) {
+        if (!row?.user_key || row.user_key.startsWith('presence_') || row.user_key.startsWith('session_') || row.user_key.startsWith('avatar_')) {
           continue;
         }
         remoteKeys.add(row.user_key);
@@ -180,6 +180,10 @@ export function subscribeToVaultChanges(callback) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'institutional_vault' },
         async (payload) => {
+          const rowKey = payload?.new?.user_key || payload?.old?.user_key;
+          if (rowKey && (rowKey.startsWith('avatar_') || rowKey.startsWith('presence_'))) {
+            return;
+          }
           await syncVaultWithSupabase();
           if (callback) callback(payload);
         }

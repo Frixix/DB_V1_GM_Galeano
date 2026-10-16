@@ -18,9 +18,11 @@ import { useCircularReads } from './hooks/useCircularReads';
 import { useUserPresence } from './hooks/useUserPresence';
 import { downloadDocumentBlob } from './services/storageService';
 import { syncVaultWithSupabase, subscribeToVaultChanges } from './services/authService';
+import { syncAvatarsFromCloud, subscribeToAvatarChanges } from './services/avatarService';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [avatarTick, setAvatarTick] = useState(0);
   const [currentFolder, setCurrentFolder] = useState('all');
   const [currentTeacher, setCurrentTeacher] = useState('all');
   
@@ -63,11 +65,29 @@ export default function App() {
 
   useEffect(() => {
     syncVaultWithSupabase().catch(() => {});
-    const unsubscribe = subscribeToVaultChanges();
+    syncAvatarsFromCloud().catch(() => {});
+
+    const unsubscribeVault = subscribeToVaultChanges();
+    const unsubscribeAvatars = subscribeToAvatarChanges(({ userKey, avatar }) => {
+      setCurrentUser((prev) => {
+        if (!prev) return prev;
+        const key = prev.key || prev.role;
+        if (key === userKey) {
+          return { ...prev, avatar };
+        }
+        return prev;
+      });
+      setAvatarTick((t) => t + 1);
+      if (typeof refreshPresence === 'function') {
+        refreshPresence();
+      }
+    });
+
     return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
+      if (typeof unsubscribeVault === 'function') unsubscribeVault();
+      if (typeof unsubscribeAvatars === 'function') unsubscribeAvatars();
     };
-  }, []);
+  }, [refreshPresence]);
 
   if (!currentUser) {
     return (
@@ -266,6 +286,7 @@ export default function App() {
       <div className="app-layout">
         <div className={`sidebar-container ${isSidebarOpen ? 'mobile-open' : ''}`}>
           <Sidebar 
+            key={`sidebar_${avatarTick}`}
             currentUser={currentUser} 
             currentFolder={currentFolder} 
             onFolderSelect={handleFolderSelectWithBoveda}
@@ -432,6 +453,18 @@ export default function App() {
         onProfileUpdated={(userKey) => {
           // Si el usuario actual actualiza su contraseña, mantenemos la sesión sincronizada
           console.log(`Credenciales institucionales actualizadas para: ${userKey}`);
+        }}
+        onAvatarUpdated={(targetKey, newAvatar) => {
+          setCurrentUser((prev) => {
+            if (prev && (prev.key === targetKey || prev.role === targetKey)) {
+              return { ...prev, avatar: newAvatar };
+            }
+            return prev;
+          });
+          setAvatarTick((t) => t + 1);
+          if (typeof refreshPresence === 'function') {
+            refreshPresence();
+          }
         }}
       />
 
