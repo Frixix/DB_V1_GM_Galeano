@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
+import ModulesDashboard from './components/ModulesDashboard';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -13,6 +14,7 @@ import BovedaPasswordModal from './components/BovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import ConnectionsModal from './components/ConnectionsModal';
 import TrialWatermark from './components/TrialWatermark';
+import { USERS } from './data/users';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
 import { useUserPresence } from './hooks/useUserPresence';
@@ -22,6 +24,7 @@ import { syncAvatarsFromCloud, subscribeToAvatarChanges } from './services/avata
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [activeModule, setActiveModule] = useState(null);
   const [avatarTick, setAvatarTick] = useState(0);
   const [currentFolder, setCurrentFolder] = useState('all');
   const [currentTeacher, setCurrentTeacher] = useState('all');
@@ -100,7 +103,29 @@ export default function App() {
   if (!currentUser) {
     return (
       <>
-        <Login onLogin={setCurrentUser} />
+        <Login onLogin={(user) => {
+          setCurrentUser(user);
+          setActiveModule(null);
+        }} />
+        <TrialWatermark documents={documents} />
+      </>
+    );
+  }
+
+  // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
+  if (!activeModule) {
+    return (
+      <>
+        <ModulesDashboard 
+          currentUser={currentUser}
+          onSelectModule={(moduleId) => setActiveModule(moduleId)}
+          onLogout={async () => {
+            await presenceLogout();
+            setCurrentUser(null);
+            setIsBovedaUnlocked(false);
+            setActiveModule(null);
+          }}
+        />
         <TrialWatermark documents={documents} />
       </>
     );
@@ -281,6 +306,7 @@ export default function App() {
           await presenceLogout();
           setCurrentUser(null);
           setIsBovedaUnlocked(false);
+          setActiveModule(null);
         }} 
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
@@ -289,6 +315,7 @@ export default function App() {
         onOpenProfile={() => handleOpenProfile(currentUser?.key)}
         onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
         onlineCount={onlineCount}
+        onBackToModules={() => setActiveModule(null)}
       />
       
       <div className="app-layout">

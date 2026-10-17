@@ -808,6 +808,29 @@ select {
   box-shadow: 0 4px 10px rgba(6, 78, 59, 0.28);
 }
 .btn-secondary { background-color: var(--surface-alt); color: var(--text-main); }
+.btn-portal-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background-color: var(--surface-alt);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+.btn-portal-switch:hover {
+  background-color: var(--pastel-all-bg);
+  border-color: var(--pastel-all-border);
+  color: var(--primary);
+}
+@media (max-width: 900px) {
+  .btn-portal-switch span {
+    display: none;
+  }
+  .btn-portal-switch {
+    padding: 0.6rem;
+  }
+}
 .btn-block { width: 100%; justify-content: center; }
 .btn-icon-only { padding: 0.6rem; }
 

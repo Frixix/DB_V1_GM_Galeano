@@ -7,7 +7,8 @@ export default function Navbar({
   circularesCount = 0,
   onOpenProfile,
   onOpenConnectionsModal,
-  onlineCount = 0
+  onlineCount = 0,
+  onBackToModules
 }) {
   const isRectora = currentUser.role === 'rectora' || currentUser.role === 'induccion_rectora';
   const isPrivileged = currentUser.role === 'admin' || isRectora;
@@ -37,6 +38,20 @@ export default function Navbar({
       </div>
 
       <div className="nav-actions">
+        {/* Retorno al Portal de Módulos (Segunda Capa) */}
+        {onBackToModules && (
+          <button 
+            type="button"
+            className="btn btn-portal-switch" 
+            onClick={onBackToModules}
+            title="Volver al Panel Principal de Módulos"
+            aria-label="Volver al Panel Principal de Módulos"
+          >
+            <i className="ph-bold ph-squares-four"></i>
+            <span>Módulos</span>
+          </button>
+        )}
+
         {/* Botón de Supervisión de Conexiones en Vivo (Exclusivo Rectora y Admin) */}
         {isPrivileged && onOpenConnectionsModal && (
           <button 

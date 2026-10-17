@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entorno de Prototipado - Google Antigravity</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ========================================================
+       VISTA 1: Simulación de Login (Placeholder Minimalista)
+       ======================================================== -->
+  <main id="view-login" class="view-container view-login">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-badge">
+          <!-- Icono SVG Académico / Institucional -->
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        </div>
+        <h1>Portal Institucional</h1>
+        <p class="subtitle">Entorno de prototipado estructural de módulos</p>
+      </div>
+
+      <div class="login-actions">
+        <button id="btn-login" class="btn btn-primary btn-large">
+          Ingresar al Sistema (Simulación)
+        </button>
+        <span class="login-hint">Acceso directo sin credenciales para evaluación de interfaz</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================
+       VISTA 2: Panel Principal / Dashboard Estructural
+       ======================================================== -->
+  <div id="view-dashboard" class="view-container view-dashboard hidden">
+    <!-- Navbar Superior -->
+    <header class="navbar">
+      <div class="navbar-left">
+        <div class="brand-symbol">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <span class="system-title">Sistema de Gestión Académica</span>
+      </div>
+      <div class="navbar-right">
+        <div class="user-profile">
+          <div class="avatar-placeholder" title="Administrador">AD</div>
+          <div class="user-meta">
+            <span class="user-name">Admin Prototipo</span>
+            <span class="user-role">Coordinación</span>
+          </div>
+        </div>
+        <button id="btn-logout" class="btn btn-outline btn-sm">
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+
+    <!-- Layout: Sidebar + Área Principal -->
+    <div class="dashboard-body">
+      <!-- Sidebar Izquierda -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <p class="sidebar-label">MÓDULO PRINCIPAL</p>
+          <nav class="sidebar-nav">
+            <!-- Módulo Activo -->
+            <button class="nav-item nav-item-active module-trigger" data-module="grades">
+              <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              <span class="nav-text">Notas y Calificaciones</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar-section">
+          <p class="sidebar-label">FUTUROS MÓDULOS</p>
+          <nav class="sidebar-nav">
+            <div class="nav-item nav-item-disabled">
+              <svg class="nav-icon-svg text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span class="nav-text">En desarrollo</span>
+              <span class="pill-gray">Próximamente</span>
+            </div>
+            <div class="nav-item nav-item-disabled">
+              <svg class="nav-icon-svg text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span class="nav-text">En desarrollo</span>
+              <span class="pill-gray">Próximamente</span>
+            </div>
+          </nav>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="badge-status">
+            <span class="status-dot"></span> Modo Prototipo Activo
+          </div>
+        </div>
+      </aside>
+
+      <!-- Área de Contenido Principal -->
+      <main class="main-content">
+        <section class="welcome-banner">
+          <h2>Panel de Control Principal</h2>
+          <p>Explora la vista estructural del módulo de Notas y Calificaciones o planifica la expansión de futuros módulos.</p>
+        </section>
+
+        <!-- Cuadrícula de Tarjetas de Módulos -->
+        <section class="modules-grid">
+          <!-- MÓDULO 1: ACTIVO (Notas y Calificaciones) -->
+          <article class="module-card module-card-active module-trigger" data-module="grades">
+            <div class="card-header-bar">
+              <div class="card-icon-container">
+                <svg class="card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <span class="badge-active">Activo</span>
+            </div>
+
+            <div class="card-body">
+              <h3>Notas y Calificaciones</h3>
+              <p>Módulo central para captura de notas, ponderaciones por período, generación de boletines y seguimiento académico.</p>
+            </div>
+
+            <div class="card-footer">
+              <span class="link-label">Acceder al módulo &rarr;</span>
+            </div>
+          </article>
+
+          <!-- MÓDULOS EN DESARROLLO (EN COLOR GRIS) -->
+          <article class="module-card module-card-disabled">
+            <div class="card-header-bar">
+              <div class="card-icon-container gray-icon">
+                <svg class="card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+              </div>
+              <span class="badge-gray">En desarrollo</span>
+            </div>
+            <div class="card-body">
+              <h3 class="text-gray-title">Módulo en Desarrollo</h3>
+              <p class="text-gray-desc">Espacio reservado para una funcionalidad que se extraerá o integrará gradualmente según la necesidad de la app.</p>
+            </div>
+            <div class="card-footer footer-disabled">
+              <span class="label-muted">No disponible en esta fase</span>
+            </div>
+          </article>
+
+          <article class="module-card module-card-disabled">
+            <div class="card-header-bar">
+              <div class="card-icon-container gray-icon">
+                <svg class="card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16.5 9.4 7.55 4.24a1.78 1.78 0 0 0-2.5 1.55v12.42a1.78 1.78 0 0 0 2.5 1.55L16.5 14.6a1.78 1.78 0 0 0 0-3.2z"/>
+                </svg>
+              </div>
+              <span class="badge-gray">En desarrollo</span>
+            </div>
+            <div class="card-body">
+              <h3 class="text-gray-title">Módulo en Desarrollo</h3>
+              <p class="text-gray-desc">Espacio reservado para una funcionalidad que se extraerá o integrará gradualmente según la necesidad de la app.</p>
+            </div>
+            <div class="card-footer footer-disabled">
+              <span class="label-muted">No disponible en esta fase</span>
+            </div>
+          </article>
+
+          <article class="module-card module-card-disabled">
+            <div class="card-header-bar">
+              <div class="card-icon-container gray-icon">
+                <svg class="card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </div>
+              <span class="badge-gray">En desarrollo</span>
+            </div>
+            <div class="card-body">
+              <h3 class="text-gray-title">Módulo en Desarrollo</h3>
+              <p class="text-gray-desc">Espacio reservado para una funcionalidad que se extraerá o integrará gradualmente según la necesidad de la app.</p>
+            </div>
+            <div class="card-footer footer-disabled">
+              <span class="label-muted">No disponible en esta fase</span>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       VISTA 3: Pantalla de Módulo (Placeholder Exploratorio)
+       ======================================================== -->
+  <div id="view-module" class="view-container view-module hidden">
+    <!-- Barra superior de navegación interna -->
+    <header class="module-header">
+      <div class="header-inner">
+        <button id="btn-back-dashboard" class="btn btn-secondary">
+          &larr; Volver al Panel Principal
+        </button>
+        <span class="module-tag" id="module-tag">Módulo Principal</span>
+      </div>
+    </header>
+
+    <!-- Contenedor del área de trabajo del módulo -->
+    <main class="module-workspace">
+      <div class="module-card-canvas">
+        <div class="module-heading-box">
+          <div class="module-badge-icon" id="module-icon">
+            <svg class="icon-svg-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <h1 id="module-title" class="module-title">Módulo: Notas y Calificaciones</h1>
+            <span class="module-subtitle">Espacio de trabajo para captura, consolidación y consulta</span>
+          </div>
+        </div>
+
+        <p class="module-placeholder-text">
+          Vista estructural en blanco &mdash; Espacio reservado para prototipar el diseño de este apartado.
+        </p>
+
+        <!-- Lienzo de wireframe sugerido para guiar el prototipado futuro -->
+        <div class="wireframe-blueprint">
+          <div class="wireframe-box wireframe-box-header">
+            <span>[ Barra de herramientas: Filtro de Grado, Grupo, Asignatura y Período ]</span>
+          </div>
+          <div class="wireframe-grid">
+            <div class="wireframe-box wireframe-box-main">
+              <span>[ Matriz / Tabla de Calificaciones y Registro de Notas ]</span>
+            </div>
+            <div class="wireframe-box wireframe-box-side">
+              <span>[ Resumen: Estadísticas, Promedios y Exportación de Boletines ]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
