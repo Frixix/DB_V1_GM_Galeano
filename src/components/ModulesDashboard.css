@@ -356,7 +356,7 @@
   height: 28px;
 }
 
-/* Módulo Activo: Estilo Verde */
+/* Módulo Activo: Estilo Verde Oscuro Institucional */
 .portal-module-card-active {
   border: 1px solid #bbf7d0;
   cursor: pointer;
@@ -370,18 +370,18 @@
   left: 0;
   right: 0;
   height: 4px;
-  background-color: #16a34a;
+  background-color: #064e3b;
 }
 
 .portal-module-card-active .portal-card-icon-container {
-  background-color: #f0fdf4;
-  color: #16a34a;
+  background-color: #ecfdf5;
+  color: #064e3b;
 }
 
 .portal-module-card-active:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-  border-color: #16a34a;
+  box-shadow: 0 10px 15px -3px rgba(6, 78, 59, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  border-color: #064e3b;
 }
 
 .portal-badge-active {
@@ -389,9 +389,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #16a34a;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  color: #064e3b;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
   padding: 0.25rem 0.65rem;
   border-radius: 9999px;
 }
@@ -420,12 +420,86 @@
 .portal-link-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #16a34a;
+  color: #064e3b;
   transition: transform 0.15s ease;
 }
 
 .portal-module-card-active:hover .portal-link-label {
   transform: translateX(4px);
+}
+
+/* ==========================================================================
+   MÓDULO ACTIVO 2: ESTILO ÁMBAR PASTEL (NOTAS Y CALIFICACIONES)
+   ========================================================================== */
+.portal-module-card-amber {
+  border: 1px solid #fde68a;
+  cursor: pointer;
+  text-align: left;
+}
+
+.portal-module-card-amber::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #b45309;
+  transition: height 0.2s ease;
+}
+
+.portal-module-card-amber .portal-card-icon-container {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.portal-module-card-amber:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(180, 83, 9, 0.14), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  border-color: #b45309;
+}
+
+.portal-module-card-amber:hover::before {
+  height: 5px;
+}
+
+.portal-badge-amber {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #b45309;
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.portal-link-label-amber {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b45309;
+  transition: transform 0.15s ease;
+}
+
+.portal-module-card-amber:hover .portal-link-label-amber {
+  transform: translateX(4px);
+}
+
+.portal-nav-item-amber {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+  font-weight: 600;
+}
+
+.portal-nav-item-amber i {
+  color: #b45309;
+}
+
+.portal-nav-item-amber:hover {
+  background-color: #fde68a;
+  border-color: #f59e0b;
 }
 
 /* Módulos en Desarrollo: Estilo Gris */

@@ -20,6 +20,19 @@ export default function Navbar({
           <i className="ph-bold ph-list"></i>
         </button>
 
+        {onBackToModules && (
+          <button 
+            type="button" 
+            className="btn-back-to-modules" 
+            onClick={onBackToModules}
+            title="Volver al Área de Módulos"
+            aria-label="Volver al Área de Módulos"
+          >
+            <i className="ph-bold ph-arrow-left"></i>
+            <span>Volver a Módulos</span>
+          </button>
+        )}
+
         <div className="nav-brand">
           <div className="brand-icon">
             <img 

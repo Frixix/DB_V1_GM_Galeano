@@ -831,6 +831,73 @@ select {
     padding: 0.6rem;
   }
 }
+
+/* Botón para volver al área de módulos desde el Navbar */
+.btn-back-to-modules {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--primary);
+  background-color: var(--pastel-all-bg);
+  border: 1.5px solid var(--pastel-all-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-back-to-modules:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  transform: translateX(-2px);
+  box-shadow: 0 2px 6px rgba(6, 78, 59, 0.2);
+}
+
+@media (max-width: 768px) {
+  .btn-back-to-modules span {
+    display: none;
+  }
+  .btn-back-to-modules {
+    padding: 0.5rem;
+  }
+}
+
+/* Botón para volver al área de módulos desde el Sidebar */
+.sidebar-section-modules-back {
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.btn-sidebar-back-modules {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--primary);
+  background-color: var(--pastel-all-bg);
+  border: 1.5px solid var(--pastel-all-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sidebar-back-modules:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(6, 78, 59, 0.15);
+}
+
 .btn-block { width: 100%; justify-content: center; }
 .btn-icon-only { padding: 0.6rem; }
 
@@ -844,26 +911,47 @@ select {
 .doc-card {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   position: relative;
   min-width: 0;
   overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+/* Funcionalidad de color en borde superior con verde oscuro del módulo principal */
+.doc-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--primary); /* Verde Bosque Institucional #064e3b */
+  transition: height 0.2s ease, background-color 0.2s ease;
 }
 
 .doc-card:hover {
-  transform: translateY(-2px);
-  border-color: #cbd5e1;
+  transform: translateY(-3px);
+  border-color: var(--primary); /* Borde verde oscuro en hover */
+  box-shadow: 0 10px 15px -3px rgba(6, 78, 59, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+.doc-card:hover::before {
+  height: 5px;
 }
 
 .doc-card.card-unread {
   border-left: 4px solid #ef4444;
   background: linear-gradient(to right, #fffdfd, #ffffff);
+}
+
+.doc-card.card-unread::before {
+  background-color: #ef4444;
 }
 
 .doc-card-header {

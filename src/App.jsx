@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import ModulesDashboard from './components/ModulesDashboard';
+import GradesModule from './components/GradesModule';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -119,6 +120,25 @@ export default function App() {
         <ModulesDashboard 
           currentUser={currentUser}
           onSelectModule={(moduleId) => setActiveModule(moduleId)}
+          onLogout={async () => {
+            await presenceLogout();
+            setCurrentUser(null);
+            setIsBovedaUnlocked(false);
+            setActiveModule(null);
+          }}
+        />
+        <TrialWatermark documents={documents} />
+      </>
+    );
+  }
+
+  // Módulo 2: Notas y Calificaciones (Paleta pastel y cero salto visual)
+  if (activeModule === 'grades') {
+    return (
+      <>
+        <GradesModule 
+          currentUser={currentUser}
+          onBackToModules={() => setActiveModule(null)}
           onLogout={async () => {
             await presenceLogout();
             setCurrentUser(null);
@@ -334,6 +354,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onBackToModules={() => setActiveModule(null)}
           />
         </div>
 

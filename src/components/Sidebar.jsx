@@ -13,7 +13,8 @@ export default function Sidebar({
   onOpenProfile,
   onlineMap = {},
   onlineCount = 0,
-  onOpenConnectionsModal
+  onOpenConnectionsModal,
+  onBackToModules
 }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
   const SYSTEM_CAPACITY = 3 * 1024 * 1024 * 1024; // 3 GB
@@ -25,6 +26,21 @@ export default function Sidebar({
 
   return (
     <aside className="sidebar" id="mainSidebar">
+      {/* Botón para retornar al área de módulos */}
+      {onBackToModules && (
+        <div className="sidebar-section sidebar-section-modules-back">
+          <button 
+            type="button" 
+            className="btn-sidebar-back-modules" 
+            onClick={onBackToModules}
+            title="Volver al Panel Principal de Módulos"
+          >
+            <i className="ph-bold ph-squares-four"></i>
+            <span>Volver a Módulos</span>
+          </button>
+        </div>
+      )}
+
       {/* Sección de Auditoría por Docente (Solo Rectora/Admin) */}
       {isPrivileged && (
         <div className="sidebar-section" id="adminTeacherSection">
