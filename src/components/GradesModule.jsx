@@ -27,6 +27,17 @@ export default function GradesModule({
   const isAdmin = currentUser?.role === 'admin';
   const isPrivileged = isRectora || isAdmin;
 
+  // Sincronización en tiempo real de novedades y reemplazos
+  const [curriculumTick, setCurriculumTick] = useState(0);
+
+  useEffect(() => {
+    const handleCurriculumUpdate = () => {
+      setCurriculumTick(t => t + 1);
+    };
+    window.addEventListener('gmg_curriculum_updated', handleCurriculumUpdate);
+    return () => window.removeEventListener('gmg_curriculum_updated', handleCurriculumUpdate);
+  }, []);
+
   // 1. Niveles de la Jerarquía de Datos
   const availableYears = useMemo(() => gradesService.getAcademicYears(), []);
   const availablePeriods = useMemo(() => gradesService.getAcademicPeriods(), []);
@@ -34,7 +45,7 @@ export default function GradesModule({
   // Grados disponibles filtrados por rol, asignación curricular y dirección de curso
   const availableGrades = useMemo(() => {
     return gradesService.getGradesForUser(currentUser);
-  }, [currentUser]);
+  }, [currentUser, curriculumTick]);
 
   // Estados de navegación en el árbol relacional
   const [selectedYear, setSelectedYear] = useState('2026');
@@ -42,11 +53,9 @@ export default function GradesModule({
   const [selectedGrade, setSelectedGrade] = useState(availableGrades[0] || '1° Primaria');
 
   // Materias disponibles para el grado seleccionado:
-  // Si el usuario es Director de Curso de este grado, ¡ve TODAS las materias!
-  // Si no, solo ve las materias que enseña directamente.
   const availableSubjects = useMemo(() => {
     return gradesService.getSubjectsForGradeAndUser(selectedGrade, currentUser);
-  }, [selectedGrade, currentUser]);
+  }, [selectedGrade, currentUser, curriculumTick]);
 
   const [selectedSubject, setSelectedSubject] = useState(availableSubjects[0] || 'Lengua Castellana');
   const [searchFilter, setSearchFilter] = useState('');
@@ -68,39 +77,39 @@ export default function GradesModule({
   // Carga de la rama actual del árbol: Año -> Periodo -> Grado -> Materia
   const branchData = useMemo(() => {
     return gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
-  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject]);
+  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
 
   const [students, setStudents] = useState(branchData.students || []);
 
-  // Sincronizar roster al cambiar de rama en el árbol
+  // Sincronizar roster al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
     const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
     setStudents(freshBranch.students || []);
-  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject]);
+  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
 
   // Información del Director de Curso Oficial del Grado
   const gradeDirector = useMemo(() => {
     return gradesService.getGradeDirector(selectedGrade);
-  }, [selectedGrade]);
+  }, [selectedGrade, curriculumTick]);
 
   // Información del Docente Titular de la Materia
   const teacherInfo = useMemo(() => {
     return gradesService.getTeacherAssignment(selectedGrade, selectedSubject);
-  }, [selectedGrade, selectedSubject]);
+  }, [selectedGrade, selectedSubject, curriculumTick]);
 
   // ¿El usuario actual está actuando como Director de Curso supervisando la materia de otra docente?
   const isViewingAsGradeDirector = useMemo(() => {
     return gradesService.isViewingAsGradeDirector(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject]);
+  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
 
   // Permisos granulares de edición en la rama activa
   const canEditScores = useMemo(() => {
     return gradesService.canEditScores(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject]);
+  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
 
   const canEditFeedback = useMemo(() => {
     return gradesService.canEditTeacherFeedback(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject]);
+  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
 
   const canEditDirective = useMemo(() => {
     return gradesService.canEditDirectiveSuggestion(currentUser);
@@ -559,6 +568,18 @@ export default function GradesModule({
           </div>
 
           <div className="grades-filter-actions">
+            {isAdmin && (
+              <button 
+                type="button" 
+                className="grades-btn-secondary btn-novedades-admin" 
+                onClick={() => onOpenProfile && onOpenProfile(null, 'reemplazos')}
+                title="Panel de Administrador: Novedades y Reemplazos Docentes por Incapacidad"
+              >
+                <i className="ph-bold ph-arrows-left-right" style={{ color: '#0891b2' }}></i>
+                <span>Novedades & Reemplazos</span>
+              </button>
+            )}
+
             <button 
               type="button" 
               className="grades-btn-secondary" 

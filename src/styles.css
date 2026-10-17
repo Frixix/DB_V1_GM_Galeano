@@ -3605,6 +3605,18 @@ select {
   letter-spacing: 0.3px;
 }
 
+.profile-tab-admin-pill {
+  font-size: 0.68rem;
+  background: #0ea5e9;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
 /* ==========================================================================
    PERSONALIZACIÓN DE AVATARES Y LOGOS INSTITUCIONALES EN LA NUBE
    ========================================================================== */

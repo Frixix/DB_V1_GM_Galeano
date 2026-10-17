@@ -8,20 +8,28 @@ import {
   TEACHER_CURRICULUM_ASSIGNMENTS, 
   createInitialRosterForBranch 
 } from '../data/gradesTreeData';
+import { USERS } from '../data/users';
 
 const GRADES_STORAGE_KEY = 'gmg_grades_tree_v1';
+const ASSIGNMENTS_CUSTOM_KEY = 'gmg_curriculum_assignments_custom';
+const DIRECTORS_CUSTOM_KEY = 'gmg_grade_directors_custom';
+const REPLACEMENTS_LOG_KEY = 'gmg_curriculum_reemplazos_history';
 
 /**
  * Servicio Centralizado para la Jerarquía de Datos Relacional (RBAC) de Calificaciones
- * Incluye Regla de Directores de Curso (Homeroom Teachers):
- * - 1 Director de curso por grado.
- * - Pueden supervisar todas las materias y notas de sus alumnos en su grado.
- * - Solo lectura para materias que no son suyas (no pueden alterar notas de otros docentes).
+ * Incluye:
+ * - Directores de curso oficiales por grado.
+ * - Solo lectura para directores en materias ajenas.
+ * - Gestión Administrativa de Novedades y Reemplazos Docentes (incapacidades, permisos).
+ * - Transferencia inmediata de planillas de estudiantes al nuevo docente nombrado.
  */
 
 class GradesService {
   constructor() {
     this.tree = this.loadTreeFromStorage();
+    this.customAssignments = this.loadFromStorage(ASSIGNMENTS_CUSTOM_KEY, {});
+    this.customDirectors = this.loadFromStorage(DIRECTORS_CUSTOM_KEY, {});
+    this.replacementLogs = this.loadFromStorage(REPLACEMENTS_LOG_KEY, []);
   }
 
   loadTreeFromStorage() {
@@ -36,6 +44,18 @@ class GradesService {
     return {};
   }
 
+  loadFromStorage(key, fallback) {
+    try {
+      const data = localStorage.getItem(key);
+      if (data) {
+        return JSON.parse(data);
+      }
+    } catch (e) {
+      console.warn(`Error al leer ${key} de localStorage:`, e);
+    }
+    return fallback;
+  }
+
   persistTree() {
     try {
       localStorage.setItem(GRADES_STORAGE_KEY, JSON.stringify(this.tree));
@@ -44,10 +64,31 @@ class GradesService {
     }
   }
 
+  persistCustomState() {
+    try {
+      localStorage.setItem(ASSIGNMENTS_CUSTOM_KEY, JSON.stringify(this.customAssignments));
+      localStorage.setItem(DIRECTORS_CUSTOM_KEY, JSON.stringify(this.customDirectors));
+      localStorage.setItem(REPLACEMENTS_LOG_KEY, JSON.stringify(this.replacementLogs));
+    } catch (e) {
+      console.error('Error al persistir novedades y asignaciones:', e);
+    }
+  }
+
+  notifyCurriculumUpdate() {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gmg_curriculum_updated', {
+        detail: { timestamp: new Date().toISOString() }
+      }));
+    }
+  }
+
   /**
-   * Obtiene el Director de Curso asignado a un grado
+   * Obtiene el Director de Curso asignado a un grado (considera reemplazos de administrador)
    */
   getGradeDirector(grade) {
+    if (this.customDirectors[grade]) {
+      return this.customDirectors[grade];
+    }
     if (GRADE_DIRECTORS[grade]) {
       return GRADE_DIRECTORS[grade];
     }
@@ -68,6 +109,9 @@ class GradesService {
    * Obtiene la asignación docente de una materia específica en un grado
    */
   getTeacherAssignment(grade, subject) {
+    if (this.customAssignments[grade] && this.customAssignments[grade][subject]) {
+      return this.customAssignments[grade][subject];
+    }
     if (TEACHER_CURRICULUM_ASSIGNMENTS[grade] && TEACHER_CURRICULUM_ASSIGNMENTS[grade][subject]) {
       return TEACHER_CURRICULUM_ASSIGNMENTS[grade][subject];
     }
@@ -84,9 +128,6 @@ class GradesService {
 
   /**
    * Devuelve los Grados a los que tiene acceso el usuario según su rol RBAC
-   * Un docente accede a los grados donde:
-   * 1. Enseña al menos una materia, O
-   * 2. Es el Director de Curso del grado
    */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
@@ -98,15 +139,18 @@ class GradesService {
       return GRADES_LIST;
     }
 
-    // Docente regular
+    // Docente regular (incluye grados donde es titular de materia o director de curso)
     const accessibleGrades = GRADES_LIST.filter(grade => {
-      // ¿Es director de curso de este grado?
       if (this.isGradeDirector(user, grade)) return true;
 
-      // ¿Enseña alguna materia en este grado?
-      const gradeSubjects = TEACHER_CURRICULUM_ASSIGNMENTS[grade];
-      if (!gradeSubjects) return false;
-      return Object.values(gradeSubjects).some(assign => assign.docente_id === userKey);
+      const gradeSubjects = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+      const customSubjects = this.customAssignments[grade] || {};
+      const allSubjKeys = Array.from(new Set([...Object.keys(gradeSubjects), ...Object.keys(customSubjects)]));
+
+      return allSubjKeys.some(subj => {
+        const assignment = this.getTeacherAssignment(grade, subj);
+        return assignment.docente_id === userKey;
+      });
     });
 
     return accessibleGrades.length > 0 ? accessibleGrades : ['1° Primaria'];
@@ -114,13 +158,14 @@ class GradesService {
 
   /**
    * Devuelve las Materias disponibles para un Grado específico según el rol del usuario
-   * REGLA CLAVE DIRECTOR DE CURSO:
-   * - Si el docente es Director de Curso de este grado, ¡puede ver TODAS las materias del grado!
-   * - Si NO es Director de Curso, solo ve las materias que enseña directamente.
    */
   getSubjectsForGradeAndUser(grade, user) {
-    const gradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
-    const allSubjectsInGrade = Object.keys(gradeAssignments);
+    const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+    const customGradeAssignments = this.customAssignments[grade] || {};
+    const allSubjectsInGrade = Array.from(new Set([
+      ...Object.keys(defaultGradeAssignments),
+      ...Object.keys(customGradeAssignments)
+    ]));
 
     if (!user) return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
     const role = user.role;
@@ -136,9 +181,10 @@ class GradesService {
       return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
     }
 
-    // Docente regular no director: solo las materias donde docente_id === userKey
+    // Docente regular no director: solo las materias donde es titular
     const teacherSubjects = allSubjectsInGrade.filter(subj => {
-      return gradeAssignments[subj]?.docente_id === userKey;
+      const assignment = this.getTeacherAssignment(grade, subj);
+      return assignment.docente_id === userKey;
     });
 
     return teacherSubjects.length > 0 ? teacherSubjects : (allSubjectsInGrade.slice(0, 1));
@@ -152,8 +198,9 @@ class GradesService {
     if (!this.tree[year][period]) this.tree[year][period] = {};
     if (!this.tree[year][period][grade]) this.tree[year][period][grade] = {};
 
+    const teacherInfo = this.getTeacherAssignment(grade, subject);
+
     if (!this.tree[year][period][grade][subject]) {
-      const teacherInfo = this.getTeacherAssignment(grade, subject);
       const initialRoster = createInitialRosterForBranch(grade, subject, period);
 
       this.tree[year][period][grade][subject] = {
@@ -163,15 +210,18 @@ class GradesService {
         lastUpdated: new Date().toISOString()
       };
       this.persistTree();
+    } else {
+      // Sincronizar docente asignado si hubo reemplazo administrativo
+      if (this.tree[year][period][grade][subject].docente_id !== teacherInfo.docente_id) {
+        this.tree[year][period][grade][subject].docente_id = teacherInfo.docente_id;
+        this.tree[year][period][grade][subject].teacherName = teacherInfo.teacherName;
+        this.persistTree();
+      }
     }
 
     return this.tree[year][period][grade][subject];
   }
 
-  /**
-   * Verifica si el usuario está en modo "Supervisión Director de Curso"
-   * (Es director del grado, pero NO es el docente titular de esta materia específica)
-   */
   isViewingAsGradeDirector(user, grade, subject) {
     if (!user) return false;
     if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin' || user.role === 'induccion') {
@@ -185,22 +235,14 @@ class GradesService {
     return teacherInfo.docente_id !== userKey;
   }
 
-  /**
-   * Verifica si el usuario actual tiene permiso de editar notas numéricas
-   * REGLA: Los directores de curso pueden VER todas las notas, pero NO modificarlas
-   * (solo pueden modificar las materias que ellos mismos enseñan).
-   */
   canEditScores(user, grade, subject) {
     if (!user) return false;
-    // Directivos y admin: BLOQUEADO (Solo lectura institucional)
     if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin') {
       return false;
     }
-    // Docente inducción: permitido para demos
     if (user.role === 'induccion') {
       return true;
     }
-    // Docente titular asignado a la materia
     const teacherInfo = this.getTeacherAssignment(grade, subject);
     const userKey = user.key || user.role;
     return teacherInfo.docente_id === userKey;
@@ -229,43 +271,245 @@ class GradesService {
     return branch;
   }
 
-  updateStudentRecord(year, period, grade, subject, studentId, changes, user) {
-    const branch = this.getBranch(year, period, grade, subject);
-    const canScores = this.canEditScores(user, grade, subject);
-    const canDirective = this.canEditDirectiveSuggestion(user);
-    const canFeedback = this.canEditTeacherFeedback(user, grade, subject);
-    const canAdmin = this.canEditAdminAudit(user);
+  // =====================================================================
+  // GESTIÓN ADMINISTRATIVA: NOVEDADES Y REEMPLAZOS DOCENTES DE EMERGENCIA
+  // =====================================================================
 
-    branch.students = branch.students.map(st => {
-      if (st.id !== studentId) return st;
+  /**
+   * Obtiene la matriz curricular completa para visualización del administrador
+   */
+  getCurriculumMatrix() {
+    return GRADES_LIST.map(grade => {
+      const director = this.getGradeDirector(grade);
+      const defaultDirector = GRADE_DIRECTORS[grade];
+      const isDirectorReplaced = Boolean(this.customDirectors[grade] && this.customDirectors[grade].docente_id !== defaultDirector?.docente_id);
 
-      const updated = { ...st };
+      const defaultSubjects = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+      const customSubjects = this.customAssignments[grade] || {};
+      const subjectNames = Array.from(new Set([...Object.keys(defaultSubjects), ...Object.keys(customSubjects)]));
 
-      if (canScores) {
-        if ('c1' in changes) updated.c1 = changes.c1;
-        if ('c2' in changes) updated.c2 = changes.c2;
-        if ('c3' in changes) updated.c3 = changes.c3;
-      }
+      const subjects = subjectNames.map(subj => {
+        const assignment = this.getTeacherAssignment(grade, subj);
+        const originalAssignment = defaultSubjects[subj] || assignment;
+        const isSubjectReplaced = Boolean(this.customAssignments[grade]?.[subj] && this.customAssignments[grade]?.[subj].docente_id !== originalAssignment?.docente_id);
 
-      if (canFeedback && 'retroalimentacionDocente' in changes) {
-        updated.retroalimentacionDocente = changes.retroalimentacionDocente;
-      }
+        return {
+          subject: subj,
+          docente_id: assignment.docente_id,
+          teacherName: assignment.teacherName,
+          isReplaced: isSubjectReplaced,
+          originalDocenteName: originalAssignment?.teacherName || assignment.teacherName,
+          reason: assignment.reason || null,
+          replacedAt: assignment.replacedAt || null
+        };
+      });
 
-      if (canDirective && 'sugerenciaDirectiva' in changes) {
-        updated.sugerenciaDirectiva = changes.sugerenciaDirectiva;
-      }
-
-      if (canAdmin && 'comentarioAuditoria' in changes) {
-        updated.comentarioAuditoria = changes.comentarioAuditoria;
-      }
-
-      return updated;
+      return {
+        grade,
+        director: {
+          ...director,
+          isReplaced: isDirectorReplaced,
+          originalDocenteName: defaultDirector?.teacherName || director.teacherName,
+          reason: director.reason || null,
+          replacedAt: director.replacedAt || null
+        },
+        subjects
+      };
     });
+  }
 
-    branch.lastUpdated = new Date().toISOString();
-    branch.lastUpdatedBy = user?.name || 'Sistema';
+  /**
+   * Obtiene el historial de reemplazos y novedades registradas
+   */
+  getReplacementLogs() {
+    return this.replacementLogs;
+  }
+
+  /**
+   * Ejecuta el reemplazo de un docente por incapacidad, permiso o novedad administrativa.
+   * Transfiere el acceso inmediato de planillas al nuevo docente nombrado.
+   */
+  executeTeacherReplacement({
+    grade,
+    previousDocenteKey,
+    newDocenteKey,
+    replaceDirector = true,
+    replaceSubjects = true,
+    specificSubject = null,
+    reason = 'Incapacidad médica EPS',
+    adminUser
+  }) {
+    if (!grade || !newDocenteKey) {
+      throw new Error('Debe especificar el grado y el docente de reemplazo.');
+    }
+
+    const newTeacherObj = USERS[newDocenteKey] || { name: newDocenteKey };
+    const prevTeacherObj = USERS[previousDocenteKey] || { name: previousDocenteKey };
+    const now = new Date().toISOString();
+
+    const replacedSubjectsList = [];
+
+    // 1. Reemplazo de Director de Curso si aplica
+    let directorReplaced = false;
+    const currentDirector = this.getGradeDirector(grade);
+    if (replaceDirector || currentDirector.docente_id === previousDocenteKey) {
+      this.customDirectors[grade] = {
+        docente_id: newDocenteKey,
+        teacherName: newTeacherObj.name,
+        replacedFrom: currentDirector.docente_id,
+        replacedFromName: currentDirector.teacherName,
+        reason,
+        replacedAt: now
+      };
+      directorReplaced = true;
+    }
+
+    // 2. Reemplazo de Materias y transferencia de contenido
+    if (replaceSubjects) {
+      if (!this.customAssignments[grade]) {
+        this.customAssignments[grade] = {};
+      }
+
+      const defaultSubjects = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+      const subjectKeys = specificSubject 
+        ? [specificSubject] 
+        : Object.keys(defaultSubjects);
+
+      subjectKeys.forEach(subj => {
+        const currentAssign = this.getTeacherAssignment(grade, subj);
+        
+        // Si no se especificó materia, reemplazar solo las del docente incapacitado (o todas si era titular)
+        if (specificSubject || currentAssign.docente_id === previousDocenteKey || !previousDocenteKey) {
+          this.customAssignments[grade][subj] = {
+            docente_id: newDocenteKey,
+            teacherName: newTeacherObj.name,
+            replacedFrom: currentAssign.docente_id,
+            replacedFromName: currentAssign.teacherName,
+            reason,
+            replacedAt: now
+          };
+          replacedSubjectsList.push(subj);
+
+          // Actualizar en el árbol relacional para que el nuevo docente herede todo de inmediato
+          ACADEMIC_YEARS.forEach(y => {
+            ACADEMIC_PERIODS.forEach(p => {
+              if (this.tree[y]?.[p]?.[grade]?.[subj]) {
+                this.tree[y][p][grade][subj].docente_id = newDocenteKey;
+                this.tree[y][p][grade][subj].teacherName = newTeacherObj.name;
+                this.tree[y][p][grade][subj].lastReplacedFrom = currentAssign.docente_id;
+                this.tree[y][p][grade][subj].lastUpdated = now;
+                this.tree[y][p][grade][subj].lastUpdatedBy = `Reemplazo Administrador: ${newTeacherObj.name}`;
+              }
+            });
+          });
+        }
+      });
+    }
+
+    // 3. Crear registro de auditoría
+    const logEntry = {
+      id: `REP-${Date.now()}`,
+      timestamp: now,
+      grade,
+      previousDocenteKey: previousDocenteKey || currentDirector.docente_id,
+      previousDocenteName: prevTeacherObj.name || currentDirector.teacherName,
+      newDocenteKey,
+      newDocenteName: newTeacherObj.name,
+      replaceDirector: directorReplaced,
+      subjectsReplaced: replacedSubjectsList,
+      reason,
+      registeredBy: adminUser?.name || 'Administrador',
+      status: 'activo'
+    };
+
+    this.replacementLogs.unshift(logEntry);
+
+    // 4. Persistir estado y notificar
+    this.persistCustomState();
     this.persistTree();
-    return branch;
+    this.notifyCurriculumUpdate();
+
+    return {
+      success: true,
+      log: logEntry,
+      message: `¡Reemplazo exitoso! ${newTeacherObj.name} ahora tiene acceso oficial y activo a ${grade}.`
+    };
+  }
+
+  /**
+   * Finaliza o revierte un reemplazo, restaurando al docente titular original
+   */
+  revertReplacement(logId, adminUser) {
+    const logIndex = this.replacementLogs.findIndex(l => l.id === logId);
+    if (logIndex === -1) {
+      throw new Error('Registro de reemplazo no encontrado.');
+    }
+
+    const log = this.replacementLogs[logIndex];
+    const { grade, previousDocenteKey, previousDocenteName, subjectsReplaced, replaceDirector } = log;
+    const now = new Date().toISOString();
+
+    // Restaurar Director si fue reemplazado
+    if (replaceDirector && this.customDirectors[grade]) {
+      const defaultDir = GRADE_DIRECTORS[grade];
+      if (defaultDir && defaultDir.docente_id === previousDocenteKey) {
+        delete this.customDirectors[grade];
+      } else {
+        this.customDirectors[grade] = {
+          docente_id: previousDocenteKey,
+          teacherName: previousDocenteName,
+          restoredAt: now
+        };
+      }
+    }
+
+    // Restaurar Materias
+    if (subjectsReplaced && subjectsReplaced.length > 0) {
+      subjectsReplaced.forEach(subj => {
+        const defaultAssign = TEACHER_CURRICULUM_ASSIGNMENTS[grade]?.[subj];
+        if (defaultAssign && defaultAssign.docente_id === previousDocenteKey) {
+          if (this.customAssignments[grade]) {
+            delete this.customAssignments[grade][subj];
+          }
+        } else {
+          if (!this.customAssignments[grade]) this.customAssignments[grade] = {};
+          this.customAssignments[grade][subj] = {
+            docente_id: previousDocenteKey,
+            teacherName: previousDocenteName,
+            restoredAt: now
+          };
+        }
+
+        // Restaurar en el árbol relacional
+        ACADEMIC_YEARS.forEach(y => {
+          ACADEMIC_PERIODS.forEach(p => {
+            if (this.tree[y]?.[p]?.[grade]?.[subj]) {
+              this.tree[y][p][grade][subj].docente_id = previousDocenteKey;
+              this.tree[y][p][grade][subj].teacherName = previousDocenteName;
+              this.tree[y][p][grade][subj].lastUpdated = now;
+              this.tree[y][p][grade][subj].lastUpdatedBy = `Reincorporación: ${previousDocenteName}`;
+            }
+          });
+        });
+      });
+    }
+
+    // Actualizar log a finalizado
+    this.replacementLogs[logIndex] = {
+      ...log,
+      status: 'finalizado',
+      revertedAt: now,
+      revertedBy: adminUser?.name || 'Administrador'
+    };
+
+    this.persistCustomState();
+    this.persistTree();
+    this.notifyCurriculumUpdate();
+
+    return {
+      success: true,
+      message: `¡Reemplazo finalizado! ${previousDocenteName} ha sido reintegrada a sus funciones en ${grade}.`
+    };
   }
 }
 

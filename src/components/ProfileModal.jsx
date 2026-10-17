@@ -13,16 +13,18 @@ import {
   processAvatarImageFile 
 } from '../services/avatarService';
 import { USERS } from '../data/users';
+import AdminReemplazosTab from './AdminReemplazosTab';
 
 export default function ProfileModal({ 
   isOpen, 
   onClose, 
   currentUser, 
   initialTargetUserKey,
+  initialTab,
   onProfileUpdated,
   onAvatarUpdated 
 }) {
-  const [activeTab, setActiveTab] = useState('avatar'); // 'avatar' | 'security' | 'features'
+  const [activeTab, setActiveTab] = useState(initialTab || 'avatar'); // 'avatar' | 'security' | 'features' | 'reemplazos'
 
   // Estados de contraseña
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,6 +40,7 @@ export default function ProfileModal({
   // Estados de Logo / Avatar
   const currentUserKey = currentUser ? resolveUserKey(currentUser) : null;
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isAdmin = currentUser?.role === 'admin';
 
   // Usuario seleccionado para editar su logo (para Rectora/Admin pueden seleccionar cualquier docente)
   const [targetUserKey, setTargetUserKey] = useState(initialTargetUserKey || currentUserKey || 'claudia');
@@ -74,12 +77,13 @@ export default function ProfileModal({
       const chosenKey = initialTargetUserKey || currentUserKey || 'claudia';
       setTargetUserKey(chosenKey);
 
-      // Si se abre para un usuario distinto al logueado, enfocar automáticamente en la pestaña de Logo
-      if (initialTargetUserKey && initialTargetUserKey !== currentUserKey) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      } else if (initialTargetUserKey && initialTargetUserKey !== currentUserKey) {
         setActiveTab('avatar');
       }
     }
-  }, [isOpen, initialTargetUserKey, currentUserKey]);
+  }, [isOpen, initialTargetUserKey, currentUserKey, initialTab]);
 
   // Resolver información del usuario objetivo
   const targetUser = USERS[targetUserKey] || currentUser;
@@ -363,6 +367,19 @@ export default function ProfileModal({
               <i className="ph-bold ph-sparkle"></i>
               <span>Capacidades del Rol</span>
             </button>
+
+            {isAdmin && (
+              <button 
+                type="button" 
+                className={`profile-tab-btn ${activeTab === 'reemplazos' ? 'active' : ''}`}
+                onClick={() => setActiveTab('reemplazos')}
+                title="Gestión de novedades, licencias y reemplazos docentes por grado"
+              >
+                <i className="ph-bold ph-arrows-left-right"></i>
+                <span>Novedades & Reemplazos</span>
+                <span className="profile-tab-admin-pill">Admin</span>
+              </button>
+            )}
           </div>
 
           {/* ========================================================
@@ -757,6 +774,16 @@ export default function ProfileModal({
                 )}
               </div>
             </div>
+          )}
+
+          {/* ========================================================
+              PESTAÑA 4: GESTIÓN DE REEMPLAZOS DOCENTES POR INCAPACIDAD (EXCLUSIVO ADMIN)
+             ======================================================== */}
+          {activeTab === 'reemplazos' && isAdmin && (
+            <AdminReemplazosTab 
+              currentUser={currentUser}
+              onCurriculumUpdated={onProfileUpdated}
+            />
           )}
         </div>
 

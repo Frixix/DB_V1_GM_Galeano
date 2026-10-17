@@ -50,13 +50,15 @@ export default function App() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileTargetUserKey, setProfileTargetUserKey] = useState(null);
+  const [profileInitialTab, setProfileInitialTab] = useState(null);
   const [avatarToast, setAvatarToast] = useState(null);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
-  const handleOpenProfile = (targetUserKey = null) => {
+  const handleOpenProfile = (targetUserKey = null, initialTab = null) => {
     const resolved = targetUserKey || currentUser?.key || 'claudia';
     setProfileTargetUserKey(resolved);
+    setProfileInitialTab(initialTab);
     setIsProfileModalOpen(true);
   };
 
@@ -132,6 +134,7 @@ export default function App() {
           onClose={() => setIsProfileModalOpen(false)}
           currentUser={currentUser}
           initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
           onProfileUpdated={(updatedUser) => {
             setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
           }}
@@ -213,6 +216,7 @@ export default function App() {
           onClose={() => setIsProfileModalOpen(false)}
           currentUser={currentUser}
           initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
           onProfileUpdated={(updatedUser) => {
             setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
           }}
@@ -628,6 +632,7 @@ export default function App() {
         onClose={() => setIsProfileModalOpen(false)}
         currentUser={currentUser}
         initialTargetUserKey={profileTargetUserKey}
+        initialTab={profileInitialTab}
         onProfileUpdated={(userKey) => {
           // Si el usuario actual actualiza su contraseña, mantenemos la sesión sincronizada
           console.log(`Credenciales institucionales actualizadas para: ${userKey}`);
