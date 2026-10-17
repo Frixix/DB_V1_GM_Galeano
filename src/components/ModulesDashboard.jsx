@@ -139,6 +139,20 @@ export default function ModulesDashboard({
                 <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.25rem' }}></i>
                 <span className="portal-nav-text">Notas y Calificaciones</span>
               </button>
+
+              {/* Módulo Exclusivo Admin: Novedades & Reemplazos Docentes */}
+              {currentUser?.role === 'admin' && (
+                <button 
+                  type="button"
+                  className="portal-nav-item portal-nav-item-cyan"
+                  onClick={() => onSelectModule && onSelectModule('reemplazos')}
+                  title="Consola de Reasignación y Novedades Docentes"
+                  style={{ marginTop: '0.25rem' }}
+                >
+                  <i className="ph-bold ph-arrows-clockwise" style={{ fontSize: '1.25rem' }}></i>
+                  <span className="portal-nav-text">Novedades & Reemplazos</span>
+                </button>
+              )}
             </nav>
           </div>
 
@@ -237,6 +251,38 @@ export default function ModulesDashboard({
                 <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
               </div>
             </article>
+
+            {/* MÓDULO EXCLUSIVO ADMIN: Novedades & Reemplazos Docentes */}
+            {currentUser?.role === 'admin' && (
+              <article 
+                className="portal-module-card portal-module-card-cyan"
+                onClick={() => onSelectModule && onSelectModule('reemplazos')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (onSelectModule) onSelectModule('reemplazos');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container portal-cyan-icon">
+                    <i className="ph-bold ph-arrows-clockwise" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
+                  </div>
+                  <span className="portal-badge-cyan">Admin Exclusivo</span>
+                </div>
+
+                <div className="portal-card-body">
+                  <h3 style={{ color: '#0f172a' }}>Novedades & Reemplazos Docentes</h3>
+                  <p>Consola integral de contingencia para reasignación inmediata de direcciones de curso, cobertura por incapacidad médica y registro de actas.</p>
+                </div>
+
+                <div className="portal-card-footer">
+                  <span className="portal-link-label-cyan">Gestionar Reemplazos &rarr;</span>
+                </div>
+              </article>
+            )}
 
             {/* MÓDULO 3: EN DESARROLLO (Observador & Actas) */}
             <article className="portal-module-card portal-module-card-disabled">

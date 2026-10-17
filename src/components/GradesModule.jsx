@@ -15,6 +15,7 @@ const PASTEL_AVATAR_CLASSES = [
 export default function GradesModule({ 
   currentUser, 
   onBackToModules, 
+  onNavigateToReemplazos,
   onLogout,
   onOpenProfile,
   onOpenConnectionsModal,
@@ -572,8 +573,14 @@ export default function GradesModule({
               <button 
                 type="button" 
                 className="grades-btn-secondary btn-novedades-admin" 
-                onClick={() => onOpenProfile && onOpenProfile(null, 'reemplazos')}
-                title="Panel de Administrador: Novedades y Reemplazos Docentes por Incapacidad"
+                onClick={() => {
+                  if (onNavigateToReemplazos) {
+                    onNavigateToReemplazos();
+                  } else if (onOpenProfile) {
+                    onOpenProfile(null, 'reemplazos');
+                  }
+                }}
+                title="Consola de Administrador: Novedades & Reemplazos Docentes Inmediatos"
               >
                 <i className="ph-bold ph-arrows-left-right" style={{ color: '#0891b2' }}></i>
                 <span>Novedades & Reemplazos</span>

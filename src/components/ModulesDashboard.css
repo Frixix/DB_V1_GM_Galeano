@@ -521,6 +521,81 @@
   border-color: #f59e0b;
 }
 
+/* ==========================================================================
+   MÓDULO EXCLUSIVO ADMIN: ESTILO CYAN PASTEL (NOVEDADES Y REEMPLAZOS)
+   ========================================================================== */
+.portal-module-card-cyan {
+  border: 1px solid #99f6e4;
+  cursor: pointer;
+  text-align: left;
+}
+
+.portal-module-card-cyan::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #0d9488;
+  transition: height 0.2s ease;
+}
+
+.portal-module-card-cyan:hover::before {
+  height: 2px;
+}
+
+.portal-module-card-cyan .portal-card-icon-container.portal-cyan-icon {
+  background-color: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #ccfbf1;
+}
+
+.portal-module-card-cyan:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.14), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  border-color: #0d9488;
+}
+
+.portal-badge-cyan {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0f766e;
+  background-color: #f0fdfa;
+  border: 1px solid #99f6e4;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.portal-link-label-cyan {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f766e;
+  transition: transform 0.15s ease;
+}
+
+.portal-module-card-cyan:hover .portal-link-label-cyan {
+  transform: translateX(4px);
+}
+
+.portal-nav-item-cyan {
+  background-color: #f0fdfa;
+  color: #115e59;
+  border-color: #99f6e4;
+  font-weight: 600;
+}
+
+.portal-nav-item-cyan i {
+  color: #0f766e;
+}
+
+.portal-nav-item-cyan:hover {
+  background-color: #ccfbf1;
+  border-color: #5eead4;
+}
+
 /* Módulos en Desarrollo: Estilo Gris */
 .portal-module-card-disabled {
   background-color: #f8fafc;
