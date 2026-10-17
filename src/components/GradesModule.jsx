@@ -87,8 +87,12 @@ export default function GradesModule({ currentUser, onBackToModules, onLogout })
           </button>
 
           <div className="grades-brand-box">
-            <div className="grades-brand-icon">
-              <i className="ph-bold ph-chart-line-up"></i>
+            <div className="portal-shield-badge" title="Gimnasio Martin Galeano">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#15803d" />
+                <path d="M12 3.8L4.5 7.2V12C4.5 16.5 7.6 20.6 12 21.8C16.4 20.6 19.5 16.5 19.5 12V7.2L12 3.8Z" fill="#16a34a" fillOpacity="0.85" />
+                <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif" letterSpacing="-0.5">MG</text>
+              </svg>
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -234,9 +238,15 @@ export default function GradesModule({ currentUser, onBackToModules, onLogout })
                 <tr>
                   <th style={{ width: '40px', textAlign: 'center' }}>#</th>
                   <th>Estudiante</th>
-                  <th style={{ textAlign: 'center' }} title="Ponderación: 40%">Cognitivo (40%)</th>
-                  <th style={{ textAlign: 'center' }} title="Ponderación: 40%">Procedimental (40%)</th>
-                  <th style={{ textAlign: 'center' }} title="Ponderación: 20%">Actitudinal (20%)</th>
+                  <th style={{ textAlign: 'center' }}>
+                    Cognitivo <span className="grades-th-subpill pastel-pill-c1">40%</span>
+                  </th>
+                  <th style={{ textAlign: 'center' }}>
+                    Procedimental <span className="grades-th-subpill pastel-pill-c2">40%</span>
+                  </th>
+                  <th style={{ textAlign: 'center' }}>
+                    Actitudinal <span className="grades-th-subpill pastel-pill-c3">20%</span>
+                  </th>
                   <th style={{ textAlign: 'center' }}>Definitiva</th>
                   <th style={{ textAlign: 'center' }}>Nivel de Desempeño</th>
                   <th>Observaciones Pedagógicas</th>
@@ -331,7 +341,7 @@ export default function GradesModule({ currentUser, onBackToModules, onLogout })
 
           <div className="grades-sheet-footer">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '0.82rem' }}>
-              <i className="ph-bold ph-info" style={{ color: '#b45309' }}></i>
+              <i className="ph-bold ph-info" style={{ color: '#064e3b' }}></i>
               <span>Las notas definitivas se recalculan automáticamente según el Sistema Institucional de Evaluación (SIEE).</span>
             </div>
 
