@@ -103,13 +103,10 @@ export default function App() {
 
   if (!currentUser) {
     return (
-      <>
-        <Login onLogin={(user) => {
-          setCurrentUser(user);
-          setActiveModule(null);
-        }} />
-        <TrialWatermark documents={documents} />
-      </>
+      <Login onLogin={(user) => {
+        setCurrentUser(user);
+        setActiveModule(null);
+      }} />
     );
   }
 

@@ -1,0 +1,537 @@
+/* ==========================================================================
+   SPLIT-SCREEN AUTHENTICATION LAYOUT (PIXEL-PERFECT SPECIFICATION)
+   Gimnasio Martin Galeano - Sistema Integral Básica Primaria
+   ========================================================================== */
+
+.auth-split-layout {
+  display: flex;
+  height: 100vh;
+  max-height: 100vh;
+  width: 100%;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  position: relative;
+  background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   1. LEFT COLUMN: INSTITUTIONAL BRANDING (Forest Green)
+   ========================================================================== */
+.auth-brand-column {
+  flex: 1;
+  height: 100%;
+  max-height: 100vh;
+  background: linear-gradient(145deg, #15803d 0%, #166534 100%);
+  position: relative;
+  padding: 2.25rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #ffffff;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Fondo decorativo con líneas topográficas finas y elegantes */
+.auth-topo-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0.09;
+  z-index: 1;
+}
+
+.auth-brand-inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Header superior izquierdo */
+.auth-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.auth-shield-badge {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.auth-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-brand-school-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.auth-brand-school-sub {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #d1fae5;
+  letter-spacing: 0.01em;
+}
+
+/* Contenido Central: Hero Heading & Subtitle */
+.auth-brand-center {
+  margin: auto 0;
+  padding: 1.25rem 0;
+}
+
+.auth-hero-heading {
+  font-size: clamp(2.1rem, 3.1vw, 3rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  white-space: pre-line;
+}
+
+.auth-hero-subtitle {
+  font-size: clamp(0.95rem, 1.15vw, 1.05rem);
+  font-weight: 400;
+  color: rgba(209, 250, 229, 0.92);
+  max-width: 440px;
+  margin-top: 1rem;
+  line-height: 1.55;
+}
+
+/* Footer: Social proof / Personal conectado */
+.auth-social-proof {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.auth-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.auth-stack-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2.5px solid #15803d;
+  margin-left: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background-color: #10b981;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-stack-avatar:first-child {
+  margin-left: 0;
+}
+
+.auth-stack-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-stack-more {
+  background-color: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.auth-social-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #d1fae5;
+}
+
+/* ==========================================================================
+   2. RIGHT COLUMN: CENTERED AUTH CARD (Clean Slate & White)
+   ========================================================================== */
+.auth-form-column {
+  flex: 1;
+  height: 100%;
+  max-height: 100vh;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.auth-card-container {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+}
+
+.auth-card {
+  background-color: #ffffff;
+  border-radius: 24px;
+  border: 1px solid #f1f5f9;
+  padding: 2.5rem 2rem 1.6rem 2rem;
+  box-shadow: 0 20px 35px -5px rgba(148, 163, 184, 0.2), 0 10px 15px -5px rgba(148, 163, 184, 0.1);
+  position: relative;
+}
+
+/* Monograma flotante superior con iniciales MG */
+.auth-card-monogram-badge {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 56px;
+  background-color: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 20px -3px rgba(21, 128, 61, 0.18), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #f1f5f9;
+  z-index: 5;
+}
+
+.auth-card-header {
+  text-align: center;
+  margin-bottom: 1.1rem;
+}
+
+.auth-card-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #022c22;
+  letter-spacing: -0.02em;
+  margin-top: 0.15rem;
+  line-height: 1.2;
+}
+
+.auth-card-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+/* Formulario */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.3rem;
+}
+
+/* Select Dropdown estilizado */
+.auth-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.62rem 2.5rem 0.62rem 0.95rem;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.auth-select:focus {
+  border-color: #15803d;
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+}
+
+.auth-select-chevron {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  color: #64748b;
+}
+
+/* Input de Contraseña */
+.auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.62rem 2.75rem 0.62rem 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.auth-input:focus {
+  border-color: #15803d;
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+}
+
+.auth-input-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+.auth-input-toggle-btn:hover {
+  color: #15803d;
+}
+
+/* Caja de Ayuda de Credenciales de Prueba */
+.auth-credentials-box {
+  margin-top: 0.3rem;
+  background-color: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+}
+
+.auth-credentials-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.auth-credentials-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.auth-credential-pill {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-family: monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.18rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.auth-credential-pill:hover {
+  background-color: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+  transform: translateY(-1px);
+}
+
+/* Botón de Acción Principal */
+.auth-submit-btn {
+  width: 100%;
+  margin-top: 0.75rem;
+  background-color: #15803d;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0.72rem 1.25rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
+}
+
+.auth-submit-btn:hover {
+  background-color: #166534;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(21, 128, 61, 0.35);
+}
+
+/* Alerta de Error */
+.auth-error-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ==========================================================================
+   3. FLOATING BADGES & FOOTER
+   ========================================================================== */
+.auth-floating-trial-pill {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 9999px;
+  padding: 0.45rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #15803d;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  letter-spacing: 0.04em;
+  z-index: 50;
+  user-select: none;
+}
+
+.auth-trial-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: authTrialPulse 2s infinite;
+}
+
+@keyframes authTrialPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.auth-footer-tag {
+  margin-top: 0.75rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   RESPONSIVIDAD MÓVIL
+   ========================================================================== */
+@media (max-width: 960px) {
+  .auth-split-layout {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
+    flex-direction: column;
+  }
+
+  .auth-brand-column {
+    padding: 2.25rem 1.5rem 2.5rem 1.5rem;
+    height: auto;
+    max-height: none;
+    min-height: auto;
+  }
+
+  .auth-hero-heading {
+    font-size: 2.25rem;
+  }
+
+  .auth-hero-subtitle {
+    font-size: 1rem;
+    margin-top: 0.85rem;
+  }
+
+  .auth-social-proof {
+    display: none;
+  }
+
+  .auth-form-column {
+    padding: 2.5rem 1.25rem;
+    height: auto;
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .auth-card {
+    padding: 3rem 1.5rem 1.75rem 1.5rem;
+  }
+}

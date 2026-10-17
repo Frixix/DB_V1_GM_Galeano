@@ -14,8 +14,12 @@ export default function ModulesDashboard({ currentUser, onSelectModule, onLogout
       {/* Navbar Superior */}
       <header className="portal-navbar">
         <div className="portal-navbar-left">
-          <div className="portal-brand-symbol" title="Portal Institucional Gimnasio Martin Galeano">
-            <i className="ph-bold ph-graduation-cap" style={{ fontSize: '1.85rem', color: '#064e3b' }}></i>
+          <div className="portal-shield-badge" title="Portal Institucional Gimnasio Martin Galeano">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#15803d" />
+              <path d="M12 3.8L4.5 7.2V12C4.5 16.5 7.6 20.6 12 21.8C16.4 20.6 19.5 16.5 19.5 12V7.2L12 3.8Z" fill="#16a34a" fillOpacity="0.85" />
+              <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif" letterSpacing="-0.5">MG</text>
+            </svg>
           </div>
           <div>
             <span className="portal-system-title">Gimnasio Martin Galeano</span>

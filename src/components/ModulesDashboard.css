@@ -48,6 +48,25 @@
   align-items: center;
 }
 
+.portal-shield-badge {
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1.5px solid #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.12);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-shield-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
+}
+
 .portal-icon-svg {
   width: 24px;
   height: 24px;
