@@ -930,7 +930,7 @@ select {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 2px;
   background-color: var(--primary); /* Verde Bosque Institucional #064e3b */
   transition: height 0.2s ease, background-color 0.2s ease;
 }
@@ -942,7 +942,7 @@ select {
 }
 
 .doc-card:hover::before {
-  height: 5px;
+  height: 2px;
 }
 
 .doc-card.card-unread {

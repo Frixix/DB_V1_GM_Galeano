@@ -4,10 +4,18 @@ import './ModulesDashboard.css';
  * Segunda Capa: Panel Principal / Dashboard Estructural
  * Módulos integrados con Phosphor Icons y paletas pastel armonizadas.
  */
-export default function ModulesDashboard({ currentUser, onSelectModule, onLogout }) {
+export default function ModulesDashboard({ 
+  currentUser, 
+  onSelectModule, 
+  onLogout,
+  onOpenProfile,
+  onOpenConnectionsModal,
+  onlineCount
+}) {
   const userName = currentUser?.name || 'Usuario';
   const userRole = currentUser?.label || currentUser?.role || 'Personal Institucional';
   const userInitial = currentUser?.initial || (userName ? userName.charAt(0).toUpperCase() : 'U');
+  const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
 
   return (
     <div className="portal-container" id="view-dashboard">
@@ -30,27 +38,65 @@ export default function ModulesDashboard({ currentUser, onSelectModule, onLogout
         </div>
 
         <div className="portal-navbar-right">
-          <div className="portal-user-profile">
-            <div className="portal-avatar-placeholder" title={userName}>
+          {/* Botón de Supervisión de Conexiones en Vivo (Exclusivo Rectora y Admin) */}
+          {isPrivileged && onOpenConnectionsModal && (
+            <button 
+              type="button"
+              className="btn-presence-nav" 
+              onClick={onOpenConnectionsModal}
+              title="Supervisión en vivo: Ver quién está conectado y a qué horas se conectaron"
+              aria-label="Ver control de conexiones del personal"
+            >
+              <span className="live-status-pulse"></span>
+              <span className="live-status-nav-label">
+                <strong>{onlineCount || 1}</strong> en línea
+              </span>
+              <i className="ph-bold ph-shield-check"></i>
+            </button>
+          )}
+
+          {/* Chip de Usuario Interactivo y Configuración (Admin y Docentes) */}
+          <div 
+            className="user-chip user-chip-clickable portal-user-chip" 
+            onClick={onOpenProfile}
+            role="button"
+            tabIndex={0}
+            title={isPrivileged ? "Configuración de administrador y ajustes de personal" : `Configuración de perfil de ${userName}`}
+            aria-label={isPrivileged ? "Configuración de administrador" : `Configuración de perfil de ${userName}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (onOpenProfile) onOpenProfile();
+              }
+            }}
+          >
+            <div className={`user-avatar ${isPrivileged ? 'avatar-rectora-chip' : ''}`}>
               {currentUser?.avatar ? (
                 <img 
                   src={currentUser.avatar} 
                   alt={userName} 
-                  className="portal-avatar-img" 
+                  className="user-avatar-img" 
                   onError={(e) => { 
                     e.currentTarget.style.display = 'none'; 
                     const sibling = e.currentTarget.nextSibling;
-                    if (sibling) sibling.style.display = 'inline';
+                    if (sibling) sibling.style.display = 'flex';
                   }} 
                 />
               ) : null}
-              <span style={{ display: currentUser?.avatar ? 'none' : 'inline' }}>{userInitial}</span>
+              <span className="user-avatar-initial" style={{ display: currentUser?.avatar ? 'none' : 'flex' }}>
+                {userInitial}
+              </span>
+              {isPrivileged && <span className="avatar-chip-crown">👑</span>}
             </div>
-            <div className="portal-user-meta">
-              <span className="portal-user-name">{userName}</span>
-              <span className="portal-user-role">{userRole}</span>
+            <div className="user-info">
+              <span className="user-name">{userName}</span>
+              <span className="user-role">{userRole}</span>
+            </div>
+            <div className="user-chip-icon-hint" title="Configurar cuenta y avatar">
+              <i className="ph-bold ph-gear"></i>
             </div>
           </div>
+
           <button 
             type="button" 
             id="btn-logout" 

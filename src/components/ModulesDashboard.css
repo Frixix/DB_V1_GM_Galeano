@@ -388,7 +388,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 2px;
   background-color: #064e3b;
 }
 
@@ -462,7 +462,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 2px;
   background-color: #b45309;
   transition: height 0.2s ease;
 }
@@ -479,7 +479,7 @@
 }
 
 .portal-module-card-amber:hover::before {
-  height: 5px;
+  height: 2px;
 }
 
 .portal-badge-amber {

@@ -10,14 +10,22 @@ const INITIAL_STUDENTS = [
   { id: 'EST-006', name: 'Samuel Castro Ortiz', c1: 3.2, c2: 3.4, c3: 3.5, notes: 'Reforzar talleres procedimentales.' },
 ];
 
-export default function GradesModule({ currentUser, onBackToModules, onLogout }) {
+export default function GradesModule({ 
+  currentUser, 
+  onBackToModules, 
+  onLogout,
+  onOpenProfile,
+  onOpenConnectionsModal,
+  onlineCount
+}) {
   const [selectedGrade, setSelectedGrade] = useState('1° Primaria');
   const [selectedSubject, setSelectedSubject] = useState('Matemáticas');
   const [selectedPeriod, setSelectedPeriod] = useState('1° Periodo (25%)');
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [toastMessage, setToastMessage] = useState(null);
 
-  const isRectora = currentUser?.role === 'rectora' || currentUser?.role === 'induccion_rectora';
+  const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isRectora = isPrivileged;
 
   const handleScoreChange = (id, field, value) => {
     let num = parseFloat(value);
@@ -107,12 +115,43 @@ export default function GradesModule({ currentUser, onBackToModules, onLogout })
         </div>
 
         <div className="grades-navbar-right">
-          <div className="user-chip" title={`Usuario: ${currentUser?.name}`}>
-            <div className={`user-avatar ${isRectora ? 'avatar-rectora-chip' : ''}`}>
+          {/* Botón de Supervisión de Conexiones en Vivo (Exclusivo Rectora y Admin) */}
+          {isPrivileged && onOpenConnectionsModal && (
+            <button 
+              type="button"
+              className="btn-presence-nav" 
+              onClick={onOpenConnectionsModal}
+              title="Supervisión en vivo: Ver quién está conectado y a qué horas se conectaron"
+              aria-label="Ver control de conexiones del personal"
+            >
+              <span className="live-status-pulse"></span>
+              <span className="live-status-nav-label">
+                <strong>{onlineCount || 1}</strong> en línea
+              </span>
+              <i className="ph-bold ph-shield-check"></i>
+            </button>
+          )}
+
+          {/* Chip de Usuario Interactivo y Configuración (Admin y Docentes) */}
+          <div 
+            className="user-chip user-chip-clickable" 
+            onClick={onOpenProfile}
+            role="button"
+            tabIndex={0}
+            title={isPrivileged ? "Configuración institucional y ajustes de personal" : `Configuración de perfil de ${currentUser?.name}`}
+            aria-label={isPrivileged ? "Configuración de administrador" : `Configuración de perfil de ${currentUser?.name}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (onOpenProfile) onOpenProfile();
+              }
+            }}
+          >
+            <div className={`user-avatar ${isPrivileged ? 'avatar-rectora-chip' : ''}`}>
               {currentUser?.avatar ? (
                 <img 
                   src={currentUser.avatar} 
-                  alt={currentUser.name} 
+                  alt={currentUser?.name} 
                   className="user-avatar-img"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
@@ -120,11 +159,14 @@ export default function GradesModule({ currentUser, onBackToModules, onLogout })
               <span className="user-avatar-initial" style={{ display: currentUser?.avatar ? 'none' : 'flex' }}>
                 {currentUser?.initial || 'U'}
               </span>
-              {isRectora && <span className="avatar-chip-crown">👑</span>}
+              {isPrivileged && <span className="avatar-chip-crown">👑</span>}
             </div>
             <div className="user-info">
               <span className="user-name">{currentUser?.name}</span>
               <span className="user-role">{currentUser?.label}</span>
+            </div>
+            <div className="user-chip-icon-hint" title="Configurar cuenta y avatar">
+              <i className="ph-bold ph-gear"></i>
             </div>
           </div>
 
