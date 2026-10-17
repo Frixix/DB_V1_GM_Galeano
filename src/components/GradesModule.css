@@ -178,6 +178,12 @@
   border: 1px solid #a7f3d0;
 }
 
+.grades-role-mode-pill.mode-director-curso {
+  background-color: #ecfeff;
+  color: #0e7490;
+  border: 1px solid #a5f3fc;
+}
+
 .grades-role-mode-pill.mode-rectora {
   background-color: #ede9fe;
   color: #5b21b6;
@@ -199,6 +205,11 @@
 
 .grades-banner-security-notice {
   color: #92400e;
+  font-weight: 600;
+}
+
+.grades-banner-director-notice {
+  color: #0e7490;
   font-weight: 600;
 }
 
@@ -242,6 +253,13 @@
   background-color: #e0e7ff;
   border: 1px solid #c7d2fe;
   color: #3730a3;
+}
+
+.grades-metric-badge.metric-director {
+  background-color: #ecfeff;
+  border: 1px solid #a5f3fc;
+  color: #0e7490;
+  min-width: 125px;
 }
 
 .grades-metric-badge.metric-titular {
@@ -403,6 +421,13 @@
   background-color: #ede9fe;
   border-color: #ddd6fe;
   color: #6d28d9;
+}
+
+/* Director(a) de Curso Oficial Pastel Cian / Turquesa */
+.crumb-director {
+  background-color: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0e7490;
 }
 
 /* Nivel 4: Materia Pastel Menta */
@@ -663,6 +688,16 @@
   background-color: #d1fae5;
   color: #065f46;
   border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.th-badge-director {
+  background-color: #cffafe;
+  color: #0e7490;
+  border: 1px solid #a5f3fc;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
   font-size: 0.64rem;
@@ -1093,6 +1128,16 @@
   background-color: #022c22;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(6, 78, 59, 0.35);
+}
+
+.grades-btn-primary.btn-view-only {
+  background-color: #0f766e;
+  cursor: default;
+}
+
+.grades-btn-primary.btn-view-only:hover {
+  background-color: #115e59;
+  transform: none;
 }
 
 .grades-btn-secondary {

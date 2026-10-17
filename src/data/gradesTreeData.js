@@ -2,16 +2,22 @@
  * Jerarquía de Datos Relacional (RBAC) - Sistema Integral de Calificaciones
  * 
  * Estructura de árbol estricta:
- * Año Lectivo (2026)
+ * Año Lectivo (2026 / 2025)
  * └── Periodo (1°, 2°, 3°, 4°)
  *     └── Grado (Transición, 1°, 2°, 3°, 4°, 5°)
+ *         ├── Director(a) de Curso Oficial por Grado
  *         └── Materia / Asignatura (Español, Matemáticas, etc.)
- *             ├── Asignación Docente (docente_id: 'jessica')
+ *             ├── Asignación Docente de Materia (docente_id: 'jessica')
  *             └── Lista de Estudiantes
  *                 └── Registro de Calificación:
- *                     ├── Nota Numérica (Editable solo por docente_id)
- *                     ├── Retroalimentación Docente
+ *                     ├── Nota Numérica (Editable solo por docente_id de la materia)
+ *                     ├── Retroalimentación Docente (Editable por docente_id)
  *                     └── Sugerencia Directiva (Editable solo por rol: rectora)
+ * 
+ * Rol de Directores de Curso:
+ * - Un director de curso por grado obligatorio.
+ * - Pueden ver TODAS las notas de sus alumnos de todas las materias del grado.
+ * - NO pueden modificar notas ni retroalimentación de materias que no enseñan (Solo Lectura de acompañamiento).
  */
 
 export const ACADEMIC_YEARS = ['2026', '2025'];
@@ -42,6 +48,16 @@ export const ALL_SUBJECTS = [
   'Educación Física',
   'Ética & Valores'
 ];
+
+// Directores de Curso Oficiales por Grado (Exactamente 1 Director por Grado)
+export const GRADE_DIRECTORS = {
+  'Transición': { docente_id: 'profe1', teacherName: 'Profe 1' },
+  '1° Primaria': { docente_id: 'jessica', teacherName: 'Jessica' },
+  '2° Primaria': { docente_id: 'yuri', teacherName: 'Yuri' },
+  '3° Primaria': { docente_id: 'profe2', teacherName: 'Profe 2' },
+  '4° Primaria': { docente_id: 'elcy', teacherName: 'Elcy' },
+  '5° Primaria': { docente_id: 'profe3', teacherName: 'Profe 3' },
+};
 
 // Estudiantes matriculados por Grado
 export const STUDENTS_BY_GRADE = {
@@ -93,15 +109,15 @@ export const STUDENTS_BY_GRADE = {
 
 // Matriz de Asignación Docente Oficial por (Grado, Materia)
 export const TEACHER_CURRICULUM_ASSIGNMENTS = {
-  // Transición
+  // Transición (Directora de Curso: Profe 1)
   'Transición': {
-    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Matemáticas': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Educación Artística': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Lengua Castellana': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Matemáticas': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Educación Artística': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Ética & Valores': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
-  // 1° Primaria
+  // 1° Primaria (Directora de Curso: Jessica)
   '1° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'jessica', teacherName: 'Jessica' },
@@ -112,7 +128,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
-  // 2° Primaria
+  // 2° Primaria (Directora de Curso: Yuri)
   '2° Primaria': {
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
@@ -122,17 +138,17 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
-  // 3° Primaria
+  // 3° Primaria (Directora de Curso: Profe 2)
   '3° Primaria': {
+    'Lengua Castellana': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Inglés': { docente_id: 'profe2', teacherName: 'Profe 2' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Inglés': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
-  // 4° Primaria
+  // 4° Primaria (Directora de Curso: Elcy)
   '4° Primaria': {
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Lengua Castellana': { docente_id: 'elcy', teacherName: 'Elcy' },
@@ -141,14 +157,14 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
   },
-  // 5° Primaria
+  // 5° Primaria (Directora de Curso: Profe 3)
   '5° Primaria': {
+    'Lengua Castellana': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Inglés': { docente_id: 'profe3', teacherName: 'Profe 3' },
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Lengua Castellana': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Inglés': { docente_id: 'jessica', teacherName: 'Jessica' },
   }
 };
 

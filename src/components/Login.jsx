@@ -54,6 +54,11 @@ export default function Login({ onLogin }) {
       else if (passKey === 'induccion2026') setUserKey('induccion');
       else if (passKey === 'rectora2026') setUserKey('claudia');
       else if (passKey === 'jessica2026') setUserKey('jessica');
+      else if (passKey === 'yuri2026') setUserKey('yuri');
+      else if (passKey === 'elcy2026') setUserKey('elcy');
+      else if (passKey === 'profe12026') setUserKey('profe1');
+      else if (passKey === 'profe22026') setUserKey('profe2');
+      else if (passKey === 'profe32026') setUserKey('profe3');
       else if (passKey === 'admin2026') setUserKey('admin');
     }
   };
@@ -168,9 +173,12 @@ export default function Login({ onLogin }) {
                     <option value="induccion_rectora">👑 Inducción Rectora (Tour Directivo)</option>
                     <option value="induccion">✨ Inducción Profesoras (Tour Docente)</option>
                     <option value="claudia">Claudia (Rectora)</option>
-                    <option value="jessica">Jessica</option>
-                    <option value="yuri">Yuri</option>
-                    <option value="elcy">Elcy</option>
+                    <option value="profe1">Profe 1 (Directora Transición)</option>
+                    <option value="jessica">Jessica (Directora 1° Primaria)</option>
+                    <option value="yuri">Yuri (Directora 2° Primaria)</option>
+                    <option value="profe2">Profe 2 (Directora 3° Primaria)</option>
+                    <option value="elcy">Elcy (Directora 4° Primaria)</option>
+                    <option value="profe3">Profe 3 (Directora 5° Primaria)</option>
                     <option value="admin">Administrador</option>
                   </select>
                   <span className="auth-select-chevron">

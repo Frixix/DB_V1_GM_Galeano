@@ -31,7 +31,7 @@ export default function GradesModule({
   const availableYears = useMemo(() => gradesService.getAcademicYears(), []);
   const availablePeriods = useMemo(() => gradesService.getAcademicPeriods(), []);
   
-  // Grados disponibles filtrados por rol y asignación curricular
+  // Grados disponibles filtrados por rol, asignación curricular y dirección de curso
   const availableGrades = useMemo(() => {
     return gradesService.getGradesForUser(currentUser);
   }, [currentUser]);
@@ -41,7 +41,9 @@ export default function GradesModule({
   const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
   const [selectedGrade, setSelectedGrade] = useState(availableGrades[0] || '1° Primaria');
 
-  // Materias disponibles para el grado seleccionado, filtradas por docente titular
+  // Materias disponibles para el grado seleccionado:
+  // Si el usuario es Director de Curso de este grado, ¡ve TODAS las materias!
+  // Si no, solo ve las materias que enseña directamente.
   const availableSubjects = useMemo(() => {
     return gradesService.getSubjectsForGradeAndUser(selectedGrade, currentUser);
   }, [selectedGrade, currentUser]);
@@ -76,10 +78,20 @@ export default function GradesModule({
     setStudents(freshBranch.students || []);
   }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject]);
 
-  // Información del Docente asignado oficialmente en esta rama
+  // Información del Director de Curso Oficial del Grado
+  const gradeDirector = useMemo(() => {
+    return gradesService.getGradeDirector(selectedGrade);
+  }, [selectedGrade]);
+
+  // Información del Docente Titular de la Materia
   const teacherInfo = useMemo(() => {
     return gradesService.getTeacherAssignment(selectedGrade, selectedSubject);
   }, [selectedGrade, selectedSubject]);
+
+  // ¿El usuario actual está actuando como Director de Curso supervisando la materia de otra docente?
+  const isViewingAsGradeDirector = useMemo(() => {
+    return gradesService.isViewingAsGradeDirector(currentUser, selectedGrade, selectedSubject);
+  }, [currentUser, selectedGrade, selectedSubject]);
 
   // Permisos granulares de edición en la rama activa
   const canEditScores = useMemo(() => {
@@ -94,7 +106,7 @@ export default function GradesModule({
     return gradesService.canEditDirectiveSuggestion(currentUser);
   }, [currentUser]);
 
-  // Manejo de cambio en notas numéricas (Exclusivo Docente Titular)
+  // Manejo de cambio en notas numéricas (Exclusivo Docente Titular de la materia)
   const handleScoreChange = (id, field, value) => {
     if (!canEditScores) return;
 
@@ -111,7 +123,7 @@ export default function GradesModule({
     }));
   };
 
-  // Manejo de observaciones pedagógicas (Docente Titular)
+  // Manejo de observaciones pedagógicas (Docente Titular de la materia)
   const handleTeacherFeedbackChange = (id, value) => {
     if (!canEditFeedback) return;
     setStudents(prev => prev.map(student => {
@@ -180,10 +192,16 @@ export default function GradesModule({
 
   // Guardado en la persistencia del árbol
   const handleSaveAction = () => {
+    if (isViewingAsGradeDirector) {
+      setToastMessage(`Modo Director de Curso: Supervisión integral de ${selectedSubject}. Calificaciones registradas por ${teacherInfo.teacherName}.`);
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+
     gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser);
 
     if (canEditScores) {
-      setToastMessage(`¡Planilla guardada! Notas y retroalimentación registradas por ${currentUser?.name || 'la docente'}.`);
+      setToastMessage(`¡Planilla guardada! Notas y retroalimentación de ${selectedSubject} registradas por ${currentUser?.name || 'la docente'}.`);
     } else if (canEditDirective) {
       setToastMessage(`¡Sugerencias registradas! Auditoría directiva de Rectoría guardada exitosamente.`);
     } else {
@@ -313,6 +331,11 @@ export default function GradesModule({
                   <i className="ph-bold ph-pencil-simple-line"></i>
                   Modo Calificación Docente • Planilla Abierta
                 </span>
+              ) : isViewingAsGradeDirector ? (
+                <span className="grades-role-mode-pill mode-director-curso">
+                  <i className="ph-bold ph-shield-star"></i>
+                  Modo Director(a) de Curso ({selectedGrade}) • Solo Lectura de Acompañamiento
+                </span>
               ) : isRectora ? (
                 <span className="grades-role-mode-pill mode-rectora">
                   <i className="ph-bold ph-lock-key"></i>
@@ -328,7 +351,11 @@ export default function GradesModule({
 
             <p>
               Estructura ponderada: <strong>Cognitivo (40%)</strong>, <strong>Procedimental (40%)</strong> y <strong>Actitudinal (20%)</strong>.
-              {!canEditScores && (
+              {isViewingAsGradeDirector ? (
+                <span className="grades-banner-director-notice">
+                  {' '}Como <strong>Director(a) de Curso de {selectedGrade}</strong>, puedes supervisar las notas y retroalimentaciones de todas las materias de tus estudiantes. Las notas de esta asignatura corresponden a la docente <strong>{teacherInfo.teacherName}</strong> y están en solo lectura.
+                </span>
+              ) : !canEditScores && (
                 <span className="grades-banner-security-notice">
                   {' '}Por normativa SIEE y seguridad legal institucional, las notas solo pueden ser modificadas por el docente titular asignado.
                 </span>
@@ -358,11 +385,22 @@ export default function GradesModule({
               <span className="grades-metric-val">{students.length}</span>
             </div>
 
+            <div className="grades-metric-badge metric-director">
+              <span className="grades-metric-label">
+                <i className="ph-bold ph-shield-star"></i> Dir. Curso
+              </span>
+              <span className="grades-metric-val grades-metric-titular-name" title={`Director(a) de Curso de ${selectedGrade}: ${gradeDirector.teacherName}`}>
+                {gradeDirector.teacherName}
+              </span>
+            </div>
+
             <div className="grades-metric-badge metric-titular">
               <span className="grades-metric-label">
-                <i className="ph-bold ph-user-check"></i> Titular
+                <i className="ph-bold ph-chalkboard-teacher"></i> Docente
               </span>
-              <span className="grades-metric-val grades-metric-titular-name">{teacherInfo.teacherName}</span>
+              <span className="grades-metric-val grades-metric-titular-name" title={`Docente de ${selectedSubject}: ${teacherInfo.teacherName}`}>
+                {teacherInfo.teacherName}
+              </span>
             </div>
           </div>
         </section>
@@ -376,9 +414,11 @@ export default function GradesModule({
             </div>
             <div className="tree-path-meta">
               <span className="tree-security-pill">
-                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : 'ph-shield-check'}`}></i>
+                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check')}`}></i>
                 {canEditScores 
                   ? `Docente autorizado: ${currentUser?.name || teacherInfo.teacherName}`
+                  : isViewingAsGradeDirector
+                  ? `Supervisión: Dir. de Curso ${gradeDirector.teacherName} (Docente: ${teacherInfo.teacherName})`
                   : `Auditoría: Notas a cargo de ${teacherInfo.teacherName}`
                 }
               </span>
@@ -416,6 +456,16 @@ export default function GradesModule({
 
             <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
 
+            {/* Director(a) de Curso Oficial por Grado */}
+            <div className="tree-crumb crumb-director">
+              <span className="crumb-level">Director de Curso</span>
+              <span className="crumb-val">
+                <i className="ph-bold ph-shield-star"></i> {gradeDirector.teacherName}
+              </span>
+            </div>
+
+            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
+
             {/* Nivel 4: Materia / Asignatura */}
             <div className="tree-crumb crumb-subject">
               <span className="crumb-level">Asignatura</span>
@@ -426,9 +476,9 @@ export default function GradesModule({
 
             <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
 
-            {/* Asignación Docente Oficial */}
+            {/* Asignación Docente Oficial de la Materia */}
             <div className="tree-crumb crumb-teacher">
-              <span className="crumb-level">Docente Titular</span>
+              <span className="crumb-level">Docente Asignatura</span>
               <span className="crumb-val">
                 <i className="ph-bold ph-chalkboard-teacher"></i> {teacherInfo.teacherName}
               </span>
@@ -467,7 +517,7 @@ export default function GradesModule({
               </select>
             </div>
 
-            {/* Selector Grado (Filtrado por Asignación Docente si es Docente) */}
+            {/* Selector Grado */}
             <div className="grades-select-item">
               <label><i className="ph-bold ph-student"></i> Grado</label>
               <select 
@@ -481,13 +531,13 @@ export default function GradesModule({
               </select>
             </div>
 
-            {/* Selector Materia (Filtrado estrictamente por docente en ese grado) */}
+            {/* Selector Materia (Incluye todas las materias si es Director de Curso del Grado) */}
             <div className="grades-select-item">
               <label><i className="ph-bold ph-chalkboard-teacher"></i> Materia</label>
               <select 
                 value={selectedSubject} 
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                title="Seleccione la Materia asignada"
+                title="Seleccione la Materia"
               >
                 {availableSubjects.map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -520,12 +570,31 @@ export default function GradesModule({
             </button>
             <button 
               type="button" 
-              className="grades-btn-primary" 
+              className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
               onClick={handleSaveAction}
-              title={canEditScores ? "Guardar notas y observaciones docentes" : "Guardar observaciones de auditoría directiva"}
+              title={
+                canEditScores 
+                  ? "Guardar notas y observaciones docentes" 
+                  : isViewingAsGradeDirector 
+                  ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
+                  : "Guardar observaciones de auditoría directiva"
+              }
             >
-              <i className={`ph-bold ${canEditScores ? 'ph-floppy-disk' : (canEditDirective ? 'ph-crown' : 'ph-shield-check')}`}></i>
-              <span>{canEditScores ? 'Guardar Planilla' : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')}</span>
+              <i className={`ph-bold ${
+                canEditScores 
+                  ? 'ph-floppy-disk' 
+                  : isViewingAsGradeDirector 
+                  ? 'ph-eye' 
+                  : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
+              }`}></i>
+              <span>
+                {canEditScores 
+                  ? 'Guardar Planilla' 
+                  : isViewingAsGradeDirector 
+                  ? 'Modo Director de Curso' 
+                  : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
+                }
+              </span>
             </button>
           </div>
         </section>
@@ -544,7 +613,12 @@ export default function GradesModule({
                     <div className="th-component-header">
                       <span>Cognitivo</span>
                       <span className="th-badge-c1">40%</span>
-                      {!canEditScores && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada: Solo docente titular"></i>}
+                      {!canEditScores && (
+                        <i 
+                          className="ph-bold ph-lock-key th-lock-icon" 
+                          title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                        ></i>
+                      )}
                     </div>
                   </th>
 
@@ -553,7 +627,12 @@ export default function GradesModule({
                     <div className="th-component-header">
                       <span>Procedimental</span>
                       <span className="th-badge-c2">40%</span>
-                      {!canEditScores && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada: Solo docente titular"></i>}
+                      {!canEditScores && (
+                        <i 
+                          className="ph-bold ph-lock-key th-lock-icon" 
+                          title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                        ></i>
+                      )}
                     </div>
                   </th>
 
@@ -562,7 +641,12 @@ export default function GradesModule({
                     <div className="th-component-header">
                       <span>Actitudinal</span>
                       <span className="th-badge-c3">20%</span>
-                      {!canEditScores && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada: Solo docente titular"></i>}
+                      {!canEditScores && (
+                        <i 
+                          className="ph-bold ph-lock-key th-lock-icon" 
+                          title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                        ></i>
+                      )}
                     </div>
                   </th>
 
@@ -584,7 +668,11 @@ export default function GradesModule({
                     <div className="th-component-header">
                       <i className="ph-bold ph-chalkboard-teacher"></i>
                       <span>Retroalimentación Docente</span>
-                      {canEditFeedback && <span className="th-badge-editable">Editable</span>}
+                      {canEditFeedback ? (
+                        <span className="th-badge-editable">Editable</span>
+                      ) : isViewingAsGradeDirector ? (
+                        <span className="th-badge-director" title="Visible para seguimiento del Director de Curso">Dir. de Curso</span>
+                      ) : null}
                     </div>
                   </th>
 
@@ -643,9 +731,20 @@ export default function GradesModule({
                               onChange={(e) => handleScoreChange(student.id, 'c1', e.target.value)}
                               className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
                               readOnly={!canEditScores}
-                              title={!canEditScores ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente cognitivo"}
+                              title={
+                                !canEditScores 
+                                  ? (isViewingAsGradeDirector 
+                                      ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                      : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
+                                  : "Calificar componente cognitivo"
+                              }
                             />
-                            {!canEditScores && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación protegida por SIEE"></i>}
+                            {!canEditScores && (
+                              <i 
+                                className="ph-bold ph-lock-key input-mini-lock" 
+                                title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                              ></i>
+                            )}
                           </div>
                         </td>
 
@@ -661,9 +760,20 @@ export default function GradesModule({
                               onChange={(e) => handleScoreChange(student.id, 'c2', e.target.value)}
                               className={`grades-input-score input-c2 ${!canEditScores ? 'grades-input-locked' : ''}`}
                               readOnly={!canEditScores}
-                              title={!canEditScores ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente procedimental"}
+                              title={
+                                !canEditScores 
+                                  ? (isViewingAsGradeDirector 
+                                      ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                      : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
+                                  : "Calificar componente procedimental"
+                              }
                             />
-                            {!canEditScores && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación protegida por SIEE"></i>}
+                            {!canEditScores && (
+                              <i 
+                                className="ph-bold ph-lock-key input-mini-lock" 
+                                title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                              ></i>
+                            )}
                           </div>
                         </td>
 
@@ -679,9 +789,20 @@ export default function GradesModule({
                               onChange={(e) => handleScoreChange(student.id, 'c3', e.target.value)}
                               className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''}`}
                               readOnly={!canEditScores}
-                              title={!canEditScores ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente actitudinal"}
+                              title={
+                                !canEditScores 
+                                  ? (isViewingAsGradeDirector 
+                                      ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                      : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
+                                  : "Calificar componente actitudinal"
+                              }
                             />
-                            {!canEditScores && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación protegida por SIEE"></i>}
+                            {!canEditScores && (
+                              <i 
+                                className="ph-bold ph-lock-key input-mini-lock" 
+                                title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                              ></i>
+                            )}
                           </div>
                         </td>
 
@@ -715,7 +836,15 @@ export default function GradesModule({
                           ) : (
                             <div className="obs-readonly-box obs-docente-readonly">
                               <i className="ph-bold ph-chat-circle-dots"></i>
-                              <span>{student.retroalimentacionDocente || 'Sin retroalimentación docente aún'}</span>
+                              <span>
+                                {student.retroalimentacionDocente 
+                                  ? student.retroalimentacionDocente 
+                                  : (isViewingAsGradeDirector 
+                                      ? `Sin retroalimentación de ${teacherInfo.teacherName} aún` 
+                                      : 'Sin retroalimentación docente aún'
+                                    )
+                                }
+                              </span>
                             </div>
                           )}
                         </td>
@@ -767,9 +896,11 @@ export default function GradesModule({
                 <span className="legend-dot dot-c3"></span> Actitudinal 20%
               </span>
               <span className="footer-legend-rbac">
-                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : 'ph-shield-check'}`}></i>
+                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check')}`}></i>
                 {canEditScores 
                   ? 'Planilla abierta para calificar y retroalimentar' 
+                  : isViewingAsGradeDirector
+                  ? `Supervisión de Director(a) de Curso (${gradeDirector.teacherName}) • Calificación por ${teacherInfo.teacherName}`
                   : `Supervisión institucional: notas protegidas de ${teacherInfo.teacherName}`}
               </span>
             </div>
@@ -785,11 +916,24 @@ export default function GradesModule({
               </button>
               <button 
                 type="button" 
-                className="grades-btn-primary" 
+                className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
                 onClick={handleSaveAction}
               >
-                <i className={`ph-bold ${canEditScores ? 'ph-floppy-disk' : (canEditDirective ? 'ph-crown' : 'ph-shield-check')}`}></i>
-                <span>{canEditScores ? 'Confirmar y Guardar' : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')}</span>
+                <i className={`ph-bold ${
+                  canEditScores 
+                    ? 'ph-floppy-disk' 
+                    : isViewingAsGradeDirector 
+                    ? 'ph-eye' 
+                    : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
+                }`}></i>
+                <span>
+                  {canEditScores 
+                    ? 'Confirmar y Guardar' 
+                    : isViewingAsGradeDirector 
+                    ? 'Modo Director de Curso' 
+                    : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
+                  }
+                </span>
               </button>
             </div>
           </div>
