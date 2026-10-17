@@ -1,6 +1,6 @@
 /* ==========================================================================
    MÓDULO 2: NOTAS Y CALIFICACIONES (GRADES MODULE)
-   Diseño sobrio, institucional y limpio con toques pastel sabios y sutiles
+   Diseño pastel enriquecido, balanceado, profesional y con gobernanza RBAC
    ========================================================================== */
 
 .grades-module-container {
@@ -13,7 +13,9 @@
   width: 100%;
 }
 
-/* Header superior del módulo */
+/* ==========================================================================
+   HEADER SUPERIOR
+   ========================================================================== */
 .grades-navbar {
   height: 68px;
   background-color: #ffffff;
@@ -79,7 +81,7 @@
   color: #065f46;
   background-color: #ecfdf5;
   border: 1px solid #a7f3d0;
-  padding: 0.15rem 0.5rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -91,10 +93,12 @@
   gap: 1rem;
 }
 
-/* Área de contenido del módulo de notas */
+/* ==========================================================================
+   ÁREA DE CONTENIDO
+   ========================================================================== */
 .grades-content-area {
   flex: 1;
-  max-width: 1380px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 1.75rem 1.5rem 3rem 1.5rem;
@@ -103,20 +107,23 @@
   gap: 1.5rem;
 }
 
-/* Banner de encabezado del módulo - Limpio y con acento institucional */
+/* ==========================================================================
+   BANNER DE BIENVENIDA Y MÉTRICAS (PASTEL MULTI-TONAL)
+   ========================================================================== */
 .grades-banner-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.5rem 1.75rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 40%, #f0fdf4 75%, #eff6ff 100%);
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  padding: 1.6rem 1.85rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
   position: relative;
   overflow: hidden;
 }
 
+/* Borde superior de 2px como fue solicitado */
 .grades-banner-card::before {
   content: "";
   position: absolute;
@@ -124,59 +131,157 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #064e3b;
+  background: linear-gradient(90deg, #f59e0b, #10b981, #3b82f6);
+}
+
+.grades-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 680px;
+}
+
+.grades-banner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
 }
 
 .grades-banner-info h2 {
   font-size: 1.35rem;
   font-weight: 800;
   color: #064e3b;
-  margin-bottom: 0.25rem;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+/* Badges RBAC en el Banner */
+.grades-role-mode-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.01em;
+}
+
+.grades-role-mode-pill.mode-docente {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.grades-role-mode-pill.mode-rectora {
+  background-color: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+}
+
+.grades-role-mode-pill.mode-admin {
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
 }
 
 .grades-banner-info p {
   font-size: 0.88rem;
   color: #64748b;
+  margin: 0;
+  line-height: 1.45;
 }
 
+.grades-banner-security-notice {
+  color: #92400e;
+  font-weight: 600;
+}
+
+/* Métricas en Colores Pastel Diferenciados */
 .grades-banner-metrics {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.85rem;
+  flex-wrap: wrap;
 }
 
 .grades-metric-badge {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.65rem 1.15rem;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 110px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  justify-content: center;
+  min-width: 105px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.grades-metric-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.grades-metric-badge.metric-promedio {
+  background-color: #fef9c3;
+  border: 1px solid #fef08a;
+  color: #854d0e;
+}
+
+.grades-metric-badge.metric-aprobacion {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #064e3b;
+}
+
+.grades-metric-badge.metric-estudiantes {
+  background-color: #e0e7ff;
+  border: 1px solid #c7d2fe;
+  color: #3730a3;
+}
+
+.grades-metric-badge.metric-titular {
+  background-color: #fdf2f8;
+  border: 1px solid #fbcfe8;
+  color: #9d174d;
+  min-width: 125px;
 }
 
 .grades-metric-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0.85;
 }
 
 .grades-metric-val {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #0f172a;
+  margin-top: 0.15rem;
 }
 
-/* Barra de filtros de grado, materia y periodo */
+.grades-metric-titular-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   BARRA DE FILTROS RBAC
+   ========================================================================== */
 .grades-filter-bar {
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #fed7aa;
   border-radius: 12px;
   padding: 1.15rem 1.5rem;
   display: flex;
@@ -184,13 +289,13 @@
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.04);
 }
 
 .grades-filter-group {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -217,19 +322,34 @@
   font-weight: 600;
   color: #0f172a;
   background-color: #f8fafc;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #fed7aa;
   border-radius: 8px;
   padding: 0.55rem 0.85rem;
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
-  min-width: 170px;
+  min-width: 175px;
 }
 
 .grades-select-item select:focus {
-  border-color: #064e3b;
+  border-color: #f59e0b;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.12);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.grades-assigned-teacher-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #fff7ed;
+  border: 1px solid #ffedd5;
+  color: #9a3412;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  align-self: flex-end;
+  height: 38px;
+  box-sizing: border-box;
 }
 
 .grades-filter-actions {
@@ -238,16 +358,19 @@
   align-items: flex-end;
 }
 
-/* Tabla de planilla de calificaciones */
+/* ==========================================================================
+   TABLA DE PLANILLA CON ENCABEZADOS PASTEL COLOR-CODED
+   ========================================================================== */
 .grades-sheet-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   position: relative;
 }
 
+/* Borde superior de 2px en verde bosque */
 .grades-sheet-card::before {
   content: "";
   position: absolute;
@@ -270,46 +393,95 @@
 }
 
 .grades-table thead th {
-  background-color: #f8fafc;
-  color: #334155;
-  font-weight: 700;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   padding: 0.95rem 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
-
-/* Pastillas sutiles en los encabezados de ponderación */
-.grades-th-subpill {
-  display: inline-block;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 0.12rem 0.45rem;
-  border-radius: 6px;
-  margin-left: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
   vertical-align: middle;
-  letter-spacing: 0;
-  text-transform: none;
 }
 
-.pastel-pill-c1 {
-  background-color: #e0e7ff;
-  color: #4338ca;
-  border: 1px solid #c7d2fe;
+.th-component-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
-.pastel-pill-c2 {
-  background-color: #f3e8ff;
-  color: #7e22ce;
+.th-lock-icon {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Encabezados Pastel por Componente de Evaluación */
+.th-pastel-cognitivo {
+  background-color: #f0f7ff !important;
+  color: #1e40af !important;
+  border-bottom: 2px solid #bfdbfe !important;
+}
+
+.th-badge-c1 {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.th-pastel-procedimental {
+  background-color: #faf5ff !important;
+  color: #6b21a8 !important;
+  border-bottom: 2px solid #e9d5ff !important;
+}
+
+.th-badge-c2 {
+  background: #f3e8ff;
+  color: #6b21a8;
   border: 1px solid #e9d5ff;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 800;
 }
 
-.pastel-pill-c3 {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+.th-pastel-actitudinal {
+  background-color: #f0fdf4 !important;
+  color: #166534 !important;
+  border-bottom: 2px solid #bbf7d0 !important;
+}
+
+.th-badge-c3 {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.th-pastel-definitiva {
+  background-color: #fefce8 !important;
+  color: #854d0e !important;
+  border-bottom: 2px solid #fde68a !important;
+}
+
+.th-badge-def {
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #fde047;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.th-pastel-desempeno {
+  background-color: #f0fdfa !important;
+  color: #0f766e !important;
+  border-bottom: 2px solid #99f6e4 !important;
 }
 
 .grades-table tbody tr {
@@ -318,7 +490,7 @@
 }
 
 .grades-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: #fafaf9;
 }
 
 .grades-table td {
@@ -326,7 +498,9 @@
   vertical-align: middle;
 }
 
-/* Columna Estudiante */
+/* ==========================================================================
+   COLUMNA ESTUDIANTE CON AVATARES PASTEL DIVERSIFICADOS
+   ========================================================================== */
 .grades-student-cell {
   display: flex;
   align-items: center;
@@ -334,18 +508,52 @@
 }
 
 .grades-student-avatar {
-  width: 34px;
-  height: 34px;
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.avatar-pastel-mint {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1.5px solid #a7f3d0;
+}
+
+.avatar-pastel-sky {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1.5px solid #bae6fd;
+}
+
+.avatar-pastel-lavender {
+  background-color: #ede9fe;
+  color: #6d28d9;
+  border: 1.5px solid #ddd6fe;
+}
+
+.avatar-pastel-amber {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1.5px solid #fde68a;
+}
+
+.avatar-pastel-rose {
+  background-color: #ffe4e6;
+  color: #be123c;
+  border: 1.5px solid #fecdd3;
+}
+
+.avatar-pastel-teal {
+  background-color: #ccfbf1;
+  color: #0f766e;
+  border: 1.5px solid #99f6e4;
 }
 
 .grades-student-info {
@@ -356,6 +564,7 @@
 .grades-student-name {
   font-weight: 700;
   color: #0f172a;
+  font-size: 0.9rem;
 }
 
 .grades-student-code {
@@ -364,41 +573,117 @@
   font-family: monospace;
 }
 
-/* Inputs numéricos para notas */
+/* ==========================================================================
+   INPUTS DE NOTAS (MODO DOCENTE vs MODO AUDITORÍA BLOQUEADO)
+   ========================================================================== */
+.score-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
 .grades-input-score {
   width: 62px;
-  padding: 0.45rem 0.4rem;
+  padding: 0.45rem 0.35rem;
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 700;
   text-align: center;
   border: 1.5px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #ffffff;
   color: #0f172a;
   outline: none;
   transition: all 0.15s ease;
 }
 
-.grades-input-score:focus {
-  border-color: #064e3b;
-  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.12);
+.input-c1:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* Nota Definitiva */
+.input-c2:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+}
+
+.input-c3:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Input Bloqueado para Directivos / Admin (RBAC) */
+.grades-input-locked {
+  background-color: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  color: #64748b;
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.grades-input-locked:focus {
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+.input-mini-lock {
+  position: absolute;
+  right: -16px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   PILL PASTEL DE NOTA DEFINITIVA
+   ========================================================================== */
 .grades-definitiva-cell {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #064e3b;
   text-align: center;
 }
 
-/* Badges de Desempeño en colores pastel sabios y elegantes */
+.definitiva-pill {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  min-width: 52px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.def-pill-superior {
+  background-color: #dcfce7;
+  color: #14532d;
+  border: 1px solid #86efac;
+}
+
+.def-pill-alto {
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.def-pill-basico {
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+.def-pill-bajo {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* ==========================================================================
+   BADGES DE DESEMPEÑO
+   ========================================================================== */
 .tag-desempeno {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
+  padding: 0.32rem 0.75rem;
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -430,7 +715,54 @@
   border: 1px solid #fecaca;
 }
 
-/* Footer de acciones de la planilla */
+/* ==========================================================================
+   INPUT DE OBSERVACIONES (PEDAGÓGICAS vs SUGERENCIAS DIRECTIVAS)
+   ========================================================================== */
+.obs-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.grades-input-obs {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.84rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.grades-input-obs:focus {
+  border-color: #064e3b;
+  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.1);
+}
+
+.grades-input-obs.obs-directiva-mode {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+  color: #4c1d95;
+}
+
+.grades-input-obs.obs-directiva-mode:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.obs-directiva-indicator {
+  position: absolute;
+  right: 10px;
+  color: #7c3aed;
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   FOOTER DE LA PLANILLA
+   ========================================================================== */
 .grades-sheet-footer {
   padding: 1.15rem 1.5rem;
   background-color: #fafaf9;
@@ -442,6 +774,47 @@
   gap: 1rem;
 }
 
+.grades-footer-legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.footer-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-c1 { background-color: #3b82f6; }
+.dot-c2 { background-color: #a855f7; }
+.dot-c3 { background-color: #10b981; }
+
+.footer-legend-rbac {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #065f46;
+  font-weight: 600;
+  background-color: #ecfdf5;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #a7f3d0;
+}
+
+/* ==========================================================================
+   BOTONES DE ACCIÓN
+   ========================================================================== */
 .grades-btn-primary {
   display: inline-flex;
   align-items: center;
@@ -455,13 +828,13 @@
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.2);
+  box-shadow: 0 2px 5px rgba(6, 78, 59, 0.25);
 }
 
 .grades-btn-primary:hover {
   background-color: #022c22;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(6, 78, 59, 0.3);
+  box-shadow: 0 4px 10px rgba(6, 78, 59, 0.35);
 }
 
 .grades-btn-secondary {
@@ -485,7 +858,7 @@
   color: #064e3b;
 }
 
-/* Toast de confirmación de guardado */
+/* Toast Flotante */
 .grades-toast {
   position: fixed;
   bottom: 2rem;
@@ -494,7 +867,7 @@
   color: #ffffff;
   padding: 0.85rem 1.5rem;
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -520,7 +893,7 @@
   .grades-banner-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 1.25rem;
   }
   .grades-banner-metrics {
     width: 100%;
