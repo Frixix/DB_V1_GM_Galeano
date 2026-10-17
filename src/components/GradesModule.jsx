@@ -1,105 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './GradesModule.css';
-
-// Roster inicial de estudiantes con notas y observaciones docentes y directivas
-const INITIAL_STUDENTS = [
-  { 
-    id: 'EST-001', 
-    name: 'Valentina Gómez Álvarez', 
-    c1: 4.8, 
-    c2: 4.5, 
-    c3: 5.0, 
-    notes: 'Excelente comprensión y autonomía en las actividades.', 
-    directivaNote: 'Felicitaciones por el rendimiento destacado en el período.',
-    adminNote: '' 
-  },
-  { 
-    id: 'EST-002', 
-    name: 'Santiago Morales Peña', 
-    c1: 4.0, 
-    c2: 4.2, 
-    c3: 4.0, 
-    notes: 'Puntual y constante en sus entregas.', 
-    directivaNote: '',
-    adminNote: '' 
-  },
-  { 
-    id: 'EST-003', 
-    name: 'Luciana Herrera Rincón', 
-    c1: 4.6, 
-    c2: 4.7, 
-    c3: 4.8, 
-    notes: 'Destacado liderazgo en trabajo grupal.', 
-    directivaNote: 'Candidata a cuadro de honor institucional.',
-    adminNote: '' 
-  },
-  { 
-    id: 'EST-004', 
-    name: 'Mateo Pardo Beltrán', 
-    c1: 3.6, 
-    c2: 3.8, 
-    c3: 4.0, 
-    notes: 'Progreso notable durante el período.', 
-    directivaNote: '',
-    adminNote: '' 
-  },
-  { 
-    id: 'EST-005', 
-    name: 'Mariana Ríos Restrepo', 
-    c1: 4.2, 
-    c2: 4.1, 
-    c3: 4.5, 
-    notes: 'Muy colaborativa y ordenada con sus guías.', 
-    directivaNote: '',
-    adminNote: '' 
-  },
-  { 
-    id: 'EST-006', 
-    name: 'Samuel Castro Ortiz', 
-    c1: 3.2, 
-    c2: 3.4, 
-    c3: 3.5, 
-    notes: 'Reforzar talleres procedimentales en casa.', 
-    directivaNote: 'Plan de mejoramiento sugerido para el periodo 2.',
-    adminNote: '' 
-  },
-];
-
-// Matriz de Asignaciones Académicas por Docente (Reglas de Negocio RBAC)
-const TEACHER_ASSIGNMENTS = {
-  jessica: {
-    name: 'Jessica',
-    grades: ['1° Primaria', '2° Primaria'],
-    subjects: ['Lengua Castellana', 'Matemáticas', 'Ética & Valores']
-  },
-  yuri: {
-    name: 'Yuri',
-    grades: ['2° Primaria', '3° Primaria'],
-    subjects: ['Ciencias Naturales', 'Matemáticas', 'Educación Artística']
-  },
-  elcy: {
-    name: 'Elcy',
-    grades: ['4° Primaria', '5° Primaria'],
-    subjects: ['Ciencias Sociales', 'Lengua Castellana', 'Educación Física']
-  },
-  induccion: {
-    name: 'Inducción Profesoras',
-    grades: ['1° Primaria', '2° Primaria', '3° Primaria', '4° Primaria', '5° Primaria'],
-    subjects: ['Matemáticas', 'Lengua Castellana', 'Ciencias Naturales', 'Ciencias Sociales', 'Inglés', 'Educación Artística', 'Educación Física', 'Ética & Valores']
-  }
-};
-
-const ALL_GRADES = ['1° Primaria', '2° Primaria', '3° Primaria', '4° Primaria', '5° Primaria'];
-const ALL_SUBJECTS = [
-  'Matemáticas',
-  'Lengua Castellana',
-  'Ciencias Naturales',
-  'Ciencias Sociales',
-  'Inglés',
-  'Educación Artística',
-  'Educación Física',
-  'Ética & Valores'
-];
+import gradesService from '../services/gradesService';
 
 // Clases pastel para los avatares circulares de estudiantes
 const PASTEL_AVATAR_CLASSES = [
@@ -126,55 +27,76 @@ export default function GradesModule({
   const isAdmin = currentUser?.role === 'admin';
   const isPrivileged = isRectora || isAdmin;
 
-  // Regla RBAC #2: ¿Puede calificar / modificar nota?
-  // Docente -> Sí (dentro del periodo académico abierto)
-  // Directivo / Rectora -> ❌ Bloqueado (Solo Lectura)
-  // Administrador -> ❌ Bloqueado (Solo Lectura)
-  const canEditGrades = isDocente;
+  // 1. Niveles de la Jerarquía de Datos
+  const availableYears = useMemo(() => gradesService.getAcademicYears(), []);
+  const availablePeriods = useMemo(() => gradesService.getAcademicPeriods(), []);
+  
+  // Grados disponibles filtrados por rol y asignación curricular
+  const availableGrades = useMemo(() => {
+    return gradesService.getGradesForUser(currentUser);
+  }, [currentUser]);
 
-  // Regla RBAC #1: Grados y materias accesibles según el rol
-  const availableGrades = isDocente 
-    ? (TEACHER_ASSIGNMENTS[userKey]?.grades || ['1° Primaria', '2° Primaria']) 
-    : ALL_GRADES;
+  // Estados de navegación en el árbol relacional
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
+  const [selectedGrade, setSelectedGrade] = useState(availableGrades[0] || '1° Primaria');
 
-  const availableSubjects = isDocente 
-    ? (TEACHER_ASSIGNMENTS[userKey]?.subjects || ['Matemáticas', 'Lengua Castellana']) 
-    : ALL_SUBJECTS;
+  // Materias disponibles para el grado seleccionado, filtradas por docente titular
+  const availableSubjects = useMemo(() => {
+    return gradesService.getSubjectsForGradeAndUser(selectedGrade, currentUser);
+  }, [selectedGrade, currentUser]);
 
-  const [selectedGrade, setSelectedGrade] = useState(availableGrades[0]);
-  const [selectedSubject, setSelectedSubject] = useState(availableSubjects[0]);
-  const [selectedPeriod, setSelectedPeriod] = useState('1° Periodo (25%)');
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [selectedSubject, setSelectedSubject] = useState(availableSubjects[0] || 'Lengua Castellana');
+  const [searchFilter, setSearchFilter] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Asegurar que si el rol cambia, los selectores apunten a opciones válidas
+  // Asegurar consistencia del árbol cuando cambia el usuario o el grado
   useEffect(() => {
     if (!availableGrades.includes(selectedGrade)) {
-      setSelectedGrade(availableGrades[0]);
+      setSelectedGrade(availableGrades[0] || '1° Primaria');
     }
+  }, [availableGrades, selectedGrade]);
+
+  useEffect(() => {
     if (!availableSubjects.includes(selectedSubject)) {
-      setSelectedSubject(availableSubjects[0]);
+      setSelectedSubject(availableSubjects[0] || 'Lengua Castellana');
     }
-  }, [userKey, availableGrades, availableSubjects, selectedGrade, selectedSubject]);
+  }, [availableSubjects, selectedSubject]);
 
-  // Resolver quién es el docente titular a cargo del curso y materia seleccionada
-  const getAssignedTeacher = (grade, subject) => {
-    if (grade === '1° Primaria' || (grade === '2° Primaria' && (subject === 'Lengua Castellana' || subject === 'Ética & Valores' || subject === 'Matemáticas'))) {
-      return 'Jessica';
-    }
-    if (grade === '3° Primaria' || (grade === '2° Primaria' && (subject === 'Ciencias Naturales' || subject === 'Educación Artística'))) {
-      return 'Yuri';
-    }
-    return 'Elcy';
-  };
+  // Carga de la rama actual del árbol: Año -> Periodo -> Grado -> Materia
+  const branchData = useMemo(() => {
+    return gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
+  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject]);
 
-  const currentTeacherName = isDocente 
-    ? (currentUser?.name || 'Docente Titular') 
-    : getAssignedTeacher(selectedGrade, selectedSubject);
+  const [students, setStudents] = useState(branchData.students || []);
 
-  // Edición de calificaciones (Exclusivo Docente)
+  // Sincronizar roster al cambiar de rama en el árbol
+  useEffect(() => {
+    const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
+    setStudents(freshBranch.students || []);
+  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject]);
+
+  // Información del Docente asignado oficialmente en esta rama
+  const teacherInfo = useMemo(() => {
+    return gradesService.getTeacherAssignment(selectedGrade, selectedSubject);
+  }, [selectedGrade, selectedSubject]);
+
+  // Permisos granulares de edición en la rama activa
+  const canEditScores = useMemo(() => {
+    return gradesService.canEditScores(currentUser, selectedGrade, selectedSubject);
+  }, [currentUser, selectedGrade, selectedSubject]);
+
+  const canEditFeedback = useMemo(() => {
+    return gradesService.canEditTeacherFeedback(currentUser, selectedGrade, selectedSubject);
+  }, [currentUser, selectedGrade, selectedSubject]);
+
+  const canEditDirective = useMemo(() => {
+    return gradesService.canEditDirectiveSuggestion(currentUser);
+  }, [currentUser]);
+
+  // Manejo de cambio en notas numéricas (Exclusivo Docente Titular)
   const handleScoreChange = (id, field, value) => {
-    if (!canEditGrades) return;
+    if (!canEditScores) return;
 
     let num = parseFloat(value);
     if (isNaN(num)) num = '';
@@ -189,22 +111,29 @@ export default function GradesModule({
     }));
   };
 
-  // Edición de observaciones según el Rol RBAC
-  const handleObservationChange = (id, value) => {
+  // Manejo de observaciones pedagógicas (Docente Titular)
+  const handleTeacherFeedbackChange = (id, value) => {
+    if (!canEditFeedback) return;
     setStudents(prev => prev.map(student => {
       if (student.id === id) {
-        if (isDocente) {
-          return { ...student, notes: value };
-        } else if (isRectora) {
-          return { ...student, directivaNote: value };
-        } else {
-          return { ...student, adminNote: value };
-        }
+        return { ...student, retroalimentacionDocente: value };
       }
       return student;
     }));
   };
 
+  // Manejo de sugerencias directivas de auditoría (Exclusivo Rectora)
+  const handleDirectiveSuggestionChange = (id, value) => {
+    if (!canEditDirective) return;
+    setStudents(prev => prev.map(student => {
+      if (student.id === id) {
+        return { ...student, sugerenciaDirectiva: value };
+      }
+      return student;
+    }));
+  };
+
+  // Cálculo de definitiva ponderada
   const calculateDefinitive = (c1, c2, c3) => {
     const val1 = Number(c1) || 0;
     const val2 = Number(c2) || 0;
@@ -213,6 +142,7 @@ export default function GradesModule({
     return def.toFixed(1);
   };
 
+  // Escala valorativa nacional institucional (SIEE)
   const getDesempeno = (score) => {
     const s = Number(score);
     if (s >= 4.6) return { label: 'Superior', className: 'tag-pastel-superior', icon: 'ph-trophy' };
@@ -229,20 +159,35 @@ export default function GradesModule({
     return 'def-pill-bajo';
   };
 
-  // Estadísticas grupales
+  // Métricas estadísticas del grupo actual
   const averagesList = students.map(s => Number(calculateDefinitive(s.c1, s.c2, s.c3)));
-  const classAverage = (averagesList.reduce((acc, curr) => acc + curr, 0) / (averagesList.length || 1)).toFixed(2);
+  const classAverage = averagesList.length 
+    ? (averagesList.reduce((acc, curr) => acc + curr, 0) / averagesList.length).toFixed(2)
+    : '0.00';
   const passingCount = averagesList.filter(avg => avg >= 3.0).length;
-  const passRate = Math.round((passingCount / (students.length || 1)) * 100);
+  const passRate = students.length 
+    ? Math.round((passingCount / students.length) * 100)
+    : 0;
 
-  // Guardado según el Rol RBAC
+  // Filtrado de estudiantes por nombre o código en la búsqueda
+  const filteredStudents = useMemo(() => {
+    if (!searchFilter.trim()) return students;
+    const term = searchFilter.toLowerCase();
+    return students.filter(s => 
+      s.name.toLowerCase().includes(term) || s.id.toLowerCase().includes(term)
+    );
+  }, [students, searchFilter]);
+
+  // Guardado en la persistencia del árbol
   const handleSaveAction = () => {
-    if (isDocente) {
-      setToastMessage(`¡Planilla de ${selectedSubject} (${selectedGrade}) guardada exitosamente por ${currentUser?.name}!`);
-    } else if (isRectora) {
-      setToastMessage(`¡Sugerencias y notas directivas registradas para la auditoría de ${selectedSubject}!`);
+    gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser);
+
+    if (canEditScores) {
+      setToastMessage(`¡Planilla guardada! Notas y retroalimentación registradas por ${currentUser?.name || 'la docente'}.`);
+    } else if (canEditDirective) {
+      setToastMessage(`¡Sugerencias registradas! Auditoría directiva de Rectoría guardada exitosamente.`);
     } else {
-      setToastMessage(`¡Comentarios técnicos y de auditoría registrados exitosamente!`);
+      setToastMessage(`¡Registro de auditoría técnica guardado exitosamente!`);
     }
 
     setTimeout(() => {
@@ -286,7 +231,7 @@ export default function GradesModule({
         </div>
 
         <div className="grades-navbar-right">
-          {/* Botón de Supervisión de Conexiones en Vivo (Exclusivo Rectora y Admin) */}
+          {/* Supervisión de Conexiones en Vivo (Rectora y Admin) */}
           {isPrivileged && onOpenConnectionsModal && (
             <button 
               type="button"
@@ -303,7 +248,7 @@ export default function GradesModule({
             </button>
           )}
 
-          {/* Chip de Usuario Interactivo y Configuración (Admin y Docentes) */}
+          {/* Chip de Usuario Interactivo y Configuración */}
           <div 
             className="user-chip user-chip-clickable" 
             onClick={onOpenProfile}
@@ -354,40 +299,38 @@ export default function GradesModule({
 
       {/* Contenido Principal */}
       <main className="grades-content-area">
-        {/* Banner de Bienvenida y Métricas en Armonía Pastel */}
+        {/* Banner de Bienvenida y Métricas en Armonía Pastel Balanceada */}
         <section className="grades-banner-card">
           <div className="grades-banner-info">
             <div className="grades-banner-title-row">
               <h2>
                 <i className="ph-bold ph-book-open"></i>
-                Planilla de Calificaciones Académicas
+                Planilla de Calificaciones y Evaluaciones
               </h2>
               {/* Badge Dinámico RBAC del Rol Activo */}
-              {isDocente && (
+              {canEditScores ? (
                 <span className="grades-role-mode-pill mode-docente">
                   <i className="ph-bold ph-pencil-simple-line"></i>
                   Modo Calificación Docente • Planilla Abierta
                 </span>
-              )}
-              {isRectora && (
+              ) : isRectora ? (
                 <span className="grades-role-mode-pill mode-rectora">
                   <i className="ph-bold ph-lock-key"></i>
-                  Modo Supervisión Directiva • Calificación Protegida (Solo Lectura)
+                  Modo Supervisión Directiva • Notas Protegidas (Solo Lectura SIEE)
                 </span>
-              )}
-              {isAdmin && (
+              ) : (
                 <span className="grades-role-mode-pill mode-admin">
                   <i className="ph-bold ph-shield-check"></i>
-                  Modo Auditoría Técnica • Solo Lectura de Notas
+                  Modo Auditoría Técnica • Solo Lectura
                 </span>
               )}
             </div>
 
             <p>
-              Ponderaciones académicas: <strong>Cognitivo (40%)</strong>, <strong>Procedimental (40%)</strong> y <strong>Actitudinal (20%)</strong>.
-              {!canEditGrades && (
+              Estructura ponderada: <strong>Cognitivo (40%)</strong>, <strong>Procedimental (40%)</strong> y <strong>Actitudinal (20%)</strong>.
+              {!canEditScores && (
                 <span className="grades-banner-security-notice">
-                  {' '}Por normativa del SIEE y seguridad institucional, las notas solo pueden ser modificadas por el docente titular de la materia.
+                  {' '}Por normativa SIEE y seguridad legal institucional, las notas solo pueden ser modificadas por el docente titular asignado.
                 </span>
               )}
             </p>
@@ -417,48 +360,151 @@ export default function GradesModule({
 
             <div className="grades-metric-badge metric-titular">
               <span className="grades-metric-label">
-                <i className="ph-bold ph-user-check"></i> Docente
+                <i className="ph-bold ph-user-check"></i> Titular
               </span>
-              <span className="grades-metric-val grades-metric-titular-name">{currentTeacherName}</span>
+              <span className="grades-metric-val grades-metric-titular-name">{teacherInfo.teacherName}</span>
             </div>
           </div>
         </section>
 
-        {/* Barra de Filtros con Alcance RBAC */}
+        {/* Visualización Visual de la Jerarquía de Datos (Árbol Relacional RBAC) */}
+        <section className="grades-tree-path-card">
+          <div className="grades-tree-path-header">
+            <div className="tree-badge">
+              <i className="ph-bold ph-tree-structure"></i>
+              <span>Jerarquía de Datos Relacional (RBAC)</span>
+            </div>
+            <div className="tree-path-meta">
+              <span className="tree-security-pill">
+                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : 'ph-shield-check'}`}></i>
+                {canEditScores 
+                  ? `Docente autorizado: ${currentUser?.name || teacherInfo.teacherName}`
+                  : `Auditoría: Notas a cargo de ${teacherInfo.teacherName}`
+                }
+              </span>
+            </div>
+          </div>
+
+          <div className="grades-tree-breadcrumbs">
+            {/* Nivel 1: Año Lectivo */}
+            <div className="tree-crumb crumb-year">
+              <span className="crumb-level">Año Lectivo</span>
+              <span className="crumb-val">
+                <i className="ph-bold ph-calendar-blank"></i> {selectedYear}
+              </span>
+            </div>
+
+            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
+
+            {/* Nivel 2: Período */}
+            <div className="tree-crumb crumb-period">
+              <span className="crumb-level">Periodo</span>
+              <span className="crumb-val">
+                <i className="ph-bold ph-clock"></i> {selectedPeriod.split(' ')[0]}
+              </span>
+            </div>
+
+            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
+
+            {/* Nivel 3: Grado */}
+            <div className="tree-crumb crumb-grade">
+              <span className="crumb-level">Grado</span>
+              <span className="crumb-val">
+                <i className="ph-bold ph-student"></i> {selectedGrade}
+              </span>
+            </div>
+
+            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
+
+            {/* Nivel 4: Materia / Asignatura */}
+            <div className="tree-crumb crumb-subject">
+              <span className="crumb-level">Asignatura</span>
+              <span className="crumb-val">
+                <i className="ph-bold ph-book-bookmark"></i> {selectedSubject}
+              </span>
+            </div>
+
+            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
+
+            {/* Asignación Docente Oficial */}
+            <div className="tree-crumb crumb-teacher">
+              <span className="crumb-level">Docente Titular</span>
+              <span className="crumb-val">
+                <i className="ph-bold ph-chalkboard-teacher"></i> {teacherInfo.teacherName}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Barra de Filtros y Navegación del Árbol con Reglas RBAC */}
         <section className="grades-filter-bar">
           <div className="grades-filter-group">
+            {/* Selector Año Lectivo */}
             <div className="grades-select-item">
-              <label><i className="ph-bold ph-student"></i> Grado / Curso</label>
-              <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)}>
+              <label><i className="ph-bold ph-calendar"></i> Año Lectivo</label>
+              <select 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(e.target.value)}
+                title="Seleccione el Año Lectivo"
+              >
+                {availableYears.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Selector Período */}
+            <div className="grades-select-item">
+              <label><i className="ph-bold ph-clock"></i> Período</label>
+              <select 
+                value={selectedPeriod} 
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                title="Seleccione el Período Académico"
+              >
+                {availablePeriods.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Selector Grado (Filtrado por Asignación Docente si es Docente) */}
+            <div className="grades-select-item">
+              <label><i className="ph-bold ph-student"></i> Grado</label>
+              <select 
+                value={selectedGrade} 
+                onChange={(e) => setSelectedGrade(e.target.value)}
+                title="Seleccione el Grado Académico"
+              >
                 {availableGrades.map(g => (
                   <option key={g} value={g}>{g}</option>
                 ))}
               </select>
             </div>
 
+            {/* Selector Materia (Filtrado estrictamente por docente en ese grado) */}
             <div className="grades-select-item">
-              <label><i className="ph-bold ph-chalkboard-teacher"></i> Asignatura</label>
-              <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
+              <label><i className="ph-bold ph-chalkboard-teacher"></i> Materia</label>
+              <select 
+                value={selectedSubject} 
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                title="Seleccione la Materia asignada"
+              >
                 {availableSubjects.map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
 
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-calendar"></i> Período Lectivo</label>
-              <select value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)}>
-                <option value="1° Periodo (25%)">1° Período (25%)</option>
-                <option value="2° Periodo (25%)">2° Período (25%)</option>
-                <option value="3° Periodo (25%)">3° Período (25%)</option>
-                <option value="4° Periodo (25%)">4° Período (25%)</option>
-              </select>
-            </div>
-
-            {/* Tag informativo de asignación de docente */}
-            <div className="grades-assigned-teacher-tag">
-              <i className="ph-bold ph-chalkboard-teacher"></i>
-              <span>Docente a cargo: <strong>{currentTeacherName}</strong></span>
+            {/* Búsqueda rápida de estudiante */}
+            <div className="grades-select-item grades-search-item">
+              <label><i className="ph-bold ph-magnifying-glass"></i> Filtrar Alumno</label>
+              <input 
+                type="text" 
+                placeholder="Buscar por nombre..." 
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="grades-search-input"
+              />
             </div>
           </div>
 
@@ -466,8 +512,8 @@ export default function GradesModule({
             <button 
               type="button" 
               className="grades-btn-secondary" 
-              onClick={() => alert(`Generando reporte oficial en PDF de ${selectedSubject} - ${selectedGrade}...`)}
-              title="Descargar boletín de notas"
+              onClick={() => alert(`Generando boletín PDF oficial de ${selectedSubject} - ${selectedGrade} (${selectedPeriod})...`)}
+              title="Descargar boletín de calificaciones en formato PDF"
             >
               <i className="ph-bold ph-file-arrow-down"></i>
               <span>Boletín PDF</span>
@@ -476,10 +522,10 @@ export default function GradesModule({
               type="button" 
               className="grades-btn-primary" 
               onClick={handleSaveAction}
-              title={canEditGrades ? "Guardar notas del período" : "Guardar notas y sugerencias directivas"}
+              title={canEditScores ? "Guardar notas y observaciones docentes" : "Guardar observaciones de auditoría directiva"}
             >
-              <i className={`ph-bold ${canEditGrades ? 'ph-floppy-disk' : 'ph-chats-circle'}`}></i>
-              <span>{canEditGrades ? 'Guardar Planilla' : (isRectora ? 'Guardar Sugerencias' : 'Guardar Auditoría')}</span>
+              <i className={`ph-bold ${canEditScores ? 'ph-floppy-disk' : (canEditDirective ? 'ph-crown' : 'ph-shield-check')}`}></i>
+              <span>{canEditScores ? 'Guardar Planilla' : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')}</span>
             </button>
           </div>
         </section>
@@ -490,38 +536,38 @@ export default function GradesModule({
             <table className="grades-table">
               <thead>
                 <tr>
-                  <th style={{ width: '42px', textAlign: 'center' }}>#</th>
-                  <th style={{ minWidth: '220px' }}>Estudiante</th>
+                  <th style={{ width: '38px', textAlign: 'center' }}>#</th>
+                  <th style={{ minWidth: '200px' }}>Estudiante</th>
                   
                   {/* Componente 1: Cognitivo (40%) - Pastel Sky Blue */}
-                  <th className="th-pastel-cognitivo" style={{ textAlign: 'center' }}>
+                  <th className="th-pastel-cognitivo" style={{ textAlign: 'center', minWidth: '95px' }}>
                     <div className="th-component-header">
                       <span>Cognitivo</span>
                       <span className="th-badge-c1">40%</span>
-                      {!canEditGrades && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada para directivos"></i>}
+                      {!canEditScores && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada: Solo docente titular"></i>}
                     </div>
                   </th>
 
-                  {/* Componente 2: Procedimental (40%) - Pastel Violet */}
-                  <th className="th-pastel-procedimental" style={{ textAlign: 'center' }}>
+                  {/* Componente 2: Procedimental (40%) - Pastel Lavender */}
+                  <th className="th-pastel-procedimental" style={{ textAlign: 'center', minWidth: '95px' }}>
                     <div className="th-component-header">
                       <span>Procedimental</span>
                       <span className="th-badge-c2">40%</span>
-                      {!canEditGrades && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada para directivos"></i>}
+                      {!canEditScores && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada: Solo docente titular"></i>}
                     </div>
                   </th>
 
                   {/* Componente 3: Actitudinal (20%) - Pastel Mint */}
-                  <th className="th-pastel-actitudinal" style={{ textAlign: 'center' }}>
+                  <th className="th-pastel-actitudinal" style={{ textAlign: 'center', minWidth: '95px' }}>
                     <div className="th-component-header">
                       <span>Actitudinal</span>
                       <span className="th-badge-c3">20%</span>
-                      {!canEditGrades && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada para directivos"></i>}
+                      {!canEditScores && <i className="ph-bold ph-lock-key th-lock-icon" title="Calificación bloqueada: Solo docente titular"></i>}
                     </div>
                   </th>
 
                   {/* Definitiva - Pastel Warm Amber */}
-                  <th className="th-pastel-definitiva" style={{ textAlign: 'center' }}>
+                  <th className="th-pastel-definitiva" style={{ textAlign: 'center', minWidth: '85px' }}>
                     <div className="th-component-header">
                       <span>Definitiva</span>
                       <span className="th-badge-def">100%</span>
@@ -529,142 +575,181 @@ export default function GradesModule({
                   </th>
 
                   {/* Desempeño - Pastel Teal */}
-                  <th className="th-pastel-desempeno" style={{ textAlign: 'center' }}>
-                    Nivel de Desempeño
+                  <th className="th-pastel-desempeno" style={{ textAlign: 'center', minWidth: '110px' }}>
+                    Nivel SIEE
                   </th>
 
-                  {/* Observaciones según RBAC */}
-                  <th style={{ minWidth: '250px' }}>
-                    {isDocente && 'Observaciones Pedagógicas'}
-                    {isRectora && 'Sugerencias Directivas (Auditoría)'}
-                    {isAdmin && 'Comentarios de Auditoría Técnica'}
+                  {/* Rama Árbol: Retroalimentación Docente */}
+                  <th className="th-pastel-docente-col" style={{ minWidth: '220px' }}>
+                    <div className="th-component-header">
+                      <i className="ph-bold ph-chalkboard-teacher"></i>
+                      <span>Retroalimentación Docente</span>
+                      {canEditFeedback && <span className="th-badge-editable">Editable</span>}
+                    </div>
+                  </th>
+
+                  {/* Rama Árbol: Sugerencia Directiva (Rectoría) */}
+                  <th className="th-pastel-directiva-col" style={{ minWidth: '220px' }}>
+                    <div className="th-component-header">
+                      <i className="ph-bold ph-crown"></i>
+                      <span>Sugerencia Directiva (Rectoría)</span>
+                      {canEditDirective && <span className="th-badge-rectora">Auditoría</span>}
+                    </div>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, idx) => {
-                  const def = calculateDefinitive(student.c1, student.c2, student.c3);
-                  const des = getDesempeno(def);
-                  const defBadgeClass = getDefinitiveBadgeClass(def);
-                  const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
+                {filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                      No se encontraron estudiantes para los filtros seleccionados.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStudents.map((student, idx) => {
+                    const def = calculateDefinitive(student.c1, student.c2, student.c3);
+                    const des = getDesempeno(def);
+                    const defBadgeClass = getDefinitiveBadgeClass(def);
+                    const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
 
-                  // Resolver valor de observación según RBAC
-                  const currentObsValue = isDocente 
-                    ? student.notes 
-                    : (isRectora ? (student.directivaNote || '') : (student.adminNote || ''));
+                    return (
+                      <tr key={student.id}>
+                        <td style={{ textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                          {idx + 1}
+                        </td>
 
-                  const obsPlaceholder = isDocente
-                    ? "Observación pedagógica al estudiante..."
-                    : (isRectora ? "Sugerencia directiva / Nota de auditoría interna..." : "Comentario técnico de soporte...");
-
-                  return (
-                    <tr key={student.id}>
-                      <td style={{ textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
-                        {idx + 1}
-                      </td>
-
-                      {/* Estudiante con Avatar Pastel */}
-                      <td>
-                        <div className="grades-student-cell">
-                          <div className={`grades-student-avatar ${avatarColorClass}`}>
-                            {student.name.charAt(0)}
+                        {/* Estudiante con Avatar Pastel */}
+                        <td>
+                          <div className="grades-student-cell">
+                            <div className={`grades-student-avatar ${avatarColorClass}`}>
+                              {student.name.charAt(0)}
+                            </div>
+                            <div className="grades-student-info">
+                              <span className="grades-student-name">{student.name}</span>
+                              <span className="grades-student-code">{student.id}</span>
+                            </div>
                           </div>
-                          <div className="grades-student-info">
-                            <span className="grades-student-name">{student.name}</span>
-                            <span className="grades-student-code">{student.id}</span>
+                        </td>
+
+                        {/* Nota Cognitivo (40%) */}
+                        <td style={{ textAlign: 'center' }} className="td-score-c1">
+                          <div className="score-input-wrap">
+                            <input 
+                              type="number" 
+                              step="0.1" 
+                              min="1.0" 
+                              max="5.0"
+                              value={student.c1}
+                              onChange={(e) => handleScoreChange(student.id, 'c1', e.target.value)}
+                              className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                              readOnly={!canEditScores}
+                              title={!canEditScores ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente cognitivo"}
+                            />
+                            {!canEditScores && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación protegida por SIEE"></i>}
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Nota Cognitivo (40%) */}
-                      <td style={{ textAlign: 'center' }} className="td-score-c1">
-                        <div className="score-input-wrap">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="5.0"
-                            value={student.c1}
-                            onChange={(e) => handleScoreChange(student.id, 'c1', e.target.value)}
-                            className={`grades-input-score input-c1 ${!canEditGrades ? 'grades-input-locked' : ''}`}
-                            readOnly={!canEditGrades}
-                            title={!canEditGrades ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente cognitivo"}
-                          />
-                          {!canEditGrades && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación bloqueada"></i>}
-                        </div>
-                      </td>
+                        {/* Nota Procedimental (40%) */}
+                        <td style={{ textAlign: 'center' }} className="td-score-c2">
+                          <div className="score-input-wrap">
+                            <input 
+                              type="number" 
+                              step="0.1" 
+                              min="1.0" 
+                              max="5.0"
+                              value={student.c2}
+                              onChange={(e) => handleScoreChange(student.id, 'c2', e.target.value)}
+                              className={`grades-input-score input-c2 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                              readOnly={!canEditScores}
+                              title={!canEditScores ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente procedimental"}
+                            />
+                            {!canEditScores && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación protegida por SIEE"></i>}
+                          </div>
+                        </td>
 
-                      {/* Nota Procedimental (40%) */}
-                      <td style={{ textAlign: 'center' }} className="td-score-c2">
-                        <div className="score-input-wrap">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="5.0"
-                            value={student.c2}
-                            onChange={(e) => handleScoreChange(student.id, 'c2', e.target.value)}
-                            className={`grades-input-score input-c2 ${!canEditGrades ? 'grades-input-locked' : ''}`}
-                            readOnly={!canEditGrades}
-                            title={!canEditGrades ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente procedimental"}
-                          />
-                          {!canEditGrades && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación bloqueada"></i>}
-                        </div>
-                      </td>
+                        {/* Nota Actitudinal (20%) */}
+                        <td style={{ textAlign: 'center' }} className="td-score-c3">
+                          <div className="score-input-wrap">
+                            <input 
+                              type="number" 
+                              step="0.1" 
+                              min="1.0" 
+                              max="5.0"
+                              value={student.c3}
+                              onChange={(e) => handleScoreChange(student.id, 'c3', e.target.value)}
+                              className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                              readOnly={!canEditScores}
+                              title={!canEditScores ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente actitudinal"}
+                            />
+                            {!canEditScores && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación protegida por SIEE"></i>}
+                          </div>
+                        </td>
 
-                      {/* Nota Actitudinal (20%) */}
-                      <td style={{ textAlign: 'center' }} className="td-score-c3">
-                        <div className="score-input-wrap">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="5.0"
-                            value={student.c3}
-                            onChange={(e) => handleScoreChange(student.id, 'c3', e.target.value)}
-                            className={`grades-input-score input-c3 ${!canEditGrades ? 'grades-input-locked' : ''}`}
-                            readOnly={!canEditGrades}
-                            title={!canEditGrades ? "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)" : "Calificar componente actitudinal"}
-                          />
-                          {!canEditGrades && <i className="ph-bold ph-lock-key input-mini-lock" title="Calificación bloqueada"></i>}
-                        </div>
-                      </td>
+                        {/* Definitiva con Pill Pastel */}
+                        <td className="grades-definitiva-cell td-score-def">
+                          <span className={`definitiva-pill ${defBadgeClass}`}>
+                            {def}
+                          </span>
+                        </td>
 
-                      {/* Definitiva con Pill Pastel */}
-                      <td className="grades-definitiva-cell td-score-def">
-                        <span className={`definitiva-pill ${defBadgeClass}`}>
-                          {def}
-                        </span>
-                      </td>
+                        {/* Desempeño SIEE */}
+                        <td style={{ textAlign: 'center' }}>
+                          <span className={`tag-desempeno ${des.className}`}>
+                            <i className={`ph-bold ${des.icon}`}></i>
+                            {des.label}
+                          </span>
+                        </td>
 
-                      {/* Desempeño */}
-                      <td style={{ textAlign: 'center' }}>
-                        <span className={`tag-desempeno ${des.className}`}>
-                          <i className={`ph-bold ${des.icon}`}></i>
-                          {des.label}
-                        </span>
-                      </td>
-
-                      {/* Observaciones / Sugerencias según RBAC */}
-                      <td>
-                        <div className="obs-input-wrap">
-                          <input 
-                            type="text"
-                            value={currentObsValue}
-                            onChange={(e) => handleObservationChange(student.id, e.target.value)}
-                            placeholder={obsPlaceholder}
-                            className={`grades-input-obs ${!isDocente ? 'obs-directiva-mode' : ''}`}
-                          />
-                          {isRectora && currentObsValue && (
-                            <span className="obs-directiva-indicator" title="Sugerencia registrada por Rectoría">
-                              <i className="ph-bold ph-crown"></i>
-                            </span>
+                        {/* Rama: Retroalimentación Docente */}
+                        <td>
+                          {canEditFeedback ? (
+                            <div className="obs-input-wrap">
+                              <input 
+                                type="text"
+                                value={student.retroalimentacionDocente || ''}
+                                onChange={(e) => handleTeacherFeedbackChange(student.id, e.target.value)}
+                                placeholder="Observación pedagógica al estudiante..."
+                                className="grades-input-obs obs-docente-input"
+                              />
+                            </div>
+                          ) : (
+                            <div className="obs-readonly-box obs-docente-readonly">
+                              <i className="ph-bold ph-chat-circle-dots"></i>
+                              <span>{student.retroalimentacionDocente || 'Sin retroalimentación docente aún'}</span>
+                            </div>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+
+                        {/* Rama: Sugerencia Directiva (Rectoría) */}
+                        <td>
+                          {canEditDirective ? (
+                            <div className="obs-input-wrap">
+                              <input 
+                                type="text"
+                                value={student.sugerenciaDirectiva || ''}
+                                onChange={(e) => handleDirectiveSuggestionChange(student.id, e.target.value)}
+                                placeholder="Sugerencia / Nota de auditoría de Rectoría..."
+                                className="grades-input-obs obs-rectora-input"
+                              />
+                              <span className="obs-directiva-indicator" title="Sugerencia registrada por Rectoría">
+                                <i className="ph-bold ph-crown"></i>
+                              </span>
+                            </div>
+                          ) : (
+                            student.sugerenciaDirectiva ? (
+                              <div className="obs-readonly-box obs-rectora-readonly" title="Sugerencia oficial emitida por Rectoría">
+                                <span className="obs-crown-badge">👑 Rectoría:</span>
+                                <span>{student.sugerenciaDirectiva}</span>
+                              </div>
+                            ) : (
+                              <span className="obs-empty-dash" title="Sin sugerencias directivas registradas">—</span>
+                            )
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -682,8 +767,10 @@ export default function GradesModule({
                 <span className="legend-dot dot-c3"></span> Actitudinal 20%
               </span>
               <span className="footer-legend-rbac">
-                <i className={`ph-bold ${canEditGrades ? 'ph-check-circle' : 'ph-shield-check'}`}></i>
-                {canEditGrades ? 'Planilla abierta para calificar' : 'Auditoría institucional: notas de docente protegidas por SIEE'}
+                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : 'ph-shield-check'}`}></i>
+                {canEditScores 
+                  ? 'Planilla abierta para calificar y retroalimentar' 
+                  : `Supervisión institucional: notas protegidas de ${teacherInfo.teacherName}`}
               </span>
             </div>
 
@@ -691,7 +778,7 @@ export default function GradesModule({
               <button 
                 type="button" 
                 className="grades-btn-secondary" 
-                onClick={() => alert(`Exportando consolidado de notas de ${selectedSubject} en Excel...`)}
+                onClick={() => alert(`Exportando consolidado de calificaciones de ${selectedSubject} en Excel...`)}
               >
                 <i className="ph-bold ph-file-xls" style={{ color: '#064e3b' }}></i>
                 <span>Consolidado Excel</span>
@@ -701,8 +788,8 @@ export default function GradesModule({
                 className="grades-btn-primary" 
                 onClick={handleSaveAction}
               >
-                <i className={`ph-bold ${canEditGrades ? 'ph-floppy-disk' : 'ph-chats-circle'}`}></i>
-                <span>{canEditGrades ? 'Confirmar y Guardar' : (isRectora ? 'Guardar Sugerencias' : 'Guardar Auditoría')}</span>
+                <i className={`ph-bold ${canEditScores ? 'ph-floppy-disk' : (canEditDirective ? 'ph-crown' : 'ph-shield-check')}`}></i>
+                <span>{canEditScores ? 'Confirmar y Guardar' : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')}</span>
               </button>
             </div>
           </div>
