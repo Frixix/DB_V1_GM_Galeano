@@ -190,13 +190,29 @@ export default function App() {
     }, 150);
   };
 
+  // Restricción de seguridad: durante la fase de desarrollo y pruebas en la nube,
+  // solo el Administrador puede interactuar con Notas y Calificaciones y Novedades & Reemplazos
+  useEffect(() => {
+    const isAdmin = currentUser && currentUser.role === 'admin';
+    if (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos')) {
+      setActiveModule(null);
+    }
+  }, [currentUser, activeModule]);
+
   // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
   if (!activeModule) {
     return (
       <>
         <ModulesDashboard 
           currentUser={currentUser}
-          onSelectModule={(moduleId) => setActiveModule(moduleId)}
+          onSelectModule={(moduleId) => {
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            if (!isAdmin && (moduleId === 'grades' || moduleId === 'reemplazos')) {
+              setActiveModule(null);
+              return;
+            }
+            setActiveModule(moduleId);
+          }}
           onOpenProfile={handleOpenProfile}
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           onlineCount={onlineCount}
