@@ -125,6 +125,15 @@ export default function App() {
     };
   }, [refreshPresence]);
 
+  // Restricción de seguridad: durante la fase de desarrollo y pruebas en la nube,
+  // solo el Administrador puede interactuar con Notas y Calificaciones y Novedades & Reemplazos
+  useEffect(() => {
+    const isAdmin = currentUser && currentUser.role === 'admin';
+    if (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos')) {
+      setActiveModule(null);
+    }
+  }, [currentUser, activeModule]);
+
   if (!currentUser) {
     return (
       <Login onLogin={(user) => {
@@ -190,17 +199,9 @@ export default function App() {
     }, 150);
   };
 
-  // Restricción de seguridad: durante la fase de desarrollo y pruebas en la nube,
-  // solo el Administrador puede interactuar con Notas y Calificaciones y Novedades & Reemplazos
-  useEffect(() => {
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    if (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos')) {
-      setActiveModule(null);
-    }
-  }, [currentUser, activeModule]);
-
   // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
-  if (!activeModule) {
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  if (!activeModule || (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos'))) {
     return (
       <>
         <ModulesDashboard 
