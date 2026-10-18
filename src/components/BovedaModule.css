@@ -1,0 +1,578 @@
+/* ==========================================================================
+   MÓDULO INSTITUCIONAL: BÓVEDA DIRECTIVA DE ALTA CAPACIDAD
+   Tipografía: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
+   (Exactamente la misma tipografía y pesos de Gestión de Módulos para cero salto visual)
+   Color procedimental: Gris Pastel (#f1f5f9, #e2e8f0, #cbd5e1)
+   Texto: Negro formal (#0f172a)
+   ========================================================================== */
+
+.boveda-module-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.boveda-module-container *,
+.boveda-module-container *::before,
+.boveda-module-container *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   NAVBAR SUPERIOR (IDÉNTICO A MODULES DASHBOARD - CERO SALTO VISUAL)
+   ========================================================================== */
+.boveda-navbar {
+  height: 64px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+
+.boveda-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Botón Volver a Módulos con estilo refinado institucional */
+.btn-back-to-modules-boveda {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  margin-right: 0.25rem;
+}
+
+.btn-back-to-modules-boveda:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+  color: #000000;
+  transform: translateX(-2px);
+}
+
+.portal-shield-boveda {
+  background-color: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.boveda-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.boveda-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
+   ÁREA DE CONTENIDO (FONDO Y PADDING ALINEADOS A GESTIÓN DE MÓDULOS)
+   ========================================================================== */
+.boveda-content-area {
+  flex: 1;
+  padding: 2.25rem 2.5rem;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   PANTALLA DE CANDADO Y AUTORIZACIÓN (SIN SALTO BRUSCO NI GRADIENTES RAROS)
+   ========================================================================== */
+.boveda-lock-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.boveda-lock-card {
+  width: 100%;
+  max-width: 460px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  text-align: center;
+}
+
+.boveda-lock-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #334155;
+}
+
+.boveda-lock-icon-container {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  color: #0f172a;
+  font-size: 1.75rem;
+}
+
+.boveda-lock-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+}
+
+.boveda-lock-card p {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.boveda-dual-key-row {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.boveda-dual-key-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.boveda-key-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.boveda-form-group {
+  text-align: left;
+  margin-bottom: 1.25rem;
+}
+
+.boveda-form-group label {
+  display: block;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.boveda-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.boveda-input-field {
+  width: 100%;
+  padding: 0.65rem 2.5rem 0.65rem 0.85rem;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.boveda-input-field:focus {
+  background-color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+}
+
+.boveda-btn-toggle-eye {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.boveda-btn-toggle-eye:hover {
+  color: #0f172a;
+}
+
+.boveda-btn-submit-unlock {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: 1px solid #0f172a;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boveda-btn-submit-unlock:hover {
+  background-color: #000000;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+.boveda-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   ESPACIO DE TRABAJO DESBLOQUEADO (WORKSPACE)
+   ========================================================================== */
+.boveda-banner-card {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.boveda-banner-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #334155;
+}
+
+.boveda-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.boveda-banner-icon-box {
+  width: 52px;
+  height: 52px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  font-size: 1.65rem;
+  flex-shrink: 0;
+}
+
+.boveda-banner-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.boveda-banner-sub {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.boveda-banner-sub strong {
+  color: #0f172a;
+}
+
+.boveda-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.boveda-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: 1px solid #0f172a;
+  padding: 0.55rem 0.95rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boveda-btn-primary:hover {
+  background-color: #000000;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+.boveda-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  padding: 0.55rem 0.95rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boveda-btn-secondary:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.boveda-btn-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boveda-btn-lock:hover {
+  background-color: #fecaca;
+  border-color: #ef4444;
+}
+
+/* Barra de Filtros y Búsqueda */
+.boveda-controls-bar {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.boveda-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.boveda-filter-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.boveda-filter-unit label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.boveda-select-control {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+.boveda-select-control:focus {
+  border-color: #0f172a;
+  background-color: #ffffff;
+}
+
+.boveda-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 240px;
+}
+
+.boveda-search-box input {
+  width: 100%;
+  padding: 0.45rem 0.75rem 0.45rem 2.15rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.boveda-search-box input:focus {
+  border-color: #0f172a;
+  background-color: #ffffff;
+}
+
+.boveda-search-box i {
+  position: absolute;
+  left: 0.65rem;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.boveda-view-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.boveda-view-btn {
+  background: transparent;
+  border: none;
+  padding: 0.45rem 0.65rem;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.boveda-view-btn.active {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Área de Listado y Estado Vacío */
+.boveda-empty-state {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background-color: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.boveda-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 0.85rem;
+  border: 1px solid #cbd5e1;
+}
+
+.boveda-empty-state h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.boveda-empty-state p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .boveda-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .boveda-banner-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .boveda-controls-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .boveda-search-box {
+    width: 100%;
+  }
+}

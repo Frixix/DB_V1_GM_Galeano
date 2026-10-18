@@ -260,12 +260,17 @@ export default function UploadModal({
             <div className="form-group">
               <label htmlFor="docFolder">Carpeta de Destino</label>
               <select id="docFolder" value={folder} onChange={(e) => handleFolderChange(e.target.value)}>
-                <option value="planeaciones">Planeaciones</option>
-                <option value="calificaciones">Planillas de Notas</option>
-                <option value="talleres">Guías & Talleres</option>
-                <option value="observador">Observador & Actas</option>
-                {isPrivileged && <option value="institucional">Institucional & Circulares</option>}
-                {isPrivileged && <option value="boveda">Bóveda Directiva</option>}
+                {initialFolder === 'boveda' ? (
+                  <option value="boveda">Bóveda Directiva</option>
+                ) : (
+                  <>
+                    <option value="planeaciones">Planeaciones</option>
+                    <option value="calificaciones">Planillas de Notas</option>
+                    <option value="talleres">Guías & Talleres</option>
+                    <option value="observador">Observador & Actas</option>
+                    {isPrivileged && <option value="institucional">Institucional & Circulares</option>}
+                  </>
+                )}
               </select>
             </div>
 

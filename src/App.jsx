@@ -3,6 +3,7 @@ import Login from './components/Login';
 import ModulesDashboard from './components/ModulesDashboard';
 import GradesModule from './components/GradesModule';
 import AdminReemplazosModule from './components/AdminReemplazosModule';
+import BovedaModule from './components/BovedaModule';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -113,6 +114,55 @@ export default function App() {
     );
   }
 
+  const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
+
+  // Identificar si un documento o circular está pendiente de revisión por el usuario actual
+  const isDocUnread = (doc) => {
+    if (!currentUser) return false;
+    const isSharedOrPublic = Boolean(doc.isPublic) || doc.folder === 'institucional';
+    const isFromOtherUser = doc.teacher !== currentUser.name;
+    const isNotReadYet = !readCircularIds.includes(doc.id);
+    return isSharedOrPublic && isFromOtherUser && isNotReadYet;
+  };
+
+  const unreadDocs = documents.filter(isDocUnread);
+  const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
+  const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
+  const totalUnreadCount = unreadDocs.length;
+
+  const handleLogout = async () => {
+    await presenceLogout();
+    setCurrentUser(null);
+    setIsBovedaUnlocked(false);
+    setActiveModule(null);
+  };
+
+  // Manejador para abrir novedades desde la campanita unificada (en cualquier módulo)
+  const handleOpenCircularesBell = () => {
+    setActiveModule('docs');
+    if (unreadDocs.length > 0) {
+      const target = unreadDocs[0];
+      if (target.folder === 'institucional') {
+        setCurrentFolder('institucional');
+      } else {
+        setCurrentFolder('publico');
+      }
+      setSelectedDocForView(target);
+      setIsViewModalOpen(true);
+      markCircularAsRead(target.id);
+    } else {
+      setCurrentFolder('institucional');
+    }
+  };
+
+  // Manejador para abrir la guía interactiva desde la barra superior unificada
+  const handleOpenTour = () => {
+    setActiveModule('docs');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('gmg_open_tour'));
+    }, 150);
+  };
+
   // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
   if (!activeModule) {
     return (
@@ -123,12 +173,10 @@ export default function App() {
           onOpenProfile={handleOpenProfile}
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           onlineCount={onlineCount}
-          onLogout={async () => {
-            await presenceLogout();
-            setCurrentUser(null);
-            setIsBovedaUnlocked(false);
-            setActiveModule(null);
-          }}
+          circularesCount={totalUnreadCount}
+          onOpenCirculares={handleOpenCircularesBell}
+          onOpenTour={handleOpenTour}
+          onLogout={handleLogout}
         />
         <ProfileModal 
           isOpen={isProfileModalOpen}
@@ -206,12 +254,10 @@ export default function App() {
           onOpenProfile={handleOpenProfile}
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           onlineCount={onlineCount}
-          onLogout={async () => {
-            await presenceLogout();
-            setCurrentUser(null);
-            setIsBovedaUnlocked(false);
-            setActiveModule(null);
-          }}
+          circularesCount={totalUnreadCount}
+          onOpenCirculares={handleOpenCircularesBell}
+          onOpenTour={handleOpenTour}
+          onLogout={handleLogout}
         />
         <ProfileModal 
           isOpen={isProfileModalOpen}
@@ -289,12 +335,10 @@ export default function App() {
           onOpenProfile={handleOpenProfile}
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           onlineCount={onlineCount}
-          onLogout={async () => {
-            await presenceLogout();
-            setCurrentUser(null);
-            setIsBovedaUnlocked(false);
-            setActiveModule(null);
-          }}
+          circularesCount={totalUnreadCount}
+          onOpenCirculares={handleOpenCircularesBell}
+          onOpenTour={handleOpenTour}
+          onLogout={handleLogout}
         />
         <ProfileModal 
           isOpen={isProfileModalOpen}
@@ -361,46 +405,10 @@ export default function App() {
     );
   }
 
-  const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
-
-  // Identificar si un documento o circular está pendiente de revisión por el usuario actual
-  const isDocUnread = (doc) => {
-    const isSharedOrPublic = Boolean(doc.isPublic) || doc.folder === 'institucional';
-    const isFromOtherUser = doc.teacher !== currentUser.name;
-    const isNotReadYet = !readCircularIds.includes(doc.id);
-    return isSharedOrPublic && isFromOtherUser && isNotReadYet;
-  };
-
-  const unreadDocs = documents.filter(isDocUnread);
-  const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
-  const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
-  const totalUnreadCount = unreadDocs.length;
-
-  // Manejador del clic en Bóveda y carpetas
-  const handleFolderSelectWithBoveda = (folderKey) => {
-    if (folderKey === 'boveda' && !isBovedaUnlocked) {
-      setIsBovedaModalOpen(true);
-      return;
-    }
+  // Manejador del clic en carpetas de Gestión Documental
+  const handleFolderSelect = (folderKey) => {
     setCurrentFolder(folderKey);
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
-  };
-
-  // Manejador para abrir novedades desde la campanita
-  const handleOpenCircularesBell = () => {
-    if (unreadDocs.length > 0) {
-      const target = unreadDocs[0];
-      if (target.folder === 'institucional') {
-        setCurrentFolder('institucional');
-      } else {
-        setCurrentFolder('publico');
-      }
-      setSelectedDocForView(target);
-      setIsViewModalOpen(true);
-      markCircularAsRead(target.id);
-    } else {
-      setCurrentFolder('institucional');
-    }
   };
 
   // Manejador para ver documento (al leer una circular o compartido se apaga la notificación y el puntito)
@@ -528,24 +536,138 @@ export default function App() {
     return true;
   });
 
+  // Módulo 3: Bóveda Directiva & Archivo Confidencial (Gris Pastel con Texto Negro Formal)
+  if (activeModule === 'boveda') {
+    return (
+      <>
+        <BovedaModule 
+          currentUser={currentUser}
+          documents={documents}
+          onBackToModules={() => setActiveModule(null)}
+          onOpenProfile={handleOpenProfile}
+          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+          onlineCount={onlineCount}
+          circularesCount={totalUnreadCount}
+          onOpenCirculares={handleOpenCircularesBell}
+          onOpenTour={handleOpenTour}
+          onLogout={handleLogout}
+          onViewDocument={handleViewDocument}
+          onDownloadDocument={handleDownloadDocument}
+          onDeleteDocument={handleDeleteDocument}
+          onOpenUploadModal={() => {
+            setCurrentFolder('boveda');
+            setIsUploadModalOpen(true);
+          }}
+          onOpenChangeBovedaModal={() => setIsChangeBovedaModalOpen(true)}
+          isBovedaUnlocked={isBovedaUnlocked}
+          setIsBovedaUnlocked={setIsBovedaUnlocked}
+          isPrivileged={isPrivileged}
+        />
+        <ProfileModal 
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          currentUser={currentUser}
+          initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
+          onProfileUpdated={(updatedUser) => {
+            setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+          }}
+          onAvatarUpdated={(targetKey, newAvatar) => {
+            const targetName = USERS[targetKey]?.name || targetKey;
+            setCurrentUser((prev) => {
+              if (prev && (prev.key === targetKey || prev.role === targetKey)) {
+                return { ...prev, avatar: newAvatar };
+              }
+              return prev;
+            });
+            setAvatarTick((t) => t + 1);
+            setAvatarToast({ name: targetName });
+            setTimeout(() => {
+              setAvatarToast(null);
+            }, 4500);
+
+            if (typeof refreshPresence === 'function') {
+              refreshPresence();
+            }
+          }}
+        />
+        <ConnectionsModal 
+          isOpen={isConnectionsModalOpen}
+          onClose={() => setIsConnectionsModalOpen(false)}
+          presenceData={presenceData}
+          currentUser={currentUser}
+          onSelectTeacher={(teacherName) => {
+            setCurrentTeacher(teacherName);
+            setCurrentFolder('all');
+            setActiveModule('docs');
+          }}
+          onRefresh={refreshPresence}
+          loading={presenceLoading}
+        />
+        <ViewModal 
+          isOpen={isViewModalOpen}
+          doc={selectedDocForView}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setSelectedDocForView(null);
+          }}
+          onDownload={handleDownloadDocument}
+        />
+        <UploadModal 
+          key={isUploadModalOpen ? `upload_modal_${currentFolder}` : 'upload_modal_closed'}
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          currentUser={currentUser}
+          onUploadSuccess={handleUploadSuccess}
+          existingCount={documents.length}
+          initialFolder="boveda"
+          totalUsedBytes={totalUsedBytes}
+        />
+        <BovedaPasswordModal 
+          isOpen={isChangeBovedaModalOpen}
+          onClose={() => setIsChangeBovedaModalOpen(false)}
+          currentUser={currentUser}
+          onPasswordChanged={() => {
+            console.log('Clave de Bóveda actualizada exitosamente.');
+          }}
+        />
+        <TrialWatermark documents={documents} />
+        {avatarToast && (
+          <div className="avatar-global-toast-notification">
+            <div className="toast-chulito-icon">
+              <i className="ph-bold ph-check"></i>
+            </div>
+            <div className="toast-chulito-content">
+              <strong>¡Foto de perfil actualizada!</strong>
+              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
+            </div>
+            <button 
+              type="button" 
+              className="toast-close-btn" 
+              onClick={() => setAvatarToast(null)} 
+              aria-label="Cerrar notificación"
+            >
+              <i className="ph-bold ph-x"></i>
+            </button>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div id="appContainer">
       <Navbar 
         currentUser={currentUser} 
-        onLogout={async () => {
-          await presenceLogout();
-          setCurrentUser(null);
-          setIsBovedaUnlocked(false);
-          setActiveModule(null);
-        }} 
+        onLogout={handleLogout} 
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenCirculares={handleOpenCircularesBell}
         circularesCount={totalUnreadCount}
         onOpenProfile={() => handleOpenProfile(currentUser?.key)}
         onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
         onlineCount={onlineCount}
         onBackToModules={() => setActiveModule(null)}
+        onOpenTour={handleOpenTour}
       />
       
       <div className="app-layout">
@@ -554,7 +676,7 @@ export default function App() {
             key={`sidebar_${avatarTick}`}
             currentUser={currentUser} 
             currentFolder={currentFolder} 
-            onFolderSelect={handleFolderSelectWithBoveda}
+            onFolderSelect={handleFolderSelect}
             currentTeacher={currentTeacher}
             onTeacherSelect={(t) => { setCurrentTeacher(t); setIsSidebarOpen(false); }}
             documents={documents}
@@ -573,68 +695,6 @@ export default function App() {
         )}
         
         <main className="main-content">
-          {/* Panel visual de Bóveda si está activa */}
-          {currentFolder === 'boveda' && (
-            <section className="boveda-controls">
-              <div className="boveda-banner">
-                <div className="boveda-banner-left">
-                  <div className="boveda-banner-icon"><i className="ph-bold ph-shield-check"></i></div>
-                  <div>
-                    <h3>Bóveda Directiva de Alta Capacidad</h3>
-                    <p>Archivos institucionales organizados por año y subcarpeta.</p>
-                  </div>
-                </div>
-
-                <div className="boveda-banner-actions">
-                  <button 
-                    type="button" 
-                    className="btn btn-boveda-action"
-                    onClick={() => setIsChangeBovedaModalOpen(true)}
-                    title="Cambiar clave de acceso a la Bóveda (Doble llave concurrente)"
-                  >
-                    <i className="ph-bold ph-key"></i>
-                    <span>Cambiar Clave de Bóveda</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-boveda-lock"
-                    onClick={() => {
-                      setIsBovedaUnlocked(false);
-                      setCurrentFolder('all');
-                    }}
-                    title="Bloquear y salir de la Bóveda"
-                  >
-                    <i className="ph-bold ph-lock-key"></i>
-                    <span>Bloquear Bóveda</span>
-                  </button>
-                </div>
-              </div>
-              <div className="boveda-filters-row">
-                <div className="filter-group">
-                  <label><i className="ph-bold ph-calendar"></i> Año Lectivo:</label>
-                  <select value={bovedaYear} onChange={(e) => setBovedaYear(e.target.value)}>
-                    <option value="all">Todos los años</option>
-                    <option value="2026">Año 2026</option>
-                    <option value="2025">Año 2025</option>
-                    <option value="2024">Año 2024</option>
-                    <option value="Historico">Archivo Histórico</option>
-                  </select>
-                </div>
-                <div className="filter-group">
-                  <label><i className="ph-bold ph-folder-notch-open"></i> Subcarpeta:</label>
-                  <select value={bovedaSubfolder} onChange={(e) => setBovedaSubfolder(e.target.value)}>
-                    <option value="all">Todas las subcarpetas</option>
-                    <option value="consejo">Actas de Consejo Directivo</option>
-                    <option value="financiero">Financiero & Contable</option>
-                    <option value="legal">Resoluciones & Legalidad</option>
-                    <option value="contratos">Contratos & Nómina Docente</option>
-                    <option value="pei_soporte">Soportes PEI & Licencias</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-          )}
-
           <FilterBar 
             search={search} setSearch={setSearch}
             grade={grade} setGrade={setGrade}
@@ -765,6 +825,18 @@ export default function App() {
         onRefresh={refreshPresence}
         loading={presenceLoading}
       />
+
+      {/* Botón Flotante para Subir Documento en Gestión Documental (Inferior Derecha) */}
+      <button 
+        type="button" 
+        id="btnOpenModal" 
+        className="btn-floating-upload" 
+        onClick={() => setIsUploadModalOpen(true)}
+        title="Subir Nuevo Documento a Gestión Documental"
+      >
+        <i className="ph-bold ph-cloud-arrow-up"></i>
+        <span>Subir Documento</span>
+      </button>
 
       {/* Guía Interactiva Spotlight */}
       <TourSpotlight currentUser={currentUser} />
