@@ -369,7 +369,8 @@ export default function ProfileModal({
               <span>Capacidades del Rol</span>
             </button>
 
-            {isAdmin && (
+            {/* Pestaña Novedades & Reemplazos (Comentada temporalmente por solicitud del usuario) */}
+            {/* {isAdmin && (
               <button 
                 type="button" 
                 className={`profile-tab-btn ${activeTab === 'reemplazos' ? 'active' : ''}`}
@@ -380,7 +381,7 @@ export default function ProfileModal({
                 <span>Novedades & Reemplazos</span>
                 <span className="profile-tab-admin-pill">Admin</span>
               </button>
-            )}
+            )} */}
           </div>
 
           {/* ========================================================
@@ -777,15 +778,14 @@ export default function ProfileModal({
             </div>
           )}
 
-          {/* ========================================================
-              PESTAÑA 4: GESTIÓN DE REEMPLAZOS DOCENTES POR INCAPACIDAD (EXCLUSIVO ADMIN)
-             ======================================================== */}
+          {/* Pestaña 4: Gestión de reemplazos comentada temporalmente por solicitud del usuario
           {activeTab === 'reemplazos' && isAdmin && (
             <AdminReemplazosTab 
               currentUser={currentUser}
               onCurriculumUpdated={onProfileUpdated}
             />
           )}
+          */}
         </div>
 
         {/* Pie del Modal */}
