@@ -1,7 +1,12 @@
 /* ==========================================================================
    MÓDULO 2: NOTAS Y CALIFICACIONES (GRADES MODULE)
-   Paleta Pastel Enriquecida, Armoniosa y Jerarquía Relacional de Datos (RBAC)
-   Borde superior de cards: estrictamente 2px
+   Paleta Pastel Institucional Unificada (Verde Esmeralda / Menta SIEE)
+   Navegación de Carpeta a Carpeta y Cards a Cards entre Sábanas de Notas
+   Comportamiento idéntico a Gestión Documental:
+     - Reposo: icono gris (#94a3b8), texto oscuro (#0f172a), fondo limpio
+     - Hover: icono se enciende en color (#10b981), texto queda en negro
+     - Click / Activo: fondo pastel (#ecfdf5), borde pastel (#a7f3d0), texto negrita (#064e3b)
+     - Móvil: icono con color visible por defecto, click a pastel
    ========================================================================== */
 
 .grades-module-container {
@@ -10,88 +15,15 @@
   flex-direction: column;
   background-color: #f8fafc;
   color: #0f172a;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   width: 100%;
+  box-sizing: border-box;
 }
 
-/* ==========================================================================
-   HEADER SUPERIOR
-   ========================================================================== */
-.grades-navbar {
-  height: 68px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.75rem;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.grades-navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.grades-brand-box {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.portal-shield-badge {
-  width: 40px;
-  height: 40px;
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1.5px solid #dcfce7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.12);
-  flex-shrink: 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.portal-shield-badge:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
-}
-
-.grades-brand-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #064e3b;
-  line-height: 1.2;
-}
-
-.grades-brand-subtitle {
-  font-size: 0.78rem;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.grades-tag-pill {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #065f46;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.grades-navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.grades-module-container *,
+.grades-module-container *::before,
+.grades-module-container *::after {
+  box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -102,29 +34,29 @@
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 1.75rem 1.5rem 3rem 1.5rem;
+  padding: 1.75rem 1.5rem 3.5rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 /* ==========================================================================
-   BANNER DE BIENVENIDA Y MÉTRICAS (PASTEL MULTI-TONAL VIBRANTE)
+   BANNER DE BIENVENIDA Y MÉTRICAS (PASTEL INSTITUCIONAL UNIFICADO)
    ========================================================================== */
 .grades-banner-card {
-  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 35%, #f0fdf4 70%, #eff6ff 100%);
-  border: 1px solid #fde68a;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 1.5rem 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
 }
 
-/* Borde superior de exactamente 2px */
+/* Borde superior de estrictamente 2px en verde esmeralda institucional */
 .grades-banner-card::before {
   content: "";
   position: absolute;
@@ -132,13 +64,13 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #f59e0b, #10b981, #6366f1);
+  background-color: #10b981;
 }
 
 .grades-banner-info {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
   max-width: 720px;
 }
 
@@ -156,44 +88,53 @@
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   letter-spacing: -0.01em;
 }
 
-/* Badges RBAC en el Banner */
+.grades-banner-info h2 i {
+  color: #10b981;
+  font-size: 1.45rem;
+}
+
+/* Badges RBAC en el Banner Unificados */
 .grades-role-mode-pill {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  padding: 0.25rem 0.65rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   letter-spacing: 0.01em;
-}
-
-.grades-role-mode-pill.mode-docente {
   background-color: #ecfdf5;
   color: #065f46;
   border: 1px solid #a7f3d0;
 }
 
+.grades-role-mode-pill.mode-consolidada {
+  background-color: #ecfdf5;
+  color: #064e3b;
+  border-color: #6ee7b7;
+  font-weight: 800;
+}
+
 .grades-role-mode-pill.mode-director-curso {
-  background-color: #ecfeff;
-  color: #0e7490;
-  border: 1px solid #a5f3fc;
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
 }
 
 .grades-role-mode-pill.mode-rectora {
-  background-color: #ede9fe;
-  color: #5b21b6;
-  border: 1px solid #ddd6fe;
+  background-color: #f8fafc;
+  color: #065f46;
+  border-color: #cbd5e1;
 }
 
 .grades-role-mode-pill.mode-admin {
   background-color: #f1f5f9;
   color: #334155;
-  border: 1px solid #cbd5e1;
+  border-color: #cbd5e1;
 }
 
 .grades-banner-info p {
@@ -204,23 +145,25 @@
 }
 
 .grades-banner-security-notice {
-  color: #92400e;
+  color: #065f46;
   font-weight: 600;
 }
 
 .grades-banner-director-notice {
-  color: #0e7490;
+  color: #047857;
   font-weight: 600;
 }
 
-/* Métricas en Colores Pastel Diferenciados */
+/* Métricas del Banner Unificadas */
 .grades-banner-metrics {
   display: flex;
-  gap: 0.85rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .grades-metric-badge {
+  background-color: #f8fafc;
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   padding: 0.75rem 1rem;
   display: flex;
@@ -228,45 +171,15 @@
   align-items: center;
   justify-content: center;
   min-width: 105px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.18s ease;
 }
 
 .grades-metric-badge:hover {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-}
-
-.grades-metric-badge.metric-promedio {
-  background-color: #fef9c3;
-  border: 1px solid #fde047;
-  color: #854d0e;
-}
-
-.grades-metric-badge.metric-aprobacion {
-  background-color: #dcfce7;
-  border: 1px solid #86efac;
-  color: #166534;
-}
-
-.grades-metric-badge.metric-estudiantes {
-  background-color: #e0e7ff;
-  border: 1px solid #c7d2fe;
-  color: #3730a3;
-}
-
-.grades-metric-badge.metric-director {
-  background-color: #ecfeff;
-  border: 1px solid #a5f3fc;
-  color: #0e7490;
-  min-width: 125px;
-}
-
-.grades-metric-badge.metric-titular {
-  background-color: #fce7f3;
-  border: 1px solid #fbcfe8;
-  color: #9d174d;
-  min-width: 125px;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.1);
 }
 
 .grades-metric-label {
@@ -274,25 +187,328 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: #64748b;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  opacity: 0.9;
+  gap: 0.35rem;
+  transition: color 0.18s ease;
+}
+
+.grades-metric-badge:hover .grades-metric-label {
+  color: #065f46;
+}
+
+.grades-metric-badge:hover .grades-metric-label i {
+  color: #10b981;
 }
 
 .grades-metric-val {
   font-size: 1.35rem;
   font-weight: 800;
+  color: #064e3b;
   margin-top: 0.15rem;
 }
 
 .grades-metric-titular-name {
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 0.92rem;
+  font-weight: 700;
   white-space: nowrap;
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   SECCIONES DE NAVEGACIÓN EN CARDS / CARPETAS
+   "de carpeta a carpeta, o de cards a cards, para que pueda pasar de sabana entre sabana"
+   ========================================================================== */
+.grades-nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.grades-nav-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.section-title-wrap i {
+  font-size: 1.25rem;
+  color: #10b981;
+}
+
+.section-title-wrap h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.section-meta-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #065f46;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+}
+
+/* Pills de Selección Rápida de Periodo */
+.grades-period-pills-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.period-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-right: 0.25rem;
+}
+
+.grades-period-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.grades-period-pill i {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.grades-period-pill:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.grades-period-pill:hover i {
+  color: #10b981;
+}
+
+.grades-period-pill.active,
+.grades-period-pill:active {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #064e3b !important;
+  font-weight: 700;
+}
+
+.grades-period-pill.active i,
+.grades-period-pill:active i {
+  color: #059669 !important;
+}
+
+/* ==========================================================================
+   GRID DE CARDS (GRADOS Y SÁBANAS DE NOTAS)
+   ESTILO IDÉNTICO A GESTIÓN DOCUMENTAL
+   ========================================================================== */
+.grades-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.sabanas-cards-grid {
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+}
+
+/* Card Base de Navegación */
+.grades-nav-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.18s ease;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Contenedor del Icono en Reposo */
+.grades-nav-card .card-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.grades-nav-card .card-icon-wrap i {
+  font-size: 1.35rem;
+  color: #94a3b8;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.grades-nav-card .card-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.grades-nav-card .card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.grades-nav-card .card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.18s ease;
+}
+
+.grades-nav-card .card-subtitle {
+  font-size: 0.76rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.18s ease;
+}
+
+/* Mini Badges en las Cards */
+.card-mini-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.card-mini-pill.dir-pill {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.card-mini-pill.editable-pill {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+/* Card Destacada: Sábana General Consolidada (Vista General) */
+.sabana-consolidated-card {
+  border-color: #cbd5e1;
+}
+
+.sabana-consolidated-card .card-general-badge {
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+/* --------------------------------------------------------------------------
+   ESTADO HOVER: Icono se enciende en verde/esmeralda (#10b981), texto queda oscuro
+   -------------------------------------------------------------------------- */
+.grades-nav-card:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.grades-nav-card:hover .card-icon-wrap {
+  background-color: #ffffff;
+  border-color: #a7f3d0;
+}
+
+.grades-nav-card:hover .card-icon-wrap i {
+  color: #10b981;
+  transform: scale(1.1);
+}
+
+.grades-nav-card:hover .card-title {
+  color: #0f172a;
+}
+
+/* --------------------------------------------------------------------------
+   ESTADO ACTIVE (Click / Seleccionado): Fondo y bordes pastel institucional
+   -------------------------------------------------------------------------- */
+.grades-nav-card:active,
+.grades-nav-card.active {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+}
+
+.grades-nav-card:active .card-icon-wrap,
+.grades-nav-card.active .card-icon-wrap {
+  background-color: #ffffff !important;
+  border-color: #6ee7b7 !important;
+}
+
+.grades-nav-card:active .card-icon-wrap i,
+.grades-nav-card.active .card-icon-wrap i {
+  color: #059669 !important;
+}
+
+.grades-nav-card:active .card-title,
+.grades-nav-card.active .card-title {
+  color: #064e3b !important;
+  font-weight: 700 !important;
+}
+
+.grades-nav-card:active .card-subtitle,
+.grades-nav-card.active .card-subtitle {
+  color: #047857 !important;
+}
+
+.grades-nav-card.active .card-general-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
 }
 
 /* ==========================================================================
@@ -303,14 +519,13 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 1.15rem 1.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
 }
 
-/* Borde superior de 2px en tono esmeralda/lavanda */
 .grades-tree-path-card::before {
   content: "";
   position: absolute;
@@ -318,7 +533,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #10b981, #8b5cf6, #f59e0b);
+  background-color: #10b981;
 }
 
 .grades-tree-path-header {
@@ -343,26 +558,24 @@
   font-size: 1.1rem;
 }
 
-.tree-path-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .tree-security-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   font-size: 0.74rem;
   font-weight: 600;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: #334155;
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
 }
 
-/* Migas de pan del árbol con tonos pastel diferenciados */
+.tree-security-pill i {
+  color: #10b981;
+}
+
+/* Migas de pan del árbol unificadas */
 .grades-tree-breadcrumbs {
   display: flex;
   align-items: center;
@@ -375,9 +588,10 @@
   flex-direction: column;
   padding: 0.45rem 0.85rem;
   border-radius: 8px;
-  border-width: 1.5px;
-  border-style: solid;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   transition: transform 0.15s ease;
 }
 
@@ -390,7 +604,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  opacity: 0.85;
+  color: #64748b;
 }
 
 .crumb-val {
@@ -400,48 +614,30 @@
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.1rem;
+  color: #0f172a;
 }
 
-/* Nivel 1: Año Lectivo Pastel Ámbar */
-.crumb-year {
-  background-color: #fef3c7;
-  border-color: #fde68a;
-  color: #92400e;
+.crumb-val i {
+  color: #94a3b8;
 }
 
-/* Nivel 2: Periodo Pastel Azul Cielo */
-.crumb-period {
-  background-color: #e0f2fe;
-  border-color: #bae6fd;
-  color: #0369a1;
-}
-
-/* Nivel 3: Grado Pastel Lavanda */
-.crumb-grade {
-  background-color: #ede9fe;
-  border-color: #ddd6fe;
-  color: #6d28d9;
-}
-
-/* Director(a) de Curso Oficial Pastel Cian / Turquesa */
-.crumb-director {
-  background-color: #ecfeff;
-  border-color: #a5f3fc;
-  color: #0e7490;
-}
-
-/* Nivel 4: Materia Pastel Menta */
-.crumb-subject {
-  background-color: #d1fae5;
+/* Miga activa resaltada en verde pastel */
+.tree-crumb.crumb-active-leaf {
+  background-color: #ecfdf5;
   border-color: #a7f3d0;
+  color: #064e3b;
+}
+
+.tree-crumb.crumb-active-leaf .crumb-level {
   color: #065f46;
 }
 
-/* Nivel 5: Docente Asignado Pastel Rosa */
-.crumb-teacher {
-  background-color: #ffe4e6;
-  border-color: #fecdd3;
-  color: #9f1239;
+.tree-crumb.crumb-active-leaf .crumb-val {
+  color: #064e3b;
+}
+
+.tree-crumb.crumb-active-leaf .crumb-val i {
+  color: #10b981;
 }
 
 .tree-crumb-divider {
@@ -450,11 +646,11 @@
 }
 
 /* ==========================================================================
-   BARRA DE FILTROS RBAC
+   BARRA DE FILTROS Y ACCIONES UNIFICADA
    ========================================================================== */
 .grades-filter-bar {
   background-color: #ffffff;
-  border: 1px solid #fed7aa;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 1.15rem 1.5rem;
   display: flex;
@@ -462,11 +658,10 @@
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   position: relative;
 }
 
-/* Borde superior de 2px */
 .grades-filter-bar::before {
   content: "";
   position: absolute;
@@ -474,7 +669,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #f59e0b;
+  background-color: #10b981;
 }
 
 .grades-filter-group {
@@ -501,29 +696,33 @@
   gap: 0.35rem;
 }
 
+.grades-select-item label i {
+  color: #94a3b8;
+}
+
 .grades-select-item select {
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
   color: #0f172a;
   background-color: #f8fafc;
-  border: 1.5px solid #fed7aa;
+  border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   padding: 0.55rem 0.85rem;
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
-  min-width: 155px;
+  min-width: 140px;
 }
 
 .grades-select-item select:focus {
-  border-color: #f59e0b;
+  border-color: #10b981;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .grades-search-item {
-  min-width: 180px;
+  min-width: 260px;
 }
 
 .grades-search-input {
@@ -552,18 +751,108 @@
 }
 
 /* ==========================================================================
-   TABLA DE PLANILLA CON ENCABEZADOS PASTEL COLOR-CODED
+   BOTONES DE ACCIÓN UNIFICADOS (ESTILO GESTIÓN DOCUMENTAL)
+   ========================================================================== */
+.grades-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  background-color: #064e3b;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 5px rgba(6, 78, 59, 0.2);
+}
+
+.grades-btn-primary:hover {
+  background-color: #022c22;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(6, 78, 59, 0.3);
+}
+
+.grades-btn-primary.btn-view-only {
+  background-color: #047857;
+  cursor: default;
+}
+
+.grades-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.15rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.grades-btn-secondary i {
+  color: #94a3b8;
+  font-size: 1.05rem;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.grades-btn-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.grades-btn-secondary:hover i {
+  color: #10b981;
+  transform: scale(1.1);
+}
+
+.grades-btn-secondary:active,
+.grades-btn-secondary.active {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #064e3b !important;
+  font-weight: 700;
+}
+
+.grades-btn-secondary:active i,
+.grades-btn-secondary.active i {
+  color: #059669 !important;
+}
+
+.btn-novedades-admin {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.btn-novedades-admin i {
+  color: #0891b2 !important;
+}
+
+.btn-novedades-admin:hover {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+}
+
+/* ==========================================================================
+   TABLA DE PLANILLA (SÁBANA GENERAL Y SÁBANA POR MATERIA)
    ========================================================================== */
 .grades-sheet-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   position: relative;
 }
 
-/* Borde superior de exactamente 2px en verde bosque */
 .grades-sheet-card::before {
   content: "";
   position: absolute;
@@ -574,8 +863,50 @@
   background-color: #064e3b;
 }
 
+/* Cabeceras de las tarjetas de sábana */
+.consolidated-header-bar,
+.subject-sheet-header-bar {
+  padding: 1.25rem 1.5rem;
+  background-color: #fafaf9;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.consolidated-header-title,
+.subject-sheet-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.consolidated-header-title i,
+.subject-icon-box i {
+  font-size: 1.5rem;
+  color: #10b981;
+}
+
+.consolidated-header-title h4,
+.subject-sheet-info h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #064e3b;
+  margin: 0;
+}
+
+.consolidated-header-title p,
+.subject-sheet-info p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.15rem 0 0 0;
+}
+
 .grades-table-wrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .grades-table {
@@ -593,6 +924,49 @@
   letter-spacing: 0.03em;
   white-space: nowrap;
   vertical-align: middle;
+  background-color: #f8fafc;
+  color: #334155;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Encabezados de materias en la Sábana General (Clickables para saltar) */
+.btn-header-subject-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-header-subject-jump i {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  transition: color 0.15s ease;
+}
+
+.btn-header-subject-jump:hover {
+  background-color: #ffffff;
+  border-color: #a7f3d0;
+  color: #064e3b;
+}
+
+.btn-header-subject-jump:hover i {
+  color: #10b981;
+}
+
+/* Encabezados Pastel por Componente de Evaluación */
+.th-pastel-component {
+  background-color: #f8fafc !important;
+  color: #064e3b !important;
+  border-bottom: 2px solid #a7f3d0 !important;
 }
 
 .th-component-header {
@@ -601,70 +975,32 @@
   gap: 0.45rem;
 }
 
+.th-badge-weight {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .th-lock-icon {
   font-size: 0.85rem;
   color: #64748b;
 }
 
-/* Encabezados Pastel por Componente de Evaluación */
-.th-pastel-cognitivo {
-  background-color: #f0f7ff !important;
-  color: #1e40af !important;
-  border-bottom: 2px solid #bfdbfe !important;
-}
-
-.th-badge-c1 {
-  background: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
-  border-radius: 6px;
-  padding: 0.1rem 0.45rem;
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.th-pastel-procedimental {
-  background-color: #faf5ff !important;
-  color: #6b21a8 !important;
-  border-bottom: 2px solid #e9d5ff !important;
-}
-
-.th-badge-c2 {
-  background: #f3e8ff;
-  color: #6b21a8;
-  border: 1px solid #e9d5ff;
-  border-radius: 6px;
-  padding: 0.1rem 0.45rem;
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.th-pastel-actitudinal {
-  background-color: #f0fdf4 !important;
-  color: #166534 !important;
-  border-bottom: 2px solid #bbf7d0 !important;
-}
-
-.th-badge-c3 {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
-  padding: 0.1rem 0.45rem;
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.th-pastel-definitiva {
-  background-color: #fefce8 !important;
-  color: #854d0e !important;
-  border-bottom: 2px solid #fde68a !important;
+.th-pastel-definitiva,
+.th-consolidated-avg {
+  background-color: #ecfdf5 !important;
+  color: #064e3b !important;
+  border-bottom: 2px solid #6ee7b7 !important;
 }
 
 .th-badge-def {
-  background: #fef08a;
-  color: #854d0e;
-  border: 1px solid #fde047;
+  background: #ffffff;
+  color: #064e3b;
+  border: 1px solid #a7f3d0;
   border-radius: 6px;
   padding: 0.1rem 0.45rem;
   font-size: 0.68rem;
@@ -672,16 +1008,16 @@
 }
 
 .th-pastel-desempeno {
-  background-color: #f0fdfa !important;
-  color: #0f766e !important;
-  border-bottom: 2px solid #99f6e4 !important;
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
-/* Columnas de Árbol Relacional: Retroalimentación y Sugerencia */
+/* Columnas de Árbol Relacional */
 .th-pastel-docente-col {
   background-color: #f0fdf4 !important;
   color: #065f46 !important;
-  border-bottom: 2px solid #a7f3d0 !important;
+  border-bottom: 2px solid #bbf7d0 !important;
 }
 
 .th-badge-editable {
@@ -695,9 +1031,9 @@
 }
 
 .th-badge-director {
-  background-color: #cffafe;
-  color: #0e7490;
-  border: 1px solid #a5f3fc;
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
   font-size: 0.64rem;
@@ -705,15 +1041,15 @@
 }
 
 .th-pastel-directiva-col {
-  background-color: #faf5ff !important;
-  color: #6b21a8 !important;
-  border-bottom: 2px solid #ddd6fe !important;
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
 .th-badge-rectora {
-  background-color: #ede9fe;
-  color: #5b21b6;
-  border: 1px solid #c4b5fd;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
   font-size: 0.64rem;
@@ -726,7 +1062,7 @@
 }
 
 .grades-table tbody tr:hover {
-  background-color: #fafaf9;
+  background-color: #f8fafc;
 }
 
 .grades-table td {
@@ -734,9 +1070,38 @@
   vertical-align: middle;
 }
 
-/* ==========================================================================
-   COLUMNA ESTUDIANTE CON AVATARES PASTEL
-   ========================================================================== */
+/* Puesto / Ranking */
+.rank-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: #475569;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+}
+
+.rank-pill.rank-1 {
+  background-color: #ecfdf5;
+  color: #064e3b;
+  border: 1px solid #a7f3d0;
+}
+
+.rank-pill.rank-1 i {
+  color: #10b981;
+}
+
+.rank-pill.rank-2,
+.rank-pill.rank-3 {
+  background-color: #f8fafc;
+  color: #065f46;
+  border: 1px solid #cbd5e1;
+}
+
+/* Estudiante y Avatar */
 .grades-student-cell {
   display: flex;
   align-items: center;
@@ -750,47 +1115,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
   font-weight: 700;
+  font-size: 0.92rem;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.avatar-pastel-mint {
-  background-color: #d1fae5;
-  color: #065f46;
-  border: 1.5px solid #a7f3d0;
-}
-
-.avatar-pastel-sky {
-  background-color: #e0f2fe;
-  color: #0369a1;
-  border: 1.5px solid #bae6fd;
-}
-
-.avatar-pastel-lavender {
-  background-color: #ede9fe;
-  color: #6d28d9;
-  border: 1.5px solid #ddd6fe;
-}
-
-.avatar-pastel-amber {
-  background-color: #fef3c7;
-  color: #b45309;
-  border: 1.5px solid #fde68a;
-}
-
-.avatar-pastel-rose {
-  background-color: #ffe4e6;
-  color: #be123c;
-  border: 1.5px solid #fecdd3;
-}
-
-.avatar-pastel-teal {
-  background-color: #ccfbf1;
-  color: #0f766e;
-  border: 1.5px solid #99f6e4;
-}
+.avatar-pastel-mint { background-color: #ecfdf5; color: #065f46; border: 1.5px solid #a7f3d0; }
+.avatar-pastel-sky { background-color: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; }
+.avatar-pastel-lavender { background-color: #f8fafc; color: #334155; border: 1.5px solid #cbd5e1; }
+.avatar-pastel-amber { background-color: #ecfdf5; color: #047857; border: 1.5px solid #6ee7b7; }
+.avatar-pastel-rose { background-color: #f0fdf4; color: #065f46; border: 1.5px solid #a7f3d0; }
+.avatar-pastel-teal { background-color: #ecfdf5; color: #064e3b; border: 1.5px solid #a7f3d0; }
 
 .grades-student-info {
   display: flex;
@@ -800,137 +1135,161 @@
 .grades-student-name {
   font-weight: 700;
   color: #0f172a;
-  font-size: 0.9rem;
 }
 
 .grades-student-code {
   font-size: 0.72rem;
-  color: #64748b;
+  color: #94a3b8;
   font-family: monospace;
 }
 
-/* ==========================================================================
-   INPUTS DE NOTAS (DOCENTE vs AUDITORÍA BLOQUEADO)
-   ========================================================================== */
-.score-input-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.grades-input-score {
-  width: 62px;
-  padding: 0.45rem 0.35rem;
-  font-family: inherit;
-  font-size: 0.95rem;
+/* Píldoras de Calificación en Sábana General */
+.consolidated-score-pill {
+  display: inline-block;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
   font-weight: 700;
-  text-align: center;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #0f172a;
-  outline: none;
+  font-size: 0.85rem;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.input-c1 {
-  border-color: #bfdbfe;
-}
-.input-c1:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+.consolidated-score-pill.score-pass {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
 }
 
-.input-c2 {
-  border-color: #e9d5ff;
-}
-.input-c2:focus {
-  border-color: #a855f7;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+.consolidated-score-pill.score-pass:hover {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #064e3b;
+  transform: scale(1.08);
 }
 
-.input-c3 {
-  border-color: #bbf7d0;
+.consolidated-score-pill.score-fail {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
-.input-c3:focus {
+
+.consolidated-score-pill.score-fail:hover {
+  background-color: #fee2e2;
+  transform: scale(1.08);
+}
+
+/* Reprobadas Pills */
+.failed-zero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.failed-alert-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* Inputs Numéricos de Calificación en Sábana Específica */
+.score-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grades-input-score {
+  width: 64px;
+  text-align: center;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.45rem 0.25rem;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.grades-input-score:focus {
   border-color: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  background-color: #ffffff;
 }
 
-/* Input Bloqueado para Directivos / Admin (RBAC) */
 .grades-input-locked {
-  background-color: #f8fafc;
-  border: 1.5px dashed #cbd5e1 !important;
-  color: #64748b;
-  cursor: not-allowed;
-  user-select: none;
-}
-
-.grades-input-locked:focus {
-  border-color: #cbd5e1 !important;
-  box-shadow: none !important;
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+  cursor: default;
 }
 
 .input-mini-lock {
   position: absolute;
-  right: -16px;
+  right: 6px;
   font-size: 0.75rem;
   color: #94a3b8;
+  pointer-events: none;
 }
 
-/* ==========================================================================
-   PILL PASTEL DE NOTA DEFINITIVA
-   ========================================================================== */
-.grades-definitiva-cell {
-  text-align: center;
-}
-
+/* Píldora de Definitiva */
 .definitiva-pill {
   display: inline-block;
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  min-width: 52px;
-  text-align: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .def-pill-superior {
-  background-color: #dcfce7;
-  color: #14532d;
-  border: 1px solid #86efac;
+  background-color: #ecfdf5;
+  border: 1.5px solid #a7f3d0;
+  color: #064e3b;
 }
 
 .def-pill-alto {
-  background-color: #e0e7ff;
-  color: #3730a3;
-  border: 1px solid #c7d2fe;
+  background-color: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  color: #166534;
 }
 
 .def-pill-basico {
-  background-color: #fef9c3;
-  color: #854d0e;
-  border: 1px solid #fef08a;
+  background-color: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  color: #334155;
 }
 
 .def-pill-bajo {
-  background-color: #fee2e2;
+  background-color: #fef2f2;
+  border: 1.5px solid #fecaca;
   color: #991b1b;
-  border: 1px solid #fca5a5;
 }
 
-/* ==========================================================================
-   BADGES DE DESEMPEÑO SIEE
-   ========================================================================== */
+/* Tags de Desempeño SIEE */
 .tag-desempeno {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.32rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -938,31 +1297,29 @@
 
 .tag-pastel-superior {
   background-color: #ecfdf5;
-  color: #064e3b;
   border: 1px solid #a7f3d0;
+  color: #064e3b;
 }
 
 .tag-pastel-alto {
-  background-color: #e0e7ff;
-  color: #3730a3;
-  border: 1px solid #c7d2fe;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
 }
 
 .tag-pastel-basico {
-  background-color: #fefce8;
-  color: #854d0e;
-  border: 1px solid #fde047;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
 }
 
 .tag-pastel-bajo {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: #fef2f2;
   border: 1px solid #fecaca;
+  color: #991b1b;
 }
 
-/* ==========================================================================
-   OBSERVACIONES Y SUGERENCIAS DEL ÁRBOL
-   ========================================================================== */
+/* Inputs de Observaciones y Retroalimentación */
 .obs-input-wrap {
   position: relative;
   display: flex;
@@ -972,47 +1329,35 @@
 
 .grades-input-obs {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.84rem;
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.15s ease;
   font-family: inherit;
-}
-
-.obs-docente-input {
-  background-color: #f0fdf4;
-  border: 1.5px solid #bbf7d0;
-  color: #14532d;
+  font-size: 0.84rem;
+  font-weight: 500;
+  padding: 0.45rem 0.65rem;
+  border-radius: 7px;
+  outline: none;
+  transition: all 0.18s ease;
+  border: 1.5px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .obs-docente-input:focus {
   border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-  background-color: #ffffff;
-}
-
-.obs-rectora-input {
-  background-color: #faf5ff;
-  border: 1.5px solid #ddd6fe;
-  color: #581c87;
-  padding-right: 32px;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .obs-rectora-input:focus {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-  background-color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .obs-directiva-indicator {
   position: absolute;
   right: 10px;
-  color: #7c3aed;
+  color: #065f46;
   font-size: 0.9rem;
 }
 
-/* Cajas de solo lectura enriquecidas */
 .obs-readonly-box {
   display: flex;
   align-items: flex-start;
@@ -1035,14 +1380,14 @@
 }
 
 .obs-rectora-readonly {
-  background-color: #faf5ff;
-  border: 1px solid #e9d5ff;
-  color: #6b21a8;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
 }
 
 .obs-crown-badge {
   font-weight: 800;
-  color: #7e22ce;
+  color: #065f46;
   font-size: 0.78rem;
   white-space: nowrap;
 }
@@ -1089,9 +1434,8 @@
   border-radius: 50%;
 }
 
-.dot-c1 { background-color: #3b82f6; }
-.dot-c2 { background-color: #a855f7; }
 .dot-c3 { background-color: #10b981; }
+.dot-fail { background-color: #ef4444; }
 
 .footer-legend-rbac {
   display: inline-flex;
@@ -1106,75 +1450,8 @@
 }
 
 /* ==========================================================================
-   BOTONES DE ACCIÓN
+   NOTIFICACIÓN TOAST FLOTANTE
    ========================================================================== */
-.grades-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.35rem;
-  font-size: 0.88rem;
-  font-weight: 700;
-  border-radius: 8px;
-  border: none;
-  background-color: #064e3b;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(6, 78, 59, 0.25);
-}
-
-.grades-btn-primary:hover {
-  background-color: #022c22;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(6, 78, 59, 0.35);
-}
-
-.grades-btn-primary.btn-view-only {
-  background-color: #0f766e;
-  cursor: default;
-}
-
-.grades-btn-primary.btn-view-only:hover {
-  background-color: #115e59;
-  transform: none;
-}
-
-.grades-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.15rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  color: #0f172a;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.grades-btn-secondary:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  color: #064e3b;
-}
-
-.btn-novedades-admin {
-  background-color: #ecfeff !important;
-  border-color: #a5f3fc !important;
-  color: #0e7490 !important;
-  font-weight: 700 !important;
-}
-
-.btn-novedades-admin:hover {
-  background-color: #cffafe !important;
-  border-color: #67e8f9 !important;
-  color: #0891b2 !important;
-}
-
-/* Toast Flotante */
 .grades-toast {
   position: fixed;
   bottom: 2rem;
@@ -1204,7 +1481,9 @@
   }
 }
 
-/* Responsividad */
+/* ==========================================================================
+   RESPONSIVIDAD Y ADAPTACIÓN A CELULARES
+   ========================================================================== */
 @media (max-width: 900px) {
   .grades-banner-card {
     flex-direction: column;
@@ -1217,5 +1496,34 @@
   }
   .grades-metric-badge {
     flex: 1;
+    min-width: 90px;
+  }
+  .grades-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .grades-filter-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .grades-filter-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* En celulares y pantallas táctiles: icono con color visible por defecto, click a pastel */
+@media (hover: none), (max-width: 900px) {
+  .grades-nav-card .card-icon-wrap i {
+    color: #10b981 !important;
+  }
+  .grades-btn-secondary i {
+    color: #10b981 !important;
+  }
+  .grades-period-pill i {
+    color: #10b981 !important;
+  }
+  .btn-header-subject-jump i {
+    color: #10b981 !important;
   }
 }

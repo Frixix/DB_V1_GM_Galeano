@@ -191,6 +191,97 @@ class GradesService {
   }
 
   /**
+   * Devuelve todas las materias oficiales configuradas para un grado
+   */
+  getSubjectsForGrade(grade) {
+    const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+    const customGradeAssignments = this.customAssignments[grade] || {};
+    const all = Array.from(new Set([
+      ...Object.keys(defaultGradeAssignments),
+      ...Object.keys(customGradeAssignments)
+    ]));
+    return all.length > 0 ? all : ALL_SUBJECTS;
+  }
+
+  /**
+   * Genera el consolidado general de notas de un grado y periodo (Sábana General - Vista General)
+   */
+  getConsolidatedGradeSheet(year = '2026', period = '1° Periodo (25%)', grade = '1° Primaria') {
+    const subjects = this.getSubjectsForGrade(grade);
+    const studentsBase = STUDENTS_BY_GRADE[grade] || STUDENTS_BY_GRADE['1° Primaria'] || [];
+    
+    // Obtenemos los datos de cada materia para el año, periodo y grado
+    const subjectRosters = {};
+    subjects.forEach(subj => {
+      subjectRosters[subj] = this.getBranch(year, period, grade, subj);
+    });
+
+    const studentsReport = studentsBase.map((st) => {
+      const subjectGrades = {};
+      let totalSum = 0;
+      let subjectsCount = 0;
+      let failedCount = 0;
+
+      subjects.forEach(subj => {
+        const branch = subjectRosters[subj];
+        const studentRecord = branch?.students?.find(s => s.id === st.id);
+        if (studentRecord) {
+          const c1 = Number(studentRecord.c1) || 0;
+          const c2 = Number(studentRecord.c2) || 0;
+          const c3 = Number(studentRecord.c3) || 0;
+          const defNum = Number(((c1 * 0.4) + (c2 * 0.4) + (c3 * 0.2)).toFixed(1));
+          subjectGrades[subj] = defNum;
+          totalSum += defNum;
+          subjectsCount += 1;
+          if (defNum < 3.0) {
+            failedCount += 1;
+          }
+        } else {
+          subjectGrades[subj] = 0;
+        }
+      });
+
+      const average = subjectsCount > 0 ? Number((totalSum / subjectsCount).toFixed(2)) : 0;
+
+      return {
+        id: st.id,
+        name: st.name,
+        subjectGrades,
+        average,
+        failedCount
+      };
+    });
+
+    // Ordenar por promedio descendente para determinar ranking/puesto
+    const sortedStudents = [...studentsReport].sort((a, b) => b.average - a.average);
+    const rankedStudents = sortedStudents.map((st, index) => ({
+      ...st,
+      rank: index + 1
+    }));
+
+    // Métricas del consolidado del grado
+    const overallSum = rankedStudents.reduce((acc, s) => acc + s.average, 0);
+    const gradeAverage = rankedStudents.length > 0 ? (overallSum / rankedStudents.length).toFixed(2) : '0.00';
+    const cleanPassingStudents = rankedStudents.filter(s => s.failedCount === 0).length;
+    const gradePassRate = rankedStudents.length > 0 ? Math.round((cleanPassingStudents / rankedStudents.length) * 100) : 0;
+    const topStudent = rankedStudents.length > 0 ? rankedStudents[0] : null;
+
+    return {
+      grade,
+      period,
+      year,
+      subjects,
+      students: rankedStudents,
+      stats: {
+        totalStudents: rankedStudents.length,
+        gradeAverage,
+        gradePassRate,
+        topStudent
+      }
+    };
+  }
+
+  /**
    * Accede a la rama del árbol: Año -> Periodo -> Grado -> Materia
    */
   getBranch(year = '2026', period = '1° Periodo (25%)', grade = '1° Primaria', subject = 'Matemáticas') {

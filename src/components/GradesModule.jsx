@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import PortalNavbar from './PortalNavbar';
 import './GradesModule.css';
 import gradesService from '../services/gradesService';
+import { STUDENTS_BY_GRADE } from '../data/gradesTreeData';
 
 // Clases pastel para los avatares circulares de estudiantes
 const PASTEL_AVATAR_CLASSES = [
@@ -12,6 +13,23 @@ const PASTEL_AVATAR_CLASSES = [
   'avatar-pastel-rose',
   'avatar-pastel-teal'
 ];
+
+// Helper para iconos temáticos de materias
+const getSubjectIcon = (subj) => {
+  if (!subj) return 'ph-book-bookmark';
+  const s = subj.toLowerCase();
+  if (s.includes('lengua') || s.includes('español')) return 'ph-book-open';
+  if (s.includes('mate')) return 'ph-calculator';
+  if (s.includes('natural')) return 'ph-leaf';
+  if (s.includes('social')) return 'ph-globe';
+  if (s.includes('inglés') || s.includes('ingles')) return 'ph-translate';
+  if (s.includes('art')) return 'ph-palette';
+  if (s.includes('física') || s.includes('fisica')) return 'ph-barbell';
+  if (s.includes('ética') || s.includes('etica') || s.includes('valor')) return 'ph-heart';
+  if (s.includes('tecno') || s.includes('inform')) return 'ph-laptop';
+  if (s.includes('relig')) return 'ph-cross';
+  return 'ph-book-bookmark';
+};
 
 export default function GradesModule({ 
   currentUser, 
@@ -57,6 +75,9 @@ export default function GradesModule({
   const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
   const [selectedGrade, setSelectedGrade] = useState(availableGrades[0] || '1° Primaria');
 
+  // Tipo de sábana activa: 'subject' (materia detallada) o 'consolidated' (vista general del grado)
+  const [activeSheetType, setActiveSheetType] = useState('subject');
+
   // Materias disponibles para el grado seleccionado:
   const availableSubjects = useMemo(() => {
     return gradesService.getSubjectsForGradeAndUser(selectedGrade, currentUser);
@@ -91,6 +112,11 @@ export default function GradesModule({
     const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
     setStudents(freshBranch.students || []);
   }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
+
+  // Carga del Consolidado General del Grado (Vista General)
+  const consolidatedData = useMemo(() => {
+    return gradesService.getConsolidatedGradeSheet(selectedYear, selectedPeriod, selectedGrade);
+  }, [selectedYear, selectedPeriod, selectedGrade, curriculumTick, branchData, students]);
 
   // Información del Director de Curso Oficial del Grado
   const gradeDirector = useMemo(() => {
@@ -185,7 +211,7 @@ export default function GradesModule({
     return 'def-pill-bajo';
   };
 
-  // Métricas estadísticas del grupo actual
+  // Métricas estadísticas del grupo actual (Materia)
   const averagesList = students.map(s => Number(calculateDefinitive(s.c1, s.c2, s.c3)));
   const classAverage = averagesList.length 
     ? (averagesList.reduce((acc, curr) => acc + curr, 0) / averagesList.length).toFixed(2)
@@ -204,8 +230,24 @@ export default function GradesModule({
     );
   }, [students, searchFilter]);
 
+  // Filtrado de estudiantes en la Sábana General Consolidada
+  const filteredConsolidatedStudents = useMemo(() => {
+    const list = consolidatedData.students || [];
+    if (!searchFilter.trim()) return list;
+    const term = searchFilter.toLowerCase();
+    return list.filter(s => 
+      s.name.toLowerCase().includes(term) || s.id.toLowerCase().includes(term)
+    );
+  }, [consolidatedData.students, searchFilter]);
+
   // Guardado en la persistencia del árbol
   const handleSaveAction = () => {
+    if (activeSheetType === 'consolidated') {
+      setToastMessage(`Sábana General Consolidada de ${selectedGrade} actualizada con éxito.`);
+      setTimeout(() => setToastMessage(null), 3500);
+      return;
+    }
+
     if (isViewingAsGradeDirector) {
       setToastMessage(`Modo Director de Curso: Supervisión integral de ${selectedSubject}. Calificaciones registradas por ${teacherInfo.teacherName}.`);
       setTimeout(() => setToastMessage(null), 4000);
@@ -246,16 +288,25 @@ export default function GradesModule({
 
       {/* Contenido Principal */}
       <main className="grades-content-area">
-        {/* Banner de Bienvenida y Métricas en Armonía Pastel Balanceada */}
+        {/* Banner de Bienvenida y Métricas Unificado en Paleta Pastel Institucional */}
         <section className="grades-banner-card">
           <div className="grades-banner-info">
             <div className="grades-banner-title-row">
               <h2>
-                <i className="ph-bold ph-book-open"></i>
-                Planilla de Calificaciones y Evaluaciones
+                <i className={`ph-bold ${activeSheetType === 'consolidated' ? 'ph-chart-bar' : 'ph-book-open'}`}></i>
+                {activeSheetType === 'consolidated' 
+                  ? `Sábana General Consolidada • ${selectedGrade}` 
+                  : `Planilla de Calificaciones: ${selectedSubject} (${selectedGrade})`
+                }
               </h2>
+
               {/* Badge Dinámico RBAC del Rol Activo */}
-              {canEditScores ? (
+              {activeSheetType === 'consolidated' ? (
+                <span className="grades-role-mode-pill mode-consolidada">
+                  <i className="ph-bold ph-squares-four"></i>
+                  Vista General del Grado • Todas las Materias
+                </span>
+              ) : canEditScores ? (
                 <span className="grades-role-mode-pill mode-docente">
                   <i className="ph-bold ph-pencil-simple-line"></i>
                   Modo Calificación Docente • Planilla Abierta
@@ -268,7 +319,7 @@ export default function GradesModule({
               ) : isRectora ? (
                 <span className="grades-role-mode-pill mode-rectora">
                   <i className="ph-bold ph-lock-key"></i>
-                  Modo Supervisión Directiva • Notas Protegidas (Solo Lectura SIEE)
+                  Modo Supervisión Directiva • Notas Protegidas (SIEE)
                 </span>
               ) : (
                 <span className="grades-role-mode-pill mode-admin">
@@ -279,42 +330,57 @@ export default function GradesModule({
             </div>
 
             <p>
-              Estructura ponderada: <strong>Cognitivo (40%)</strong>, <strong>Procedimental (40%)</strong> y <strong>Actitudinal (20%)</strong>.
-              {isViewingAsGradeDirector ? (
-                <span className="grades-banner-director-notice">
-                  {' '}Como <strong>Director(a) de Curso de {selectedGrade}</strong>, puedes supervisar las notas y retroalimentaciones de todas las materias de tus estudiantes. Las notas de esta asignatura corresponden a la docente <strong>{teacherInfo.teacherName}</strong> y están en solo lectura.
+              {activeSheetType === 'consolidated' ? (
+                <span>
+                  Sábana general con el consolidado ponderado de todas las asignaturas para <strong>{selectedGrade}</strong> durante el <strong>{selectedPeriod}</strong>. Permite auditar el promedio general, puestos y asignaturas reprobadas.
                 </span>
-              ) : !canEditScores && (
-                <span className="grades-banner-security-notice">
-                  {' '}Por normativa SIEE y seguridad legal institucional, las notas solo pueden ser modificadas por el docente titular asignado.
+              ) : (
+                <span>
+                  Estructura ponderada SIEE: <strong>Cognitivo (40%)</strong>, <strong>Procedimental (40%)</strong> y <strong>Actitudinal (20%)</strong>.
+                  {isViewingAsGradeDirector ? (
+                    <span className="grades-banner-director-notice">
+                      {' '}Como <strong>Director(a) de Curso de {selectedGrade}</strong>, supervisas las notas y retroalimentaciones de la docente <strong>{teacherInfo.teacherName}</strong>.
+                    </span>
+                  ) : !canEditScores && (
+                    <span className="grades-banner-security-notice">
+                      {' '}Por normativa SIEE, las notas solo pueden ser modificadas por el docente titular asignado.
+                    </span>
+                  )}
                 </span>
               )}
             </p>
           </div>
 
+          {/* Métricas Unificadas en Paleta Pastel */}
           <div className="grades-banner-metrics">
-            <div className="grades-metric-badge metric-promedio">
+            <div className="grades-metric-badge">
               <span className="grades-metric-label">
                 <i className="ph-bold ph-chart-line-up"></i> Promedio
               </span>
-              <span className="grades-metric-val">{classAverage}</span>
+              <span className="grades-metric-val">
+                {activeSheetType === 'consolidated' ? consolidatedData.stats.gradeAverage : classAverage}
+              </span>
             </div>
 
-            <div className="grades-metric-badge metric-aprobacion">
+            <div className="grades-metric-badge">
               <span className="grades-metric-label">
                 <i className="ph-bold ph-check-circle"></i> Aprobación
               </span>
-              <span className="grades-metric-val">{passRate}%</span>
+              <span className="grades-metric-val">
+                {activeSheetType === 'consolidated' ? `${consolidatedData.stats.gradePassRate}%` : `${passRate}%`}
+              </span>
             </div>
 
-            <div className="grades-metric-badge metric-estudiantes">
+            <div className="grades-metric-badge">
               <span className="grades-metric-label">
                 <i className="ph-bold ph-student"></i> Roster
               </span>
-              <span className="grades-metric-val">{students.length}</span>
+              <span className="grades-metric-val">
+                {activeSheetType === 'consolidated' ? consolidatedData.stats.totalStudents : students.length}
+              </span>
             </div>
 
-            <div className="grades-metric-badge metric-director">
+            <div className="grades-metric-badge">
               <span className="grades-metric-label">
                 <i className="ph-bold ph-shield-star"></i> Dir. Curso
               </span>
@@ -323,18 +389,170 @@ export default function GradesModule({
               </span>
             </div>
 
-            <div className="grades-metric-badge metric-titular">
-              <span className="grades-metric-label">
-                <i className="ph-bold ph-chalkboard-teacher"></i> Docente
-              </span>
-              <span className="grades-metric-val grades-metric-titular-name" title={`Docente de ${selectedSubject}: ${teacherInfo.teacherName}`}>
-                {teacherInfo.teacherName}
-              </span>
-            </div>
+            {activeSheetType === 'consolidated' ? (
+              <div className="grades-metric-badge">
+                <span className="grades-metric-label">
+                  <i className="ph-bold ph-trophy"></i> Puesto 1°
+                </span>
+                <span className="grades-metric-val grades-metric-titular-name" title={`Mejor estudiante del grado: ${consolidatedData.stats.topStudent?.name || '—'}`}>
+                  {consolidatedData.stats.topStudent ? consolidatedData.stats.topStudent.name.split(' ')[0] : '—'}
+                </span>
+              </div>
+            ) : (
+              <div className="grades-metric-badge">
+                <span className="grades-metric-label">
+                  <i className="ph-bold ph-chalkboard-teacher"></i> Docente
+                </span>
+                <span className="grades-metric-val grades-metric-titular-name" title={`Docente de ${selectedSubject}: ${teacherInfo.teacherName}`}>
+                  {teacherInfo.teacherName}
+                </span>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Visualización Visual de la Jerarquía de Datos (Árbol Relacional RBAC) */}
+        {/* =====================================================================
+            SECCIÓN 1: NAVEGACIÓN DE CARPETAS / CARDS DE GRADOS ACADÉMICOS
+            "pasar de carpeta a carpeta, o de cards a cards"
+            ===================================================================== */}
+        <section className="grades-nav-section">
+          <div className="grades-nav-section-header">
+            <div className="section-title-wrap">
+              <i className="ph-bold ph-folder-notch-open"></i>
+              <h3>Carpetas de Grados Académicos</h3>
+            </div>
+            <div className="grades-period-pills-wrap">
+              <span className="period-label">Periodo Académico:</span>
+              {availablePeriods.map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`grades-period-pill ${selectedPeriod === p ? 'active' : ''}`}
+                  onClick={() => setSelectedPeriod(p)}
+                  title={`Cambiar a ${p}`}
+                >
+                  <i className="ph-bold ph-clock"></i>
+                  <span>{p.split(' ')[0]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grades-cards-grid grades-folder-grid">
+            {availableGrades.map((g) => {
+              const isSelected = selectedGrade === g;
+              const dir = gradesService.getGradeDirector(g);
+              const isUserDir = gradesService.isGradeDirector(currentUser, g);
+              const studentCount = (STUDENTS_BY_GRADE[g]?.length) || 6;
+
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  className={`grades-nav-card grade-folder-card ${isSelected ? 'active' : ''}`}
+                  onClick={() => setSelectedGrade(g)}
+                  title={`Seleccionar carpeta de ${g}`}
+                >
+                  <div className="card-icon-wrap">
+                    <i className="ph-bold ph-folder"></i>
+                  </div>
+                  <div className="card-text-wrap">
+                    <div className="card-title-row">
+                      <span className="card-title">{g}</span>
+                      {isUserDir && (
+                        <span className="card-mini-pill dir-pill" title="Eres el(la) Director(a) de Curso de este grado">
+                          <i className="ph-bold ph-shield-star"></i> Dir. Curso
+                        </span>
+                      )}
+                    </div>
+                    <span className="card-subtitle">
+                      Dir: {dir.teacherName} • {studentCount} estudiantes
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* =====================================================================
+            SECCIÓN 2: NAVEGACIÓN DE SÁBANAS DE NOTAS (CARDS A CARDS)
+            Sábana General Consolidada + Sábanas por Materia
+            ===================================================================== */}
+        <section className="grades-nav-section">
+          <div className="grades-nav-section-header">
+            <div className="section-title-wrap">
+              <i className="ph-bold ph-files"></i>
+              <h3>Sábanas de Notas Disponibles • {selectedGrade}</h3>
+            </div>
+            <span className="section-meta-pill">
+              {availableSubjects.length + 1} sábanas en {selectedGrade}
+            </span>
+          </div>
+
+          <div className="grades-cards-grid sabanas-cards-grid">
+            {/* Card 1: Sábana General Consolidada (Vista General del Grado) */}
+            <button
+              type="button"
+              className={`grades-nav-card sabana-card sabana-consolidated-card ${activeSheetType === 'consolidated' ? 'active' : ''}`}
+              onClick={() => setActiveSheetType('consolidated')}
+              title="Ver la sábana general consolidada con todas las materias del grado"
+            >
+              <div className="card-icon-wrap icon-consolidada">
+                <i className="ph-bold ph-chart-bar"></i>
+              </div>
+              <div className="card-text-wrap">
+                <div className="card-title-row">
+                  <span className="card-title">Sábana General (Vista General)</span>
+                  <span className="card-general-badge">Todas las Asignaturas</span>
+                </div>
+                <span className="card-subtitle">
+                  Consolidado general, puestos, promedios y reprobadas
+                </span>
+              </div>
+            </button>
+
+            {/* Cards 2..N: Asignaturas individuales */}
+            {availableSubjects.map((subj) => {
+              const isSelected = activeSheetType === 'subject' && selectedSubject === subj;
+              const teacher = gradesService.getTeacherAssignment(selectedGrade, subj);
+              const isMySubject = gradesService.canEditScores(currentUser, selectedGrade, subj);
+              const iconClass = getSubjectIcon(subj);
+
+              return (
+                <button
+                  key={subj}
+                  type="button"
+                  className={`grades-nav-card sabana-card ${isSelected ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedSubject(subj);
+                    setActiveSheetType('subject');
+                  }}
+                  title={`Abrir planilla de notas de ${subj}`}
+                >
+                  <div className="card-icon-wrap">
+                    <i className={`ph-bold ${iconClass}`}></i>
+                  </div>
+                  <div className="card-text-wrap">
+                    <div className="card-title-row">
+                      <span className="card-title">{subj}</span>
+                      {isMySubject && (
+                        <span className="card-mini-pill editable-pill" title="Materia a tu cargo (Editable)">
+                          <i className="ph-bold ph-pencil-simple"></i> Mi Asignatura
+                        </span>
+                      )}
+                    </div>
+                    <span className="card-subtitle">
+                      Docente: {teacher.teacherName}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Visualización Visual de la Jerarquía de Datos Relacional (RBAC) */}
         <section className="grades-tree-path-card">
           <div className="grades-tree-path-header">
             <div className="tree-badge">
@@ -343,8 +561,14 @@ export default function GradesModule({
             </div>
             <div className="tree-path-meta">
               <span className="tree-security-pill">
-                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check')}`}></i>
-                {canEditScores 
+                <i className={`ph-bold ${
+                  activeSheetType === 'consolidated' 
+                    ? 'ph-chart-bar' 
+                    : (canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check'))
+                }`}></i>
+                {activeSheetType === 'consolidated'
+                  ? `Consolidado General de ${selectedGrade} • Supervisión integral`
+                  : canEditScores 
                   ? `Docente autorizado: ${currentUser?.name || teacherInfo.teacherName}`
                   : isViewingAsGradeDirector
                   ? `Supervisión: Dir. de Curso ${gradeDirector.teacherName} (Docente: ${teacherInfo.teacherName})`
@@ -356,7 +580,7 @@ export default function GradesModule({
 
           <div className="grades-tree-breadcrumbs">
             {/* Nivel 1: Año Lectivo */}
-            <div className="tree-crumb crumb-year">
+            <div className="tree-crumb">
               <span className="crumb-level">Año Lectivo</span>
               <span className="crumb-val">
                 <i className="ph-bold ph-calendar-blank"></i> {selectedYear}
@@ -366,7 +590,7 @@ export default function GradesModule({
             <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
 
             {/* Nivel 2: Período */}
-            <div className="tree-crumb crumb-period">
+            <div className="tree-crumb">
               <span className="crumb-level">Periodo</span>
               <span className="crumb-val">
                 <i className="ph-bold ph-clock"></i> {selectedPeriod.split(' ')[0]}
@@ -376,7 +600,7 @@ export default function GradesModule({
             <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
 
             {/* Nivel 3: Grado */}
-            <div className="tree-crumb crumb-grade">
+            <div className="tree-crumb">
               <span className="crumb-level">Grado</span>
               <span className="crumb-val">
                 <i className="ph-bold ph-student"></i> {selectedGrade}
@@ -386,7 +610,7 @@ export default function GradesModule({
             <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
 
             {/* Director(a) de Curso Oficial por Grado */}
-            <div className="tree-crumb crumb-director">
+            <div className="tree-crumb">
               <span className="crumb-level">Director de Curso</span>
               <span className="crumb-val">
                 <i className="ph-bold ph-shield-star"></i> {gradeDirector.teacherName}
@@ -395,27 +619,18 @@ export default function GradesModule({
 
             <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
 
-            {/* Nivel 4: Materia / Asignatura */}
-            <div className="tree-crumb crumb-subject">
-              <span className="crumb-level">Asignatura</span>
+            {/* Nivel 4: Sábana Activa */}
+            <div className="tree-crumb crumb-active-leaf">
+              <span className="crumb-level">{activeSheetType === 'consolidated' ? 'Modo de Sábana' : 'Asignatura'}</span>
               <span className="crumb-val">
-                <i className="ph-bold ph-book-bookmark"></i> {selectedSubject}
-              </span>
-            </div>
-
-            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
-
-            {/* Asignación Docente Oficial de la Materia */}
-            <div className="tree-crumb crumb-teacher">
-              <span className="crumb-level">Docente Asignatura</span>
-              <span className="crumb-val">
-                <i className="ph-bold ph-chalkboard-teacher"></i> {teacherInfo.teacherName}
+                <i className={`ph-bold ${activeSheetType === 'consolidated' ? 'ph-chart-bar' : getSubjectIcon(selectedSubject)}`}></i>
+                {activeSheetType === 'consolidated' ? 'Sábana General Consolidada' : selectedSubject}
               </span>
             </div>
           </div>
         </section>
 
-        {/* Barra de Filtros y Navegación del Árbol con Reglas RBAC */}
+        {/* Barra de Filtros Rápidos y Acciones */}
         <section className="grades-filter-bar">
           <div className="grades-filter-group">
             {/* Selector Año Lectivo */}
@@ -432,54 +647,12 @@ export default function GradesModule({
               </select>
             </div>
 
-            {/* Selector Período */}
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-clock"></i> Período</label>
-              <select 
-                value={selectedPeriod} 
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                title="Seleccione el Período Académico"
-              >
-                {availablePeriods.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Selector Grado */}
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-student"></i> Grado</label>
-              <select 
-                value={selectedGrade} 
-                onChange={(e) => setSelectedGrade(e.target.value)}
-                title="Seleccione el Grado Académico"
-              >
-                {availableGrades.map(g => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Selector Materia (Incluye todas las materias si es Director de Curso del Grado) */}
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-chalkboard-teacher"></i> Materia</label>
-              <select 
-                value={selectedSubject} 
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                title="Seleccione la Materia"
-              >
-                {availableSubjects.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
             {/* Búsqueda rápida de estudiante */}
             <div className="grades-select-item grades-search-item">
               <label><i className="ph-bold ph-magnifying-glass"></i> Filtrar Alumno</label>
               <input 
                 type="text" 
-                placeholder="Buscar por nombre..." 
+                placeholder="Buscar alumno por nombre o código..." 
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
                 className="grades-search-input"
@@ -501,7 +674,7 @@ export default function GradesModule({
                 }}
                 title="Consola de Administrador: Novedades & Reemplazos Docentes Inmediatos"
               >
-                <i className="ph-bold ph-arrows-left-right" style={{ color: '#0891b2' }}></i>
+                <i className="ph-bold ph-arrows-left-right"></i>
                 <span>Novedades & Reemplazos</span>
               </button>
             )}
@@ -509,362 +682,25 @@ export default function GradesModule({
             <button 
               type="button" 
               className="grades-btn-secondary" 
-              onClick={() => alert(`Generando boletín PDF oficial de ${selectedSubject} - ${selectedGrade} (${selectedPeriod})...`)}
+              onClick={() => alert(`Generando boletín PDF oficial de ${activeSheetType === 'consolidated' ? 'Sábana General' : selectedSubject} - ${selectedGrade} (${selectedPeriod})...`)}
               title="Descargar boletín de calificaciones en formato PDF"
             >
               <i className="ph-bold ph-file-arrow-down"></i>
               <span>Boletín PDF</span>
             </button>
-            <button 
-              type="button" 
-              className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
-              onClick={handleSaveAction}
-              title={
-                canEditScores 
-                  ? "Guardar notas y observaciones docentes" 
-                  : isViewingAsGradeDirector 
-                  ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
-                  : "Guardar observaciones de auditoría directiva"
-              }
-            >
-              <i className={`ph-bold ${
-                canEditScores 
-                  ? 'ph-floppy-disk' 
-                  : isViewingAsGradeDirector 
-                  ? 'ph-eye' 
-                  : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
-              }`}></i>
-              <span>
-                {canEditScores 
-                  ? 'Guardar Planilla' 
-                  : isViewingAsGradeDirector 
-                  ? 'Modo Director de Curso' 
-                  : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
-                }
-              </span>
-            </button>
-          </div>
-        </section>
 
-        {/* Tabla / Planilla de Registro de Notas con Encabezados Pastel por Componente */}
-        <section className="grades-sheet-card">
-          <div className="grades-table-wrapper">
-            <table className="grades-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '38px', textAlign: 'center' }}>#</th>
-                  <th style={{ minWidth: '200px' }}>Estudiante</th>
-                  
-                  {/* Componente 1: Cognitivo (40%) - Pastel Sky Blue */}
-                  <th className="th-pastel-cognitivo" style={{ textAlign: 'center', minWidth: '95px' }}>
-                    <div className="th-component-header">
-                      <span>Cognitivo</span>
-                      <span className="th-badge-c1">40%</span>
-                      {!canEditScores && (
-                        <i 
-                          className="ph-bold ph-lock-key th-lock-icon" 
-                          title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
-                        ></i>
-                      )}
-                    </div>
-                  </th>
-
-                  {/* Componente 2: Procedimental (40%) - Pastel Lavender */}
-                  <th className="th-pastel-procedimental" style={{ textAlign: 'center', minWidth: '95px' }}>
-                    <div className="th-component-header">
-                      <span>Procedimental</span>
-                      <span className="th-badge-c2">40%</span>
-                      {!canEditScores && (
-                        <i 
-                          className="ph-bold ph-lock-key th-lock-icon" 
-                          title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
-                        ></i>
-                      )}
-                    </div>
-                  </th>
-
-                  {/* Componente 3: Actitudinal (20%) - Pastel Mint */}
-                  <th className="th-pastel-actitudinal" style={{ textAlign: 'center', minWidth: '95px' }}>
-                    <div className="th-component-header">
-                      <span>Actitudinal</span>
-                      <span className="th-badge-c3">20%</span>
-                      {!canEditScores && (
-                        <i 
-                          className="ph-bold ph-lock-key th-lock-icon" 
-                          title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
-                        ></i>
-                      )}
-                    </div>
-                  </th>
-
-                  {/* Definitiva - Pastel Warm Amber */}
-                  <th className="th-pastel-definitiva" style={{ textAlign: 'center', minWidth: '85px' }}>
-                    <div className="th-component-header">
-                      <span>Definitiva</span>
-                      <span className="th-badge-def">100%</span>
-                    </div>
-                  </th>
-
-                  {/* Desempeño - Pastel Teal */}
-                  <th className="th-pastel-desempeno" style={{ textAlign: 'center', minWidth: '110px' }}>
-                    Nivel SIEE
-                  </th>
-
-                  {/* Rama Árbol: Retroalimentación Docente */}
-                  <th className="th-pastel-docente-col" style={{ minWidth: '220px' }}>
-                    <div className="th-component-header">
-                      <i className="ph-bold ph-chalkboard-teacher"></i>
-                      <span>Retroalimentación Docente</span>
-                      {canEditFeedback ? (
-                        <span className="th-badge-editable">Editable</span>
-                      ) : isViewingAsGradeDirector ? (
-                        <span className="th-badge-director" title="Visible para seguimiento del Director de Curso">Dir. de Curso</span>
-                      ) : null}
-                    </div>
-                  </th>
-
-                  {/* Rama Árbol: Sugerencia Directiva (Rectoría) */}
-                  <th className="th-pastel-directiva-col" style={{ minWidth: '220px' }}>
-                    <div className="th-component-header">
-                      <i className="ph-bold ph-crown"></i>
-                      <span>Sugerencia Directiva (Rectoría)</span>
-                      {canEditDirective && <span className="th-badge-rectora">Auditoría</span>}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                      No se encontraron estudiantes para los filtros seleccionados.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredStudents.map((student, idx) => {
-                    const def = calculateDefinitive(student.c1, student.c2, student.c3);
-                    const des = getDesempeno(def);
-                    const defBadgeClass = getDefinitiveBadgeClass(def);
-                    const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
-
-                    return (
-                      <tr key={student.id}>
-                        <td style={{ textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
-                          {idx + 1}
-                        </td>
-
-                        {/* Estudiante con Avatar Pastel */}
-                        <td>
-                          <div className="grades-student-cell">
-                            <div className={`grades-student-avatar ${avatarColorClass}`}>
-                              {student.name.charAt(0)}
-                            </div>
-                            <div className="grades-student-info">
-                              <span className="grades-student-name">{student.name}</span>
-                              <span className="grades-student-code">{student.id}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Nota Cognitivo (40%) */}
-                        <td style={{ textAlign: 'center' }} className="td-score-c1">
-                          <div className="score-input-wrap">
-                            <input 
-                              type="number" 
-                              step="0.1" 
-                              min="1.0" 
-                              max="5.0"
-                              value={student.c1}
-                              onChange={(e) => handleScoreChange(student.id, 'c1', e.target.value)}
-                              className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                              readOnly={!canEditScores}
-                              title={
-                                !canEditScores 
-                                  ? (isViewingAsGradeDirector 
-                                      ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                      : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
-                                  : "Calificar componente cognitivo"
-                              }
-                            />
-                            {!canEditScores && (
-                              <i 
-                                className="ph-bold ph-lock-key input-mini-lock" 
-                                title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
-                              ></i>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Nota Procedimental (40%) */}
-                        <td style={{ textAlign: 'center' }} className="td-score-c2">
-                          <div className="score-input-wrap">
-                            <input 
-                              type="number" 
-                              step="0.1" 
-                              min="1.0" 
-                              max="5.0"
-                              value={student.c2}
-                              onChange={(e) => handleScoreChange(student.id, 'c2', e.target.value)}
-                              className={`grades-input-score input-c2 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                              readOnly={!canEditScores}
-                              title={
-                                !canEditScores 
-                                  ? (isViewingAsGradeDirector 
-                                      ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                      : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
-                                  : "Calificar componente procedimental"
-                              }
-                            />
-                            {!canEditScores && (
-                              <i 
-                                className="ph-bold ph-lock-key input-mini-lock" 
-                                title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
-                              ></i>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Nota Actitudinal (20%) */}
-                        <td style={{ textAlign: 'center' }} className="td-score-c3">
-                          <div className="score-input-wrap">
-                            <input 
-                              type="number" 
-                              step="0.1" 
-                              min="1.0" 
-                              max="5.0"
-                              value={student.c3}
-                              onChange={(e) => handleScoreChange(student.id, 'c3', e.target.value)}
-                              className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                              readOnly={!canEditScores}
-                              title={
-                                !canEditScores 
-                                  ? (isViewingAsGradeDirector 
-                                      ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                      : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
-                                  : "Calificar componente actitudinal"
-                              }
-                            />
-                            {!canEditScores && (
-                              <i 
-                                className="ph-bold ph-lock-key input-mini-lock" 
-                                title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
-                              ></i>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Definitiva con Pill Pastel */}
-                        <td className="grades-definitiva-cell td-score-def">
-                          <span className={`definitiva-pill ${defBadgeClass}`}>
-                            {def}
-                          </span>
-                        </td>
-
-                        {/* Desempeño SIEE */}
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={`tag-desempeno ${des.className}`}>
-                            <i className={`ph-bold ${des.icon}`}></i>
-                            {des.label}
-                          </span>
-                        </td>
-
-                        {/* Rama: Retroalimentación Docente */}
-                        <td>
-                          {canEditFeedback ? (
-                            <div className="obs-input-wrap">
-                              <input 
-                                type="text"
-                                value={student.retroalimentacionDocente || ''}
-                                onChange={(e) => handleTeacherFeedbackChange(student.id, e.target.value)}
-                                placeholder="Observación pedagógica al estudiante..."
-                                className="grades-input-obs obs-docente-input"
-                              />
-                            </div>
-                          ) : (
-                            <div className="obs-readonly-box obs-docente-readonly">
-                              <i className="ph-bold ph-chat-circle-dots"></i>
-                              <span>
-                                {student.retroalimentacionDocente 
-                                  ? student.retroalimentacionDocente 
-                                  : (isViewingAsGradeDirector 
-                                      ? `Sin retroalimentación de ${teacherInfo.teacherName} aún` 
-                                      : 'Sin retroalimentación docente aún'
-                                    )
-                                }
-                              </span>
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Rama: Sugerencia Directiva (Rectoría) */}
-                        <td>
-                          {canEditDirective ? (
-                            <div className="obs-input-wrap">
-                              <input 
-                                type="text"
-                                value={student.sugerenciaDirectiva || ''}
-                                onChange={(e) => handleDirectiveSuggestionChange(student.id, e.target.value)}
-                                placeholder="Sugerencia / Nota de auditoría de Rectoría..."
-                                className="grades-input-obs obs-rectora-input"
-                              />
-                              <span className="obs-directiva-indicator" title="Sugerencia registrada por Rectoría">
-                                <i className="ph-bold ph-crown"></i>
-                              </span>
-                            </div>
-                          ) : (
-                            student.sugerenciaDirectiva ? (
-                              <div className="obs-readonly-box obs-rectora-readonly" title="Sugerencia oficial emitida por Rectoría">
-                                <span className="obs-crown-badge">👑 Rectoría:</span>
-                                <span>{student.sugerenciaDirectiva}</span>
-                              </div>
-                            ) : (
-                              <span className="obs-empty-dash" title="Sin sugerencias directivas registradas">—</span>
-                            )
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer de la Planilla */}
-          <div className="grades-sheet-footer">
-            <div className="grades-footer-legend">
-              <span className="footer-legend-item">
-                <span className="legend-dot dot-c1"></span> Cognitivo 40%
-              </span>
-              <span className="footer-legend-item">
-                <span className="legend-dot dot-c2"></span> Procedimental 40%
-              </span>
-              <span className="footer-legend-item">
-                <span className="legend-dot dot-c3"></span> Actitudinal 20%
-              </span>
-              <span className="footer-legend-rbac">
-                <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check')}`}></i>
-                {canEditScores 
-                  ? 'Planilla abierta para calificar y retroalimentar' 
-                  : isViewingAsGradeDirector
-                  ? `Supervisión de Director(a) de Curso (${gradeDirector.teacherName}) • Calificación por ${teacherInfo.teacherName}`
-                  : `Supervisión institucional: notas protegidas de ${teacherInfo.teacherName}`}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button 
-                type="button" 
-                className="grades-btn-secondary" 
-                onClick={() => alert(`Exportando consolidado de calificaciones de ${selectedSubject} en Excel...`)}
-              >
-                <i className="ph-bold ph-file-xls" style={{ color: '#064e3b' }}></i>
-                <span>Consolidado Excel</span>
-              </button>
+            {activeSheetType === 'subject' && (
               <button 
                 type="button" 
                 className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
                 onClick={handleSaveAction}
+                title={
+                  canEditScores 
+                    ? "Guardar notas y observaciones docentes" 
+                    : isViewingAsGradeDirector 
+                    ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
+                    : "Guardar observaciones de auditoría directiva"
+                }
               >
                 <i className={`ph-bold ${
                   canEditScores 
@@ -875,16 +711,568 @@ export default function GradesModule({
                 }`}></i>
                 <span>
                   {canEditScores 
-                    ? 'Confirmar y Guardar' 
+                    ? 'Guardar Planilla' 
                     : isViewingAsGradeDirector 
                     ? 'Modo Director de Curso' 
                     : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
                   }
                 </span>
               </button>
-            </div>
+            )}
           </div>
         </section>
+
+        {/* =====================================================================
+            VISTA 1: SÁBANA GENERAL CONSOLIDADA DEL GRADO (VISTA GENERAL)
+            Muestra todas las materias lado a lado, promedios, puestos y reprobadas
+            ===================================================================== */}
+        {activeSheetType === 'consolidated' ? (
+          <section className="grades-sheet-card grades-consolidated-sheet-card">
+            <div className="consolidated-header-bar">
+              <div className="consolidated-header-title">
+                <i className="ph-bold ph-table"></i>
+                <div>
+                  <h4>Matriz General de Calificaciones • {selectedGrade}</h4>
+                  <p>Haga clic en el encabezado de cualquier asignatura para abrir su planilla detallada SIEE.</p>
+                </div>
+              </div>
+              <div className="consolidated-header-actions">
+                <button
+                  type="button"
+                  className="grades-btn-secondary"
+                  onClick={() => alert(`Exportando sábana general consolidada de ${selectedGrade} a Excel...`)}
+                  title="Exportar sábana completa a Excel"
+                >
+                  <i className="ph-bold ph-file-xls"></i>
+                  <span>Exportar Matriz Excel</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grades-table-wrapper">
+              <table className="grades-table grades-consolidated-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '45px', textAlign: 'center' }}>Puesto</th>
+                    <th style={{ minWidth: '220px' }}>Estudiante</th>
+                    
+                    {/* Columnas dinámicas de todas las materias del grado */}
+                    {consolidatedData.subjects.map(subj => {
+                      const iconClass = getSubjectIcon(subj);
+                      return (
+                        <th key={subj} className="th-consolidated-subject" style={{ textAlign: 'center', minWidth: '105px' }}>
+                          <button
+                            type="button"
+                            className="btn-header-subject-jump"
+                            onClick={() => {
+                              setSelectedSubject(subj);
+                              setActiveSheetType('subject');
+                            }}
+                            title={`Abrir planilla detallada de ${subj}`}
+                          >
+                            <i className={`ph-bold ${iconClass}`}></i>
+                            <span>{subj}</span>
+                          </button>
+                        </th>
+                      );
+                    })}
+
+                    <th style={{ textAlign: 'center', minWidth: '100px' }} className="th-consolidated-avg">
+                      Promedio
+                    </th>
+                    <th style={{ textAlign: 'center', minWidth: '95px' }} className="th-consolidated-failed">
+                      Reprobadas
+                    </th>
+                    <th style={{ textAlign: 'center', minWidth: '110px' }}>
+                      Nivel SIEE
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredConsolidatedStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan={consolidatedData.subjects.length + 5} style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
+                        No se encontraron estudiantes para los filtros seleccionados.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredConsolidatedStudents.map((st, idx) => {
+                      const des = getDesempeno(st.average);
+                      const defBadgeClass = getDefinitiveBadgeClass(st.average);
+                      const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
+
+                      return (
+                        <tr key={st.id}>
+                          {/* Puesto en el grado */}
+                          <td style={{ textAlign: 'center' }}>
+                            <div className={`rank-pill rank-${st.rank}`}>
+                              {st.rank === 1 && <i className="ph-bold ph-trophy"></i>}
+                              {st.rank === 2 && <i className="ph-bold ph-medal"></i>}
+                              {st.rank === 3 && <i className="ph-bold ph-medal"></i>}
+                              <span>{st.rank}°</span>
+                            </div>
+                          </td>
+
+                          {/* Estudiante con Avatar Pastel */}
+                          <td>
+                            <div className="grades-student-cell">
+                              <div className={`grades-student-avatar ${avatarColorClass}`}>
+                                {st.name.charAt(0)}
+                              </div>
+                              <div className="grades-student-info">
+                                <span className="grades-student-name">{st.name}</span>
+                                <span className="grades-student-code">{st.id}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Notas definitivas en cada materia */}
+                          {consolidatedData.subjects.map(subj => {
+                            const score = st.subjectGrades[subj] || 0;
+                            const isPassing = score >= 3.0;
+                            return (
+                              <td key={subj} style={{ textAlign: 'center' }} className="td-consolidated-score">
+                                <span 
+                                  className={`consolidated-score-pill ${isPassing ? 'score-pass' : 'score-fail'}`}
+                                  onClick={() => {
+                                    setSelectedSubject(subj);
+                                    setActiveSheetType('subject');
+                                  }}
+                                  title={`Ver planilla de ${subj} de ${st.name}`}
+                                >
+                                  {score > 0 ? score.toFixed(1) : '—'}
+                                </span>
+                              </td>
+                            );
+                          })}
+
+                          {/* Promedio General del Estudiante */}
+                          <td style={{ textAlign: 'center' }} className="td-consolidated-avg">
+                            <span className={`definitiva-pill ${defBadgeClass}`}>
+                              {st.average.toFixed(2)}
+                            </span>
+                          </td>
+
+                          {/* Materias Reprobadas */}
+                          <td style={{ textAlign: 'center' }}>
+                            {st.failedCount === 0 ? (
+                              <span className="failed-zero-pill">
+                                <i className="ph-bold ph-check"></i> 0
+                              </span>
+                            ) : (
+                              <span className="failed-alert-pill">
+                                <i className="ph-bold ph-warning"></i> {st.failedCount}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Desempeño SIEE */}
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`tag-desempeno ${des.className}`}>
+                              <i className={`ph-bold ${des.icon}`}></i>
+                              {des.label}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer de la Sábana General */}
+            <div className="grades-sheet-footer">
+              <div className="grades-footer-legend">
+                <span className="footer-legend-item">
+                  <span className="legend-dot dot-c3"></span> Materias Aprobadas (≥ 3.0)
+                </span>
+                <span className="footer-legend-item">
+                  <span className="legend-dot dot-fail"></span> Reprobadas (&lt; 3.0)
+                </span>
+                <span className="footer-legend-rbac">
+                  <i className="ph-bold ph-shield-check"></i>
+                  Consolidado Oficial de Calificaciones SIEE • Institución Educativa Galeano
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  className="grades-btn-secondary" 
+                  onClick={() => alert(`Generando reporte impreso de la sábana de notas de ${selectedGrade}...`)}
+                >
+                  <i className="ph-bold ph-printer"></i>
+                  <span>Imprimir Sábana</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        ) : (
+          /* =====================================================================
+             VISTA 2: PLANILLA DETALLADA DE LA ASIGNATURA SELECCIONADA
+             Estructura 3 componentes: Cognitivo 40%, Procedimental 40%, Actitudinal 20%
+             ===================================================================== */
+          <section className="grades-sheet-card">
+            <div className="subject-sheet-header-bar">
+              <div className="subject-sheet-info">
+                <div className="subject-icon-box">
+                  <i className={`ph-bold ${getSubjectIcon(selectedSubject)}`}></i>
+                </div>
+                <div>
+                  <h4>Planilla Oficial de {selectedSubject} • {selectedGrade}</h4>
+                  <p>Docente a cargo: <strong>{teacherInfo.teacherName}</strong> • {selectedPeriod}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="grades-btn-secondary btn-return-consolidated"
+                onClick={() => setActiveSheetType('consolidated')}
+                title="Volver a la sábana general consolidada del grado"
+              >
+                <i className="ph-bold ph-chart-bar"></i>
+                <span>Ver Sábana General</span>
+              </button>
+            </div>
+
+            <div className="grades-table-wrapper">
+              <table className="grades-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '38px', textAlign: 'center' }}>#</th>
+                    <th style={{ minWidth: '200px' }}>Estudiante</th>
+                    
+                    {/* Componente 1: Cognitivo (40%) */}
+                    <th className="th-pastel-component" style={{ textAlign: 'center', minWidth: '95px' }}>
+                      <div className="th-component-header">
+                        <span>Cognitivo</span>
+                        <span className="th-badge-weight">40%</span>
+                        {!canEditScores && (
+                          <i 
+                            className="ph-bold ph-lock-key th-lock-icon" 
+                            title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                          ></i>
+                        )}
+                      </div>
+                    </th>
+
+                    {/* Componente 2: Procedimental (40%) */}
+                    <th className="th-pastel-component" style={{ textAlign: 'center', minWidth: '95px' }}>
+                      <div className="th-component-header">
+                        <span>Procedimental</span>
+                        <span className="th-badge-weight">40%</span>
+                        {!canEditScores && (
+                          <i 
+                            className="ph-bold ph-lock-key th-lock-icon" 
+                            title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                          ></i>
+                        )}
+                      </div>
+                    </th>
+
+                    {/* Componente 3: Actitudinal (20%) */}
+                    <th className="th-pastel-component" style={{ textAlign: 'center', minWidth: '95px' }}>
+                      <div className="th-component-header">
+                        <span>Actitudinal</span>
+                        <span className="th-badge-weight">20%</span>
+                        {!canEditScores && (
+                          <i 
+                            className="ph-bold ph-lock-key th-lock-icon" 
+                            title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                          ></i>
+                        )}
+                      </div>
+                    </th>
+
+                    {/* Definitiva */}
+                    <th className="th-pastel-definitiva" style={{ textAlign: 'center', minWidth: '85px' }}>
+                      <div className="th-component-header">
+                        <span>Definitiva</span>
+                        <span className="th-badge-def">100%</span>
+                      </div>
+                    </th>
+
+                    {/* Desempeño */}
+                    <th className="th-pastel-desempeno" style={{ textAlign: 'center', minWidth: '110px' }}>
+                      Nivel SIEE
+                    </th>
+
+                    {/* Rama Árbol: Retroalimentación Docente */}
+                    <th className="th-pastel-docente-col" style={{ minWidth: '220px' }}>
+                      <div className="th-component-header">
+                        <i className="ph-bold ph-chalkboard-teacher"></i>
+                        <span>Retroalimentación Docente</span>
+                        {canEditFeedback ? (
+                          <span className="th-badge-editable">Editable</span>
+                        ) : isViewingAsGradeDirector ? (
+                          <span className="th-badge-director" title="Visible para seguimiento del Director de Curso">Dir. de Curso</span>
+                        ) : null}
+                      </div>
+                    </th>
+
+                    {/* Rama Árbol: Sugerencia Directiva (Rectoría) */}
+                    <th className="th-pastel-directiva-col" style={{ minWidth: '220px' }}>
+                      <div className="th-component-header">
+                        <i className="ph-bold ph-crown"></i>
+                        <span>Sugerencia Directiva (Rectoría)</span>
+                        {canEditDirective && <span className="th-badge-rectora">Auditoría</span>}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                        No se encontraron estudiantes para los filtros seleccionados.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStudents.map((student, idx) => {
+                      const def = calculateDefinitive(student.c1, student.c2, student.c3);
+                      const des = getDesempeno(def);
+                      const defBadgeClass = getDefinitiveBadgeClass(def);
+                      const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
+
+                      return (
+                        <tr key={student.id}>
+                          <td style={{ textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                            {idx + 1}
+                          </td>
+
+                          {/* Estudiante con Avatar Pastel */}
+                          <td>
+                            <div className="grades-student-cell">
+                              <div className={`grades-student-avatar ${avatarColorClass}`}>
+                                {student.name.charAt(0)}
+                              </div>
+                              <div className="grades-student-info">
+                                <span className="grades-student-name">{student.name}</span>
+                                <span className="grades-student-code">{student.id}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Nota Cognitivo (40%) */}
+                          <td style={{ textAlign: 'center' }} className="td-score-c1">
+                            <div className="score-input-wrap">
+                              <input 
+                                type="number" 
+                                step="0.1" 
+                                min="1.0" 
+                                max="5.0"
+                                value={student.c1}
+                                onChange={(e) => handleScoreChange(student.id, 'c1', e.target.value)}
+                                className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                                readOnly={!canEditScores}
+                                title={
+                                  !canEditScores 
+                                    ? (isViewingAsGradeDirector 
+                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                        : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
+                                    : "Calificar componente cognitivo"
+                                }
+                              />
+                              {!canEditScores && (
+                                <i 
+                                  className="ph-bold ph-lock-key input-mini-lock" 
+                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                                ></i>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Nota Procedimental (40%) */}
+                          <td style={{ textAlign: 'center' }} className="td-score-c2">
+                            <div className="score-input-wrap">
+                              <input 
+                                type="number" 
+                                step="0.1" 
+                                min="1.0" 
+                                max="5.0"
+                                value={student.c2}
+                                onChange={(e) => handleScoreChange(student.id, 'c2', e.target.value)}
+                                className={`grades-input-score input-c2 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                                readOnly={!canEditScores}
+                                title={
+                                  !canEditScores 
+                                    ? (isViewingAsGradeDirector 
+                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                        : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
+                                    : "Calificar componente procedimental"
+                                }
+                              />
+                              {!canEditScores && (
+                                <i 
+                                  className="ph-bold ph-lock-key input-mini-lock" 
+                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                                ></i>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Nota Actitudinal (20%) */}
+                          <td style={{ textAlign: 'center' }} className="td-score-c3">
+                            <div className="score-input-wrap">
+                              <input 
+                                type="number" 
+                                step="0.1" 
+                                min="1.0" 
+                                max="5.0"
+                                value={student.c3}
+                                onChange={(e) => handleScoreChange(student.id, 'c3', e.target.value)}
+                                className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                                readOnly={!canEditScores}
+                                title={
+                                  !canEditScores 
+                                    ? (isViewingAsGradeDirector 
+                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                        : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
+                                    : "Calificar componente actitudinal"
+                                }
+                              />
+                              {!canEditScores && (
+                                <i 
+                                  className="ph-bold ph-lock-key input-mini-lock" 
+                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                                ></i>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Definitiva con Pill Pastel */}
+                          <td className="grades-definitiva-cell td-score-def">
+                            <span className={`definitiva-pill ${defBadgeClass}`}>
+                              {def}
+                            </span>
+                          </td>
+
+                          {/* Desempeño SIEE */}
+                          <td style={{ textAlign: 'center' }}>
+                            <span className={`tag-desempeno ${des.className}`}>
+                              <i className={`ph-bold ${des.icon}`}></i>
+                              {des.label}
+                            </span>
+                          </td>
+
+                          {/* Rama: Retroalimentación Docente */}
+                          <td>
+                            {canEditFeedback ? (
+                              <div className="obs-input-wrap">
+                                <input 
+                                  type="text"
+                                  value={student.retroalimentacionDocente || ''}
+                                  onChange={(e) => handleTeacherFeedbackChange(student.id, e.target.value)}
+                                  placeholder="Observación pedagógica al estudiante..."
+                                  className="grades-input-obs obs-docente-input"
+                                />
+                              </div>
+                            ) : (
+                              <div className="obs-readonly-box obs-docente-readonly">
+                                <i className="ph-bold ph-chat-circle-dots"></i>
+                                <span>
+                                  {student.retroalimentacionDocente 
+                                    ? student.retroalimentacionDocente 
+                                    : (isViewingAsGradeDirector 
+                                        ? `Sin retroalimentación de ${teacherInfo.teacherName} aún` 
+                                        : 'Sin retroalimentación docente aún'
+                                      )
+                                  }
+                                </span>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Rama: Sugerencia Directiva (Rectoría) */}
+                          <td>
+                            {canEditDirective ? (
+                              <div className="obs-input-wrap">
+                                <input 
+                                  type="text"
+                                  value={student.sugerenciaDirectiva || ''}
+                                  onChange={(e) => handleDirectiveSuggestionChange(student.id, e.target.value)}
+                                  placeholder="Sugerencia / Nota de auditoría de Rectoría..."
+                                  className="grades-input-obs obs-rectora-input"
+                                />
+                                <span className="obs-directiva-indicator" title="Sugerencia registrada por Rectoría">
+                                  <i className="ph-bold ph-crown"></i>
+                                </span>
+                              </div>
+                            ) : (
+                              student.sugerenciaDirectiva ? (
+                                <div className="obs-readonly-box obs-rectora-readonly" title="Sugerencia oficial emitida por Rectoría">
+                                  <span className="obs-crown-badge">👑 Rectoría:</span>
+                                  <span>{student.sugerenciaDirectiva}</span>
+                                </div>
+                              ) : (
+                                <span className="obs-empty-dash" title="Sin sugerencias directivas registradas">—</span>
+                              )
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer de la Planilla */}
+            <div className="grades-sheet-footer">
+              <div className="grades-footer-legend">
+                <span className="footer-legend-item">
+                  <span className="legend-dot dot-c3"></span> Cognitivo 40%
+                </span>
+                <span className="footer-legend-item">
+                  <span className="legend-dot dot-c3"></span> Procedimental 40%
+                </span>
+                <span className="footer-legend-item">
+                  <span className="legend-dot dot-c3"></span> Actitudinal 20%
+                </span>
+                <span className="footer-legend-rbac">
+                  <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check')}`}></i>
+                  {canEditScores 
+                    ? 'Planilla abierta para calificar y retroalimentar' 
+                    : isViewingAsGradeDirector
+                    ? `Supervisión de Director(a) de Curso (${gradeDirector.teacherName}) • Calificación por ${teacherInfo.teacherName}`
+                    : `Supervisión institucional: notas protegidas de ${teacherInfo.teacherName}`}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  className="grades-btn-secondary" 
+                  onClick={() => alert(`Exportando consolidado de calificaciones de ${selectedSubject} en Excel...`)}
+                >
+                  <i className="ph-bold ph-file-xls"></i>
+                  <span>Consolidado Excel</span>
+                </button>
+                <button 
+                  type="button" 
+                  className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
+                  onClick={handleSaveAction}
+                >
+                  <i className={`ph-bold ${
+                    canEditScores 
+                      ? 'ph-floppy-disk' 
+                      : isViewingAsGradeDirector 
+                      ? 'ph-eye' 
+                      : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
+                  }`}></i>
+                  <span>
+                    {canEditScores 
+                      ? 'Confirmar y Guardar' 
+                      : isViewingAsGradeDirector 
+                      ? 'Modo Director de Curso' 
+                      : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
+                    }
+                  </span>
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Notificación Toast Flotante */}
