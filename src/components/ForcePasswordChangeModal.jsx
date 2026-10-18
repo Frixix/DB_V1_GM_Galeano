@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
 import { changeUserPassword } from '../services/authService';
+import { USERS } from '../data/users';
 
 export default function ForcePasswordChangeModal({ currentUser, onPasswordChanged, onLogout }) {
-  const [currentPassword, setCurrentPassword] = useState('boveda2026');
+  const userKey = currentUser?.key || currentUser?.role || 'docente';
+  const userName = currentUser?.name || 'Docente Institucional';
+  const userRole = currentUser?.label || currentUser?.role || 'Personal Institucional';
+  const userInitial = currentUser?.initial || (userName ? userName.charAt(0).toUpperCase() : 'U');
+
+  // Clave inicial individual según el perfil en USERS (ej: elcy2026 para Elcy)
+  const initialPass = USERS[userKey]?.pass || currentUser?.pass || '';
+
+  const [currentPassword, setCurrentPassword] = useState(initialPass);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -26,11 +35,6 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, []);
 
-  const userKey = currentUser?.key || currentUser?.role || 'docente';
-  const userName = currentUser?.name || 'Docente Institucional';
-  const userRole = currentUser?.label || currentUser?.role || 'Personal Institucional';
-  const userInitial = currentUser?.initial || (userName ? userName.charAt(0).toUpperCase() : 'U');
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -41,7 +45,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     const cleanConfirm = (confirmPassword || '').trim();
 
     if (!cleanCurrent) {
-      setErrorMessage('Por favor ingresa la clave inicial (boveda2026) para autorizar.');
+      setErrorMessage(`Por favor ingresa tu clave inicial (${initialPass}) para autorizar.`);
       return;
     }
 
@@ -51,7 +55,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     }
 
     if (cleanNew === cleanCurrent) {
-      setErrorMessage('La nueva contraseña debe ser diferente a la clave inicial boveda2026.');
+      setErrorMessage('La nueva contraseña debe ser diferente a tu clave inicial actual.');
       return;
     }
 
@@ -64,7 +68,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     try {
       await changeUserPassword(userKey, cleanCurrent, cleanNew);
       setSuccessMessage(
-        '¡Contraseña actualizada con éxito! La clave inicial boveda2026 ha sido eliminada permanentemente. Ingresando al sistema...'
+        `¡Contraseña actualizada con éxito! La clave inicial ${initialPass} ha sido eliminada permanentemente. Ingresando al sistema...`
       );
       setTimeout(() => {
         if (onPasswordChanged) {
@@ -132,7 +136,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
             <i className="ph-bold ph-key"></i>
             <div>
               <span className="force-key-label">Clave inicial asignada:</span>
-              <strong className="force-key-code">boveda2026</strong>
+              <strong className="force-key-code">{initialPass}</strong>
             </div>
           </div>
           <span className="force-key-pill-tag">
@@ -160,7 +164,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
           {/* Contraseña Actual / Inicial */}
           <div className="form-group">
             <label htmlFor="forceCurrentPass">
-              Contraseña actual (Clave inicial institucional)
+              Contraseña actual (Clave inicial de {userName})
             </label>
             <div className="input-with-action">
               <input
@@ -168,7 +172,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
                 id="forceCurrentPass"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="boveda2026"
+                placeholder={initialPass}
                 required
               />
               <button

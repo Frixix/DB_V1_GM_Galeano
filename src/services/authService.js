@@ -242,8 +242,8 @@ export function getActiveUserPassword(userKey) {
     return null;
   }
 
-  // Clave institucional inicial predeterminada (boveda2026) o registrada en USERS
-  return 'boveda2026';
+  // Clave institucional inicial predeterminada registrada para el perfil en USERS
+  return USERS[userKey]?.pass || null;
 }
 
 /**
@@ -265,7 +265,8 @@ export function getPasswordUpdatedAt(userKey) {
 /**
  * Valida si las credenciales ingresadas son correctas para el inicio de sesión:
  * - Si el usuario ya cambió su clave: solo acepta su clave personalizada descifrada.
- * - Si es primer ingreso (no cambiada aún): acepta 'boveda2026' y la clave inicial de USERS.
+ * - Si es primer ingreso (no cambiada aún): solo acepta la clave inicial asignada en USERS (ej: elcy2026).
+ * Nota: boveda2026 es exclusiva del módulo Bóveda (solo Rectora y Administrador).
  */
 export function verifyCredentials(userKey, inputPassword) {
   if (!userKey || !inputPassword) return false;
@@ -277,10 +278,7 @@ export function verifyCredentials(userKey, inputPassword) {
     return Boolean(activePass && activePass === cleanInput);
   }
 
-  // 2. Si es su primer ingreso (aún no cambiada), acepta 'boveda2026' o la predeterminada de USERS
-  if (cleanInput === 'boveda2026' || cleanInput === BOVEDA_PASSWORD) {
-    return true;
-  }
+  // 2. Si es su primer ingreso (aún no cambiada), solo acepta la clave inicial asignada al usuario
   const defaultUserPass = USERS[userKey]?.pass;
   if (defaultUserPass && cleanInput === defaultUserPass) {
     return true;

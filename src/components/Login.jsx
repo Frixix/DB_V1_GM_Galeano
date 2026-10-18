@@ -254,29 +254,31 @@ export default function Login({ onLogin }) {
                   </button>
                 </div>
 
-                {/* Helper Box: Clave inicial boveda2026 visible por primera vez (se elimina automáticamente una vez cambiada) */}
-                {(!userKey || !hasCustomPassword(userKey)) ? (
+                {/* Helper Box: Clave inicial asignada por docente (visible por primera vez, eliminada al cambiarla) */}
+                {userKey && USERS[userKey] && !hasCustomPassword(userKey) && (
                   <div className="auth-credentials-box">
                     <span className="auth-credentials-title">
-                      Clave inicial (visible primera vez):
+                      Clave inicial de {USERS[userKey].name} (visible primera vez):
                     </span>
                     <div className="auth-credentials-pills">
                       <button
                         type="button"
                         className="auth-credential-pill auth-pill-boveda"
-                        onClick={() => setPassword('boveda2026')}
-                        title="Clic para autocompletar clave inicial: boveda2026"
+                        onClick={() => setPassword(USERS[userKey].pass)}
+                        title={`Clic para autocompletar clave inicial: ${USERS[userKey].pass}`}
                       >
-                        boveda2026
+                        {USERS[userKey].pass}
                       </button>
                     </div>
                   </div>
-                ) : (
+                )}
+
+                {userKey && hasCustomPassword(userKey) && (
                   <div className="auth-credentials-secure-hint">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
-                    <span>Contraseña personalizada activa (clave por defecto eliminada)</span>
+                    <span>Contraseña personalizada activa (clave inicial eliminada)</span>
                   </div>
                 )}
               </div>
