@@ -60,6 +60,16 @@ export default function TourSpotlight({ currentUser }) {
     setIsOpen(true);
   };
 
+  // Escuchar evento global para iniciar la guía desde el botón de la barra superior
+  useEffect(() => {
+    const handleTriggerTour = () => {
+      setCurrentStepIndex(0);
+      setIsOpen(true);
+    };
+    window.addEventListener('gmg_open_tour', handleTriggerTour);
+    return () => window.removeEventListener('gmg_open_tour', handleTriggerTour);
+  }, []);
+
   const renderIcon = (iconName) => {
     const map = {
       HandWaving: 'ph-hand-waving',
@@ -79,18 +89,6 @@ export default function TourSpotlight({ currentUser }) {
 
   return (
     <>
-      {/* Botón flotante para reabrir el tour cuando se desee */}
-      {!isOpen && (
-        <button 
-          className="btn-floating-tour" 
-          onClick={handleOpen} 
-          title="Ver Guía Interactiva del Sistema"
-        >
-          <i className="ph-bold ph-compass"></i>
-          <span>Guía del Sistema</span>
-        </button>
-      )}
-
       {isOpen && currentStep && (
         <>
           <div className="tour-backdrop" onClick={handleClose}></div>

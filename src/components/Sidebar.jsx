@@ -66,7 +66,7 @@ export default function Sidebar({
               className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('all')}
             >
-              <i className="ph-fill ph-users-three"></i>
+              <i className="ph-bold ph-users-three"></i>
               <span>Todos los docentes</span>
             </button>
             <button 
@@ -236,7 +236,7 @@ export default function Sidebar({
             className={`folder-btn folder-all ${currentFolder === 'all' ? 'active' : ''}`}
             onClick={() => onFolderSelect('all')}
           >
-            <i className="ph-fill ph-folders"></i>
+            <i className="ph-bold ph-folders"></i>
             <span>{isPrivileged ? "Todos los Documentos" : `Mis Documentos (${currentUser.name})`}</span>
           </button>
           
@@ -253,7 +253,7 @@ export default function Sidebar({
             className={`folder-btn folder-institucional ${currentFolder === 'institucional' ? 'active' : ''}`}
             onClick={() => onFolderSelect('institucional')}
           >
-            <i className="ph-duotone ph-buildings"></i>
+            <i className="ph-bold ph-buildings"></i>
             <span>Institucional & Circulares</span>
             {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}
           </button>
@@ -262,7 +262,7 @@ export default function Sidebar({
             className={`folder-btn folder-planeaciones ${currentFolder === 'planeaciones' ? 'active' : ''}`}
             onClick={() => onFolderSelect('planeaciones')}
           >
-            <i className="ph-duotone ph-notebook"></i>
+            <i className="ph-bold ph-notebook"></i>
             <span>Planeaciones</span>
           </button>
 
@@ -270,7 +270,7 @@ export default function Sidebar({
             className={`folder-btn folder-calificaciones ${currentFolder === 'calificaciones' ? 'active' : ''}`}
             onClick={() => onFolderSelect('calificaciones')}
           >
-            <i className="ph-duotone ph-table"></i>
+            <i className="ph-bold ph-table"></i>
             <span>Planillas de Notas</span>
           </button>
 
@@ -278,30 +278,9 @@ export default function Sidebar({
             className={`folder-btn folder-talleres ${currentFolder === 'talleres' ? 'active' : ''}`}
             onClick={() => onFolderSelect('talleres')}
           >
-            <i className="ph-duotone ph-pencil-line"></i>
+            <i className="ph-bold ph-pencil-line"></i>
             <span>Guías & Talleres</span>
           </button>
-
-          <button 
-            className={`folder-btn folder-observador ${currentFolder === 'observador' ? 'active' : ''}`}
-            onClick={() => onFolderSelect('observador')}
-          >
-            <i className="ph-duotone ph-user-list"></i>
-            <span>Observador & Actas</span>
-          </button>
-
-        {/* Bóveda protegida (Solo Rectora/Admin) */}
-          {isPrivileged && (
-            <button 
-              id="btnBovedaFolder"
-              className={`folder-btn folder-boveda ${currentFolder === 'boveda' ? 'active' : ''}`}
-              onClick={() => onFolderSelect('boveda')}
-            >
-              <i className="ph-bold ph-vault"></i>
-              <span>Bóveda de Archivos</span>
-              <i className="ph-bold ph-lock-key boveda-lock-icon"></i>
-            </button>
-          )}
         </nav>
       </div>
 

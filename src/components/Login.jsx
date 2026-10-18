@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { USERS } from '../data/users';
-import { verifyCredentials, syncVaultWithSupabase, subscribeToVaultChanges } from '../services/authService';
+import { verifyCredentials, syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword } from '../services/authService';
 import { syncAvatarsFromCloud, getUserAvatar } from '../services/avatarService';
 import './Login.css';
 
@@ -13,7 +13,9 @@ export default function Login({ onLogin }) {
 
   useEffect(() => {
     // Sincronizar credenciales ofuscadas y avatares desde la nube al cargar
-    syncVaultWithSupabase().catch(() => {});
+    syncVaultWithSupabase()
+      .then(() => setVaultTick((prev) => prev + 1))
+      .catch(() => {});
     syncAvatarsFromCloud().catch(() => {});
     
     // Escuchar cambios en tiempo real si otra pestaña o dispositivo actualiza la bóveda
@@ -46,11 +48,13 @@ export default function Login({ onLogin }) {
     onLogin({ ...expectedUser, key: userKey, avatar: activeAvatar });
   };
 
-  const handlePillClick = (passKey) => {
+  const handlePillClick = (passKey, pillUserKey) => {
     setPassword(passKey);
     // Asignar el usuario correspondiente automáticamente si no se ha seleccionado ninguno
     if (!userKey) {
-      if (passKey === 'induccionrectora2026') setUserKey('induccion_rectora');
+      if (pillUserKey) {
+        setUserKey(pillUserKey);
+      } else if (passKey === 'induccionrectora2026') setUserKey('induccion_rectora');
       else if (passKey === 'induccion2026') setUserKey('induccion');
       else if (passKey === 'rectora2026') setUserKey('claudia');
       else if (passKey === 'jessica2026') setUserKey('jessica');
@@ -62,6 +66,17 @@ export default function Login({ onLogin }) {
       else if (passKey === 'admin2026') setUserKey('admin');
     }
   };
+
+  const INITIAL_CREDENTIALS = [
+    { userKey: 'induccion_rectora', key: 'induccionrectora2026', label: 'induccionrectora2026' },
+    { userKey: 'induccion', key: 'induccion2026', label: 'induccion2026' },
+    { userKey: 'claudia', key: 'rectora2026', label: 'rectora2026' },
+    { userKey: 'jessica', key: 'jessica2026', label: 'jessica2026' },
+    { userKey: 'admin', key: 'admin2026', label: 'admin2026' },
+  ];
+
+  // Solo conservamos los atajos de aquellos usuarios cuya contraseña NO ha sido cambiada/personalizada
+  const activePills = INITIAL_CREDENTIALS.filter((item) => !hasCustomPassword(item.userKey));
 
   return (
     <div id="loginScreen" className="auth-split-layout">
@@ -170,15 +185,15 @@ export default function Login({ onLogin }) {
                     required
                   >
                     <option value="" disabled>-- Seleccione su cuenta --</option>
-                    <option value="induccion_rectora">👑 Inducción Rectora (Tour Directivo)</option>
-                    <option value="induccion">✨ Inducción Profesoras (Tour Docente)</option>
+                    <option value="induccion_rectora"> Inducción Rectora</option>
+                    <option value="induccion"> Inducción Profesoras</option>
                     <option value="claudia">Claudia (Rectora)</option>
-                    <option value="profe1">Profe 1 (Directora Transición)</option>
-                    <option value="jessica">Jessica (Directora 1° Primaria)</option>
-                    <option value="yuri">Yuri (Directora 2° Primaria)</option>
-                    <option value="profe2">Profe 2 (Directora 3° Primaria)</option>
-                    <option value="elcy">Elcy (Directora 4° Primaria)</option>
-                    <option value="profe3">Profe 3 (Directora 5° Primaria)</option>
+                    <option value="profe1">Profe 1 </option>
+                    <option value="jessica">Jessica </option>
+                    <option value="yuri">Yuri </option>
+                    <option value="profe2">Profe 2 </option>
+                    <option value="elcy">Elcy </option>
+                    <option value="profe3">Profe 3 </option>
                     <option value="admin">Administrador</option>
                   </select>
                   <span className="auth-select-chevron">
@@ -239,29 +254,25 @@ export default function Login({ onLogin }) {
                   </button>
                 </div>
 
-                {/* Helper Box: Claves iniciales interactivas */}
-                <div className="auth-credentials-box">
-                  <span className="auth-credentials-title">Claves iniciales:</span>
-                  <div className="auth-credentials-pills">
-                    {[
-                      { key: 'induccionrectora2026', label: 'induccionrectora2026' },
-                      { key: 'induccion2026', label: 'induccion2026' },
-                      { key: 'rectora2026', label: 'rectora2026' },
-                      { key: 'jessica2026', label: 'jessica2026' },
-                      { key: 'admin2026', label: 'admin2026' },
-                    ].map((item) => (
-                      <button
-                        key={item.key}
-                        type="button"
-                        className="auth-credential-pill"
-                        onClick={() => handlePillClick(item.key)}
-                        title={`Clic para autocompletar clave: ${item.key}`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
+                {/* Helper Box: Claves iniciales interactivas (desaparecen al cambiarse) */}
+                {activePills.length > 0 && (
+                  <div className="auth-credentials-box">
+                    <span className="auth-credentials-title">Claves iniciales:</span>
+                    <div className="auth-credentials-pills">
+                      {activePills.map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          className="auth-credential-pill"
+                          onClick={() => handlePillClick(item.key, item.userKey)}
+                          title={`Clic para autocompletar clave: ${item.key}`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Action Button */}

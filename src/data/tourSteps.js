@@ -23,7 +23,7 @@ export const TOUR_STEPS_DOCENTE = [
   {
     targetId: 'btnOpenModal',
     title: 'Subir Documento Comprimido',
-    desc: 'Al pulsar aquí podrás subir tus archivos (PDF, Excel, Word). El sistema los comprime automáticamente para ahorrar memoria (límite de 15 MB).',
+    desc: 'Desde este botón flotante podrás subir tus archivos (PDF, Excel, Word). El sistema los comprime automáticamente para ahorrar memoria (límite de 15 MB).',
     icon: 'CloudArrowUp',
   },
   {
@@ -50,7 +50,7 @@ export const TOUR_STEPS_RECTORA = [
   {
     targetId: 'btnOpenModal',
     title: '2. Emisión de Circulares y Comunicados',
-    desc: "Desde 'Subir Documento', marque la casilla '📢 Compartir con todos los profesores'. A las docentes les aparecerá de inmediato una notificación estilo WhatsApp para leer su comunicado.",
+    desc: "Desde el botón flotante 'Subir Documento', marque la casilla '📢 Compartir con todos los profesores'. A las docentes les aparecerá de inmediato una notificación estilo WhatsApp para leer su comunicado.",
     icon: 'Megaphone',
   },
   {
