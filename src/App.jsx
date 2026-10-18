@@ -13,6 +13,7 @@ import BovedaAuthModal from './components/BovedaAuthModal';
 import ViewModal from './components/ViewModal';
 import UploadModal from './components/UploadModal';
 import ProfileModal from './components/ProfileModal';
+import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import BovedaPasswordModal from './components/BovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import ConnectionsModal from './components/ConnectionsModal';
@@ -22,11 +23,12 @@ import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
 import { useUserPresence } from './hooks/useUserPresence';
 import { downloadDocumentBlob } from './services/storageService';
-import { syncVaultWithSupabase, subscribeToVaultChanges } from './services/authService';
+import { syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword } from './services/authService';
 import { syncAvatarsFromCloud, subscribeToAvatarChanges } from './services/avatarService';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [authVaultTick, setAuthVaultTick] = useState(0);
   const [activeModule, setActiveModule] = useState(null);
   const [avatarTick, setAvatarTick] = useState(0);
   const [currentFolder, setCurrentFolder] = useState('all');
@@ -86,7 +88,9 @@ export default function App() {
     syncVaultWithSupabase().catch(() => {});
     syncAvatarsFromCloud().catch(() => {});
 
-    const unsubscribeVault = subscribeToVaultChanges();
+    const unsubscribeVault = subscribeToVaultChanges(() => {
+      setAuthVaultTick((prev) => prev + 1);
+    });
     const unsubscribeAvatars = subscribeToAvatarChanges(({ userKey, avatar }) => {
       setCurrentUser((prev) => {
         if (!prev) return prev;
@@ -114,6 +118,20 @@ export default function App() {
         setCurrentUser(user);
         setActiveModule(null);
       }} />
+    );
+  }
+
+  // Verificación obligatoria de primer ingreso institucional (no se puede saltar)
+  const currentAccountKey = currentUser.key || currentUser.role;
+  if (!hasCustomPassword(currentAccountKey)) {
+    return (
+      <ForcePasswordChangeModal
+        currentUser={currentUser}
+        onPasswordChanged={() => {
+          setAuthVaultTick((prev) => prev + 1);
+        }}
+        onLogout={handleLogout}
+      />
     );
   }
 

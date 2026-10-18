@@ -392,6 +392,26 @@
   transform: translateY(-1px);
 }
 
+.auth-pill-boveda {
+  font-size: 0.74rem;
+  padding: 0.22rem 0.55rem;
+  letter-spacing: 0.5px;
+}
+
+.auth-credentials-secure-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: #059669;
+  font-weight: 600;
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+}
+
 /* Botón de Acción Principal */
 .auth-submit-btn {
   width: 100%;

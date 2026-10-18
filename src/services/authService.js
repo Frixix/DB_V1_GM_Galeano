@@ -242,8 +242,8 @@ export function getActiveUserPassword(userKey) {
     return null;
   }
 
-  // Si no se ha modificado, devuelve la predeterminada del sistema
-  return USERS[userKey]?.pass || null;
+  // Clave institucional inicial predeterminada (boveda2026) o registrada en USERS
+  return 'boveda2026';
 }
 
 /**
@@ -263,13 +263,30 @@ export function getPasswordUpdatedAt(userKey) {
 }
 
 /**
- * Valida si las credenciales ingresadas son correctas para el inicio de sesión
+ * Valida si las credenciales ingresadas son correctas para el inicio de sesión:
+ * - Si el usuario ya cambió su clave: solo acepta su clave personalizada descifrada.
+ * - Si es primer ingreso (no cambiada aún): acepta 'boveda2026' y la clave inicial de USERS.
  */
 export function verifyCredentials(userKey, inputPassword) {
   if (!userKey || !inputPassword) return false;
-  const activePass = getActiveUserPassword(userKey);
-  if (!activePass) return false;
-  return activePass === inputPassword;
+  const cleanInput = (inputPassword || '').trim();
+
+  // 1. Si ya tiene clave personalizada, validar exclusivamente contra ella
+  if (hasCustomPassword(userKey)) {
+    const activePass = getActiveUserPassword(userKey);
+    return Boolean(activePass && activePass === cleanInput);
+  }
+
+  // 2. Si es su primer ingreso (aún no cambiada), acepta 'boveda2026' o la predeterminada de USERS
+  if (cleanInput === 'boveda2026' || cleanInput === BOVEDA_PASSWORD) {
+    return true;
+  }
+  const defaultUserPass = USERS[userKey]?.pass;
+  if (defaultUserPass && cleanInput === defaultUserPass) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

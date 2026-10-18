@@ -254,23 +254,29 @@ export default function Login({ onLogin }) {
                   </button>
                 </div>
 
-                {/* Helper Box: Claves iniciales interactivas (desaparecen al cambiarse) */}
-                {activePills.length > 0 && (
+                {/* Helper Box: Clave inicial boveda2026 visible por primera vez (se elimina automáticamente una vez cambiada) */}
+                {(!userKey || !hasCustomPassword(userKey)) ? (
                   <div className="auth-credentials-box">
-                    <span className="auth-credentials-title">Claves iniciales:</span>
+                    <span className="auth-credentials-title">
+                      Clave inicial (visible primera vez):
+                    </span>
                     <div className="auth-credentials-pills">
-                      {activePills.map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          className="auth-credential-pill"
-                          onClick={() => handlePillClick(item.key, item.userKey)}
-                          title={`Clic para autocompletar clave: ${item.key}`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                      <button
+                        type="button"
+                        className="auth-credential-pill auth-pill-boveda"
+                        onClick={() => setPassword('boveda2026')}
+                        title="Clic para autocompletar clave inicial: boveda2026"
+                      >
+                        boveda2026
+                      </button>
                     </div>
+                  </div>
+                ) : (
+                  <div className="auth-credentials-secure-hint">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Contraseña personalizada activa (clave por defecto eliminada)</span>
                   </div>
                 )}
               </div>
