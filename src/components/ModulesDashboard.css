@@ -213,39 +213,59 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 0.875rem;
+  padding: 0.65rem 0.85rem;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #0f172a;
+  color: #475569; /* Inactivo: sin color, tipografía clara y limpia */
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.portal-nav-icon-svg {
-  width: 19px;
-  height: 19px;
-  flex-shrink: 0;
+.portal-nav-item i {
+  font-size: 1.25rem;
+  color: #94a3b8;
+  transition: color 0.15s ease;
 }
 
-.portal-nav-item-active {
-  background-color: #f0fdf4;
-  color: #14532d;
-  border-color: #bbf7d0;
-  font-weight: 600;
+.portal-nav-item:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
 }
 
-.portal-nav-item-active .portal-nav-icon-svg {
-  color: #16a34a;
+/* 1. Módulo Activo: Gestión Documental */
+.portal-nav-item-docs:hover:not(.active),
+.portal-nav-item-active:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
 }
 
-.portal-nav-item-active:hover {
-  background-color: #dcfce7;
-  border-color: #86efac;
+.portal-nav-item-docs:hover:not(.active) i,
+.portal-nav-item-active:hover:not(.active) i {
+  color: #065f46;
+}
+
+.portal-nav-item-docs:active,
+.portal-nav-item-docs.active,
+.portal-nav-item-active:active,
+.portal-nav-item-active.active {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+  font-weight: 700;
+}
+
+.portal-nav-item-docs:active i,
+.portal-nav-item-docs.active i,
+.portal-nav-item-active:active i,
+.portal-nav-item-active.active i {
+  color: #065f46;
 }
 
 .portal-nav-item-disabled {
@@ -505,20 +525,35 @@
   transform: translateX(4px);
 }
 
-.portal-nav-item-amber {
-  background-color: #fef3c7;
-  color: #92400e;
-  border-color: #fde68a;
-  font-weight: 600;
+/* 2. Módulo Activo: Notas y Calificaciones */
+.portal-nav-item-grades:hover:not(.active),
+.portal-nav-item-amber:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
 }
 
-.portal-nav-item-amber i {
+.portal-nav-item-grades:hover:not(.active) i,
+.portal-nav-item-amber:hover:not(.active) i {
   color: #b45309;
 }
 
-.portal-nav-item-amber:hover {
-  background-color: #fde68a;
-  border-color: #f59e0b;
+.portal-nav-item-grades:active,
+.portal-nav-item-grades.active,
+.portal-nav-item-amber:active,
+.portal-nav-item-amber.active {
+  background-color: #fef3c7;
+  border-color: #fde68a;
+  color: #b45309;
+  font-weight: 700;
+}
+
+.portal-nav-item-grades:active i,
+.portal-nav-item-grades.active i,
+.portal-nav-item-amber:active i,
+.portal-nav-item-amber.active i {
+  color: #b45309;
 }
 
 /* ==========================================================================
@@ -580,20 +615,126 @@
   transform: translateX(4px);
 }
 
-.portal-nav-item-cyan {
-  background-color: #f0fdfa;
-  color: #115e59;
-  border-color: #99f6e4;
-  font-weight: 600;
+/* 3. Módulo Activo: Novedades & Reemplazos */
+.portal-nav-item-reemplazos:hover:not(.active),
+.portal-nav-item-cyan:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
 }
 
-.portal-nav-item-cyan i {
+.portal-nav-item-reemplazos:hover:not(.active) i,
+.portal-nav-item-cyan:hover:not(.active) i {
   color: #0f766e;
 }
 
-.portal-nav-item-cyan:hover {
-  background-color: #ccfbf1;
-  border-color: #5eead4;
+.portal-nav-item-reemplazos:active,
+.portal-nav-item-reemplazos.active,
+.portal-nav-item-cyan:active,
+.portal-nav-item-cyan.active {
+  background-color: #f0fdfa;
+  border-color: #99f6e4;
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.portal-nav-item-reemplazos:active i,
+.portal-nav-item-reemplazos.active i,
+.portal-nav-item-cyan:active i,
+.portal-nav-item-cyan.active i {
+  color: #0f766e;
+}
+
+/* ==========================================================================
+   MÓDULO ACTIVO: BÓVEDA DIRECTIVA (ESTILO GRIS PASTEL CON TEXTO NEGRO FORMAL)
+   ========================================================================== */
+.portal-module-card-slate {
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.portal-module-card-slate::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #334155;
+  transition: height 0.2s ease;
+}
+
+.portal-module-card-slate:hover::before {
+  height: 2px;
+}
+
+.portal-module-card-slate .portal-card-icon-container.portal-slate-icon {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.portal-module-card-slate:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  border-color: #475569;
+}
+
+.portal-badge-slate {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0f172a;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.portal-link-label-slate {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  transition: transform 0.15s ease;
+}
+
+.portal-module-card-slate:hover .portal-link-label-slate {
+  transform: translateX(4px);
+}
+
+/* 4. Módulo Activo: Bóveda Directiva */
+.portal-nav-item-boveda:hover:not(.active),
+.portal-nav-item-slate:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.portal-nav-item-boveda:hover:not(.active) i,
+.portal-nav-item-slate:hover:not(.active) i {
+  color: #334155;
+}
+
+.portal-nav-item-boveda:active,
+.portal-nav-item-boveda.active,
+.portal-nav-item-slate:active,
+.portal-nav-item-slate.active {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.portal-nav-item-boveda:active i,
+.portal-nav-item-boveda.active i,
+.portal-nav-item-slate:active i,
+.portal-nav-item-slate.active i {
+  color: #0f172a;
 }
 
 /* Módulos en Desarrollo: Estilo Gris */
@@ -677,5 +818,78 @@
   .portal-nav-item,
   .portal-nav-item-disabled {
     flex: 1 1 100%;
+  }
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN TÁCTIL / CELULARES: ICONOS EN COLOR DISTINTIVO POR DEFECTO
+   Al no haber cursor en celulares, los iconos muestran su color distintivo
+   con texto en negro; al tocarlos (:active o .active) toman el fondo pastel.
+   ========================================================================== */
+@media (hover: none), (max-width: 900px) {
+  .portal-nav-item {
+    color: #0f172a;
+    font-weight: 500;
+  }
+
+  .portal-nav-item-docs i,
+  .portal-nav-item-active i {
+    color: #065f46;
+  }
+
+  .portal-nav-item-grades i,
+  .portal-nav-item-amber i {
+    color: #b45309;
+  }
+
+  .portal-nav-item-reemplazos i,
+  .portal-nav-item-cyan i {
+    color: #0f766e;
+  }
+
+  .portal-nav-item-boveda i,
+  .portal-nav-item-slate i {
+    color: #334155;
+  }
+
+  /* Al presionar (:active) o estar seleccionado (.active) pasa a fondo y texto pastel */
+  .portal-nav-item-docs:active,
+  .portal-nav-item-docs.active,
+  .portal-nav-item-active:active,
+  .portal-nav-item-active.active {
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+    font-weight: 700;
+  }
+
+  .portal-nav-item-grades:active,
+  .portal-nav-item-grades.active,
+  .portal-nav-item-amber:active,
+  .portal-nav-item-amber.active {
+    background-color: #fef3c7;
+    border-color: #fde68a;
+    color: #b45309;
+    font-weight: 700;
+  }
+
+  .portal-nav-item-reemplazos:active,
+  .portal-nav-item-reemplazos.active,
+  .portal-nav-item-cyan:active,
+  .portal-nav-item-cyan.active {
+    background-color: #f0fdfa;
+    border-color: #99f6e4;
+    color: #0f766e;
+    font-weight: 700;
+  }
+
+  .portal-nav-item-boveda:active,
+  .portal-nav-item-boveda.active,
+  .portal-nav-item-slate:active,
+  .portal-nav-item-slate.active {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    font-weight: 700;
   }
 }
