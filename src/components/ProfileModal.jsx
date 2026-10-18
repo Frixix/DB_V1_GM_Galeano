@@ -43,7 +43,8 @@ export default function ProfileModal({
   const isAdmin = currentUser?.role === 'admin';
 
   // Usuario seleccionado para editar su logo (para Rectora/Admin pueden seleccionar cualquier docente)
-  const [targetUserKey, setTargetUserKey] = useState(initialTargetUserKey || currentUserKey || 'claudia');
+  const sanitizeKey = (k) => (typeof k === 'string' && k.trim()) ? k.trim() : (currentUserKey || 'claudia');
+  const [targetUserKey, setTargetUserKey] = useState(() => sanitizeKey(initialTargetUserKey));
   const [pendingAvatar, setPendingAvatar] = useState(null);
   const [avatarStatus, setAvatarStatus] = useState(null);
   const [avatarError, setAvatarError] = useState(null);
@@ -74,12 +75,12 @@ export default function ProfileModal({
       setPendingAvatar(null);
       setShowSavedChulito(false);
 
-      const chosenKey = initialTargetUserKey || currentUserKey || 'claudia';
+      const chosenKey = sanitizeKey(initialTargetUserKey);
       setTargetUserKey(chosenKey);
 
       if (initialTab) {
         setActiveTab(initialTab);
-      } else if (initialTargetUserKey && initialTargetUserKey !== currentUserKey) {
+      } else if (initialTargetUserKey && typeof initialTargetUserKey === 'string' && initialTargetUserKey !== currentUserKey) {
         setActiveTab('avatar');
       }
     }

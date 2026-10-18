@@ -58,9 +58,12 @@ export default function App() {
   const [selectedDocForView, setSelectedDocForView] = useState(null);
 
   const handleOpenProfile = (targetUserKey = null, initialTab = null) => {
-    const resolved = targetUserKey || currentUser?.key || 'claudia';
-    setProfileTargetUserKey(resolved);
-    setProfileInitialTab(initialTab);
+    const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
+      ? targetUserKey.trim() 
+      : (currentUser?.key || 'claudia');
+    const validTab = (typeof initialTab === 'string') ? initialTab : null;
+    setProfileTargetUserKey(validKey);
+    setProfileInitialTab(validTab);
     setIsProfileModalOpen(true);
   };
 

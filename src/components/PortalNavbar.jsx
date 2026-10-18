@@ -108,8 +108,8 @@ export default function PortalNavbar({
           {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}
         </div>
 
-        {/* 3. Guía de Sistema (Reemplazo unificado y elegante de Subir Documento) */}
-        {onOpenTour && (
+        {/* 3. Guía de Sistema (Comentado temporalmente por requerimiento del sistema; listo para reactivar en el futuro) */}
+        {/* {onOpenTour && (
           <button 
             type="button" 
             className="btn-nav-guide" 
@@ -119,12 +119,12 @@ export default function PortalNavbar({
             <i className="ph-bold ph-compass"></i>
             <span>Guía de Sistema</span>
           </button>
-        )}
+        )} */}
 
         {/* 4. Chip Interactivo de Usuario y Rol (Admin, Rectora, Docentes) */}
         <div 
           className="user-chip user-chip-clickable portal-user-chip" 
-          onClick={onOpenProfile}
+          onClick={() => onOpenProfile && onOpenProfile()}
           role="button"
           tabIndex={0}
           title={isPrivileged ? "Configuración de administrador y ajustes de personal" : `Configuración de perfil de ${userName}`}

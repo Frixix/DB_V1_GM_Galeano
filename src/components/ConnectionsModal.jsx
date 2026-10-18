@@ -64,7 +64,7 @@ export default function ConnectionsModal({
               <i className="ph-bold ph-shield-check"></i>
             </div>
             <div>
-              <h3 id="connectionsModalTitle" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 id="connectionsModalTitle" className="connections-modal-title">
                 Control de Conexiones del Personal
                 <span className="badge-exclusive-directiva">Directiva & Admin</span>
               </h3>
@@ -301,12 +301,12 @@ export default function ConnectionsModal({
         </div>
 
         {/* Pie del Modal */}
-        <div className="modal-footer" style={{ padding: '0.9rem 1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="modal-footer connections-modal-footer">
+          <div className="connections-footer-note">
             <i className="ph-bold ph-shield-check" style={{ color: '#065f46' }}></i>
             <span>Control de asistencia sin acumulación: Cada conexión sobrescribe la anterior para proteger el almacenamiento.</span>
           </div>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <button type="button" className="btn btn-secondary btn-connections-close" onClick={onClose}>
             Cerrar
           </button>
         </div>
