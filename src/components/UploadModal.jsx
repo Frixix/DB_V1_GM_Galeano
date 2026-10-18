@@ -173,7 +173,7 @@ export default function UploadModal({
         subject: folder === 'boveda' ? 'Directiva' : subject,
         teacher: currentUser.name,
         period,
-        isPublic: Boolean(isPublic) || folder === 'institucional',
+        isPublic: folder === 'boveda' ? false : (Boolean(isPublic) || folder === 'institucional'),
         fileName: compressedInfo?.fileName || selectedFile.name,
         fileSize: formatBytes(rawBytes),
         compressedSize: compressedInfo?.isCompressed ? formatBytes(finalSize) : null,
@@ -342,19 +342,31 @@ export default function UploadModal({
               </select>
             </div>
 
-            <div className="form-group-checkbox">
-              <label className="checkbox-container">
-                <input 
-                  type="checkbox" 
-                  checked={isPublic} 
-                  onChange={(e) => setIsPublic(e.target.checked)} 
-                />
-                <span className="checkbox-label">
-                  <strong>Compartir públicamente</strong>
-                  <small>Visible para todo el cuerpo docente</small>
-                </span>
-              </label>
-            </div>
+            {folder === 'boveda' ? (
+              <div className="form-group-boveda-security">
+                <div className="boveda-security-icon">
+                  <i className="ph-bold ph-shield-check"></i>
+                </div>
+                <div className="boveda-security-info">
+                  <strong>Estrictamente Confidencial</strong>
+                  <small>Exclusivo Rectoría y Administración (No visible para cuerpo docente • Para comunicación docente usar Módulo 1: Gestión Documental)</small>
+                </div>
+              </div>
+            ) : (
+              <div className="form-group-checkbox">
+                <label className="checkbox-container">
+                  <input 
+                    type="checkbox" 
+                    checked={isPublic} 
+                    onChange={(e) => setIsPublic(e.target.checked)} 
+                  />
+                  <span className="checkbox-label">
+                    <strong>Compartir públicamente</strong>
+                    <small>Visible para todo el cuerpo docente</small>
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Selector de Archivo */}

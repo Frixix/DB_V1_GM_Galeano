@@ -24,6 +24,17 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
 
   const bovedaCreds = getBovedaCredentials();
 
+  // Verificaciones en tiempo real para Bóveda
+  const cleanAuth = (currentAuthPassword || '').trim();
+  const cleanNew = (newPassword || '').trim();
+  const cleanConfirm = (confirmPassword || '').trim();
+
+  const hasMinLength = cleanNew.length >= 5;
+  const isDifferentFromAuth = cleanNew.length > 0 && cleanNew !== cleanAuth;
+  const isConfirmStarted = cleanConfirm.length > 0;
+  const doPasswordsMatch = cleanNew.length > 0 && isConfirmStarted && cleanNew === cleanConfirm;
+  const isBovedaFormValid = hasMinLength && isDifferentFromAuth && doPasswordsMatch && cleanAuth.length > 0;
+
   useEffect(() => {
     if (isOpen) {
       setTargetKeyRole(isAdmin ? 'admin' : 'rectora');
@@ -275,8 +286,8 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
               </div>
 
               <div className="form-group">
-                <label htmlFor="bovedaConfirmPass">Confirmar Nueva Clave</label>
-                <div className="input-with-action">
+                <label htmlFor="bovedaConfirmPass">Verificación de la nueva clave</label>
+                <div className={`input-with-action ${isConfirmStarted ? (doPasswordsMatch ? 'input-verified-success' : 'input-verified-error') : ''}`}>
                   <input
                     type={showConfirm ? 'text' : 'password'}
                     id="bovedaConfirmPass"
@@ -298,13 +309,47 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
               </div>
             </div>
 
+            {/* Panel de Verificación de Seguridad en Tiempo Real */}
+            <div className="password-verification-checklist">
+              <div className="verification-checklist-header">
+                <i className="ph-bold ph-shield-check"></i>
+                <span>Verificación de la clave de Bóveda:</span>
+              </div>
+              <div className="verification-check-grid">
+                <div className={`verification-check-item ${hasMinLength ? 'valid' : 'pending'}`}>
+                  <i className={`ph-bold ${hasMinLength ? 'ph-check-circle' : 'ph-circle'}`}></i>
+                  <span>Mínimo 5 caracteres ({cleanNew.length}/5)</span>
+                </div>
+                <div className={`verification-check-item ${isDifferentFromAuth ? 'valid' : 'pending'}`}>
+                  <i className={`ph-bold ${isDifferentFromAuth ? 'ph-check-circle' : 'ph-circle'}`}></i>
+                  <span>Diferente a la contraseña de autorización</span>
+                </div>
+                <div className={`verification-check-item ${doPasswordsMatch ? 'valid' : (isConfirmStarted ? 'invalid' : 'pending')}`}>
+                  <i className={`ph-bold ${doPasswordsMatch ? 'ph-check-circle' : (isConfirmStarted ? 'ph-x-circle' : 'ph-circle')}`}></i>
+                  <span>
+                    {doPasswordsMatch 
+                      ? 'Verificación exitosa: Las claves coinciden perfectamente' 
+                      : (isConfirmStarted ? 'Las contraseñas no coinciden aún' : 'Confirmación y verificación idéntica')}
+                  </span>
+                </div>
+              </div>
+
+              {isBovedaFormValid && (
+                <div className="verification-badge-success">
+                  <i className="ph-bold ph-seal-check"></i>
+                  <span>¡Verificación aprobada! La nueva clave para la Bóveda cumple con los requisitos.</span>
+                </div>
+              )}
+            </div>
+
             <div className="profile-form-actions" style={{ marginTop: '1.25rem' }}>
               <button 
                 type="submit" 
                 className="btn btn-primary btn-save-password"
-                disabled={isSubmitting}
+                disabled={!isBovedaFormValid || isSubmitting}
+                title={!isBovedaFormValid ? "Completa la verificación de la nueva clave para continuar" : "Guardar y ofuscar clave de Bóveda"}
               >
-                <i className="ph-bold ph-shield-check"></i>
+                <i className={`ph-bold ${isSubmitting ? 'ph-arrows-clockwise ph-spin' : (isBovedaFormValid ? 'ph-seal-check' : 'ph-shield-check')}`}></i>
                 <span>{isSubmitting ? 'Ofuscando y Guardando...' : 'Guardar y Ofuscar Clave de Bóveda'}</span>
               </button>
             </div>

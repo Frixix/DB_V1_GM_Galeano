@@ -5097,4 +5097,172 @@ select {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ==========================================================================
+   SEGURIDAD DE BÓVEDA & VERIFICACIÓN EN VIVO DE CONTRASEÑA
+   ========================================================================== */
+.form-group-boveda-security {
+  background-color: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-group-boveda-security .boveda-security-icon {
+  font-size: 1.5rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.form-group-boveda-security .boveda-security-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.form-group-boveda-security .boveda-security-info strong {
+  font-size: 0.825rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-group-boveda-security .boveda-security-info small {
+  font-size: 0.7rem;
+  color: #475569;
+  line-height: 1.35;
+}
+
+/* Panel de Verificación en Vivo de Contraseñas (Checklist) */
+.password-verification-checklist {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.verification-checklist-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.verification-checklist-header i {
+  color: #15803d;
+  font-size: 0.95rem;
+}
+
+.verification-check-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.verification-check-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.74rem;
+  transition: all 0.2s ease;
+}
+
+.verification-check-item.pending {
+  color: #94a3b8;
+}
+
+.verification-check-item.pending i {
+  color: #cbd5e1;
+}
+
+.verification-check-item.valid {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.verification-check-item.valid i {
+  color: #16a34a;
+}
+
+.verification-check-item.invalid {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.verification-check-item.invalid i {
+  color: #ef4444;
+}
+
+.verification-badge-success {
+  margin-top: 4px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #065f46;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: chulitoFadeIn 0.2s ease;
+}
+
+.verification-badge-success i {
+  font-size: 1rem;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.input-verified-success input {
+  border-color: #10b981 !important;
+  background-color: #f0fdf4 !important;
+}
+
+.input-verified-error input {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* Pie de tarjeta candado Bóveda para cambiar clave */
+.boveda-lock-card-footer {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #cbd5e1;
+  text-align: center;
+}
+
+.boveda-btn-link-change-key {
+  background: none;
+  border: none;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.boveda-btn-link-change-key:hover {
+  color: #0f172a;
+  background-color: #e2e8f0;
+  text-decoration: underline;
 }

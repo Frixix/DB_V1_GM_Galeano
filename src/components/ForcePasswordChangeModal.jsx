@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { changeUserPassword } from '../services/authService';
+import { changeUserPassword, resolveUserKey } from '../services/authService';
 import { USERS } from '../data/users';
 
 export default function ForcePasswordChangeModal({ currentUser, onPasswordChanged, onLogout }) {
-  const userKey = currentUser?.key || currentUser?.role || 'docente';
+  const userKey = resolveUserKey(currentUser) || currentUser?.key || currentUser?.role || 'docente';
   const userName = currentUser?.name || 'Docente Institucional';
   const userRole = currentUser?.label || currentUser?.role || 'Personal Institucional';
   const userInitial = currentUser?.initial || (userName ? userName.charAt(0).toUpperCase() : 'U');
@@ -23,6 +23,17 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
   const [successMessage, setSuccessMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Verificaciones en tiempo real al ingresar la nueva clave
+  const cleanCurrent = (currentPassword || '').trim();
+  const cleanNew = (newPassword || '').trim();
+  const cleanConfirm = (confirmPassword || '').trim();
+
+  const hasMinLength = cleanNew.length >= 5;
+  const isDifferentFromInitial = cleanNew.length > 0 && cleanNew !== cleanCurrent;
+  const isConfirmStarted = cleanConfirm.length > 0;
+  const doPasswordsMatch = cleanNew.length > 0 && isConfirmStarted && cleanNew === cleanConfirm;
+  const isFormValid = hasMinLength && isDifferentFromInitial && doPasswordsMatch && cleanCurrent.length > 0;
+
   // Bloquear la tecla Escape para impedir saltarse el modal
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -40,10 +51,6 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const cleanCurrent = (currentPassword || '').trim();
-    const cleanNew = (newPassword || '').trim();
-    const cleanConfirm = (confirmPassword || '').trim();
-
     if (!cleanCurrent) {
       setErrorMessage(`Por favor ingresa tu clave inicial (${initialPass}) para autorizar.`);
       return;
@@ -60,7 +67,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     }
 
     if (cleanNew !== cleanConfirm) {
-      setErrorMessage('La confirmación de la nueva contraseña no coincide.');
+      setErrorMessage('La verificación de la nueva contraseña no coincide.');
       return;
     }
 
@@ -68,7 +75,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
     try {
       await changeUserPassword(userKey, cleanCurrent, cleanNew);
       setSuccessMessage(
-        `¡Contraseña actualizada con éxito! La clave inicial ${initialPass} ha sido eliminada permanentemente. Ingresando al sistema...`
+        `¡Contraseña verificada y actualizada con éxito! La clave inicial ${initialPass} ha sido eliminada permanentemente. Ingresando al sistema...`
       );
       setTimeout(() => {
         if (onPasswordChanged) {
@@ -125,7 +132,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
             </div>
             <span className="force-security-alert">
               <i className="ph-bold ph-shield-check"></i>
-              <span>Por seguridad del colegio, debes crear tu contraseña personal antes de continuar.</span>
+              <span>Por seguridad institucional, debes verificar y crear tu contraseña personal antes de continuar.</span>
             </span>
           </div>
         </div>
@@ -186,7 +193,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
               </button>
             </div>
             <small className="form-field-hint">
-              Visible por primera vez. Una vez cambiada, no volverá a funcionar.
+              Visible por primera vez. Una vez cambiada, la clave {initialPass} quedará eliminada permanentemente.
             </small>
           </div>
 
@@ -216,16 +223,16 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
               </div>
             </div>
 
-            {/* Confirmar Contraseña */}
+            {/* Verificación de Contraseña */}
             <div className="form-group">
-              <label htmlFor="forceConfirmPass">Confirmar nueva contraseña</label>
-              <div className="input-with-action">
+              <label htmlFor="forceConfirmPass">Verificación de la nueva clave</label>
+              <div className={`input-with-action ${isConfirmStarted ? (doPasswordsMatch ? 'input-verified-success' : 'input-verified-error') : ''}`}>
                 <input
                   type={showConfirm ? 'text' : 'password'}
                   id="forceConfirmPass"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repite tu clave"
+                  placeholder="Repite la nueva clave"
                   required
                 />
                 <button
@@ -239,6 +246,39 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Panel de Verificación de Seguridad en Tiempo Real */}
+          <div className="password-verification-checklist">
+            <div className="verification-checklist-header">
+              <i className="ph-bold ph-shield-check"></i>
+              <span>Verificación de la clave nueva:</span>
+            </div>
+            <div className="verification-check-grid">
+              <div className={`verification-check-item ${hasMinLength ? 'valid' : 'pending'}`}>
+                <i className={`ph-bold ${hasMinLength ? 'ph-check-circle' : 'ph-circle'}`}></i>
+                <span>Mínimo 5 caracteres ({cleanNew.length}/5)</span>
+              </div>
+              <div className={`verification-check-item ${isDifferentFromInitial ? 'valid' : 'pending'}`}>
+                <i className={`ph-bold ${isDifferentFromInitial ? 'ph-check-circle' : 'ph-circle'}`}></i>
+                <span>Diferente a la clave inicial ({initialPass})</span>
+              </div>
+              <div className={`verification-check-item ${doPasswordsMatch ? 'valid' : (isConfirmStarted ? 'invalid' : 'pending')}`}>
+                <i className={`ph-bold ${doPasswordsMatch ? 'ph-check-circle' : (isConfirmStarted ? 'ph-x-circle' : 'ph-circle')}`}></i>
+                <span>
+                  {doPasswordsMatch 
+                    ? 'Verificación exitosa: Las claves coinciden perfectamente' 
+                    : (isConfirmStarted ? 'Las contraseñas no coinciden aún' : 'Confirmación y verificación idéntica')}
+                </span>
+              </div>
+            </div>
+
+            {isFormValid && (
+              <div className="verification-badge-success">
+                <i className="ph-bold ph-seal-check"></i>
+                <span>¡Verificación aprobada! La nueva contraseña cumple con todos los requisitos.</span>
+              </div>
+            )}
           </div>
 
           {/* Acciones del Modal: Solo Devolverme/Salir o Guardar */}
@@ -257,9 +297,10 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
             <button
               type="submit"
               className="btn btn-primary btn-force-save"
-              disabled={isSubmitting}
+              disabled={!isFormValid || isSubmitting}
+              title={!isFormValid ? "Completa la verificación de la nueva clave para continuar" : "Guardar contraseña y acceder"}
             >
-              <i className={`ph-bold ${isSubmitting ? 'ph-arrows-clockwise ph-spin' : 'ph-shield-check'}`}></i>
+              <i className={`ph-bold ${isSubmitting ? 'ph-arrows-clockwise ph-spin' : (isFormValid ? 'ph-seal-check' : 'ph-lock')}`}></i>
               <span>{isSubmitting ? 'Guardando y Activando...' : 'Guardar y Entrar'}</span>
             </button>
           </div>

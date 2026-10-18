@@ -175,6 +175,17 @@ export default function BovedaModule({
                   <i className="ph-bold ph-key"></i>
                   <span>Desbloquear Bóveda</span>
                 </button>
+
+                <div className="boveda-lock-card-footer">
+                  <button
+                    type="button"
+                    className="boveda-btn-link-change-key"
+                    onClick={onOpenChangeBovedaModal}
+                  >
+                    <i className="ph-bold ph-shield-check"></i>
+                    <span>¿Deseas cambiar o verificar una nueva clave para la Bóveda? Haz clic aquí</span>
+                  </button>
+                </div>
               </form>
             </div>
           </section>

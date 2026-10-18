@@ -37,6 +37,17 @@ export default function ProfileModal({
   const [passwordError, setPasswordError] = useState(null);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
+  // Verificaciones en tiempo real al ingresar nueva contraseña
+  const cleanCurrentPass = (currentPassword || '').trim();
+  const cleanNewPass = (newPassword || '').trim();
+  const cleanConfirmPass = (confirmPassword || '').trim();
+
+  const hasMinLengthProfile = cleanNewPass.length >= 5;
+  const isDifferentFromCurrentProfile = cleanNewPass.length > 0 && cleanNewPass !== cleanCurrentPass;
+  const isConfirmStartedProfile = cleanConfirmPass.length > 0;
+  const doPasswordsMatchProfile = cleanNewPass.length > 0 && isConfirmStartedProfile && cleanNewPass === cleanConfirmPass;
+  const isProfilePassFormValid = hasMinLengthProfile && isDifferentFromCurrentProfile && doPasswordsMatchProfile && cleanCurrentPass.length > 0;
+
   // Estados de Logo / Avatar
   const currentUserKey = currentUser ? resolveUserKey(currentUser) : null;
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
@@ -685,8 +696,8 @@ export default function ProfileModal({
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="confirmPasswordInput">Confirmar contraseña</label>
-                    <div className="input-with-action">
+                    <label htmlFor="confirmPasswordInput">Verificación de la nueva clave</label>
+                    <div className={`input-with-action ${isConfirmStartedProfile ? (doPasswordsMatchProfile ? 'input-verified-success' : 'input-verified-error') : ''}`}>
                       <input
                         type={showConfirm ? 'text' : 'password'}
                         id="confirmPasswordInput"
@@ -708,13 +719,47 @@ export default function ProfileModal({
                   </div>
                 </div>
 
+                {/* Panel de Verificación de Seguridad en Tiempo Real */}
+                <div className="password-verification-checklist">
+                  <div className="verification-checklist-header">
+                    <i className="ph-bold ph-shield-check"></i>
+                    <span>Verificación de la contraseña nueva:</span>
+                  </div>
+                  <div className="verification-check-grid">
+                    <div className={`verification-check-item ${hasMinLengthProfile ? 'valid' : 'pending'}`}>
+                      <i className={`ph-bold ${hasMinLengthProfile ? 'ph-check-circle' : 'ph-circle'}`}></i>
+                      <span>Mínimo 5 caracteres ({cleanNewPass.length}/5)</span>
+                    </div>
+                    <div className={`verification-check-item ${isDifferentFromCurrentProfile ? 'valid' : 'pending'}`}>
+                      <i className={`ph-bold ${isDifferentFromCurrentProfile ? 'ph-check-circle' : 'ph-circle'}`}></i>
+                      <span>Diferente a la contraseña actual</span>
+                    </div>
+                    <div className={`verification-check-item ${doPasswordsMatchProfile ? 'valid' : (isConfirmStartedProfile ? 'invalid' : 'pending')}`}>
+                      <i className={`ph-bold ${doPasswordsMatchProfile ? 'ph-check-circle' : (isConfirmStartedProfile ? 'ph-x-circle' : 'ph-circle')}`}></i>
+                      <span>
+                        {doPasswordsMatchProfile 
+                          ? 'Verificación exitosa: Las contraseñas coinciden perfectamente' 
+                          : (isConfirmStartedProfile ? 'Las contraseñas no coinciden aún' : 'Confirmación y verificación idéntica')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isProfilePassFormValid && (
+                    <div className="verification-badge-success">
+                      <i className="ph-bold ph-seal-check"></i>
+                      <span>¡Verificación aprobada! La nueva contraseña cumple con todos los requisitos.</span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="profile-form-actions">
                   <button 
                     type="submit" 
                     className="btn btn-primary btn-save-password"
-                    disabled={isSubmittingPassword}
+                    disabled={!isProfilePassFormValid || isSubmittingPassword}
+                    title={!isProfilePassFormValid ? "Completa la verificación de la nueva clave para continuar" : "Guardar y ofuscar contraseña"}
                   >
-                    <i className="ph-bold ph-shield-check"></i>
+                    <i className={`ph-bold ${isSubmittingPassword ? 'ph-arrows-clockwise ph-spin' : (isProfilePassFormValid ? 'ph-seal-check' : 'ph-shield-check')}`}></i>
                     <span>{isSubmittingPassword ? 'Guardando y Ofuscando...' : 'Guardar y Ofuscar Contraseña'}</span>
                   </button>
                 </div>
