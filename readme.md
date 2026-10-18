@@ -1,80 +1,158 @@
-🏫 Gestión Documental — Gimnasio Martin Galeano
+# 🏫 Gimnasio Martin Galeano — MG Workspace v2.0.0
+> **Plataforma Integral de Gestión Documental, Calificaciones Académicas y Resguardo Institucional**  
+> *Desarrollado por `<Frix.io/>`*
 
-Plataforma web para la administración, resguardo y auditoría documental de Básica Primaria, con roles diferenciados y subida de archivos grandes.
+---
 
-🚀 Características
-Roles (RBAC):
-Rectoría (Claudia) y Admin: ven todo, emiten circulares, editan y borran.
-Docentes (Jessica, Yuri, Elcy): espacio privado, sin acceso a registros ajenos y sin permiso de borrar.
-Inducción interactiva: tour spotlight de 5 pasos (docente) y 6 pasos (rectora).
-Carpetas en colores pastel: Todos, Compartidos, Institucional & Circulares, Planeaciones, Planillas, Guías & Talleres, Observador & Actas y Bóveda Directiva.
-Archivos: subida directa y por partes a Cloudflare R2 (hasta 2 GB), con progreso y reanudación. Compresión JSZip solo para formatos que la aprovechan (.txt, .csv, etc.) y archivos menores a ~100 MB.
-Límites por archivo (validados en servidor): docentes 15 MB, Rectoría/Admin 2 GB.
-Circulares: globo rojo tipo WhatsApp en tiempo real, se apaga al leer.
-Bóveda Directiva: solo Rectoría/Admin, por año lectivo y subcarpeta (Consejo Directivo, Financiero, Legal, Contratos, Soportes PEI).
-Radicado automático: MG-PRI-2026-0001.
-Medidor de espacio sobre la cuota institucional.
-🏗️ Arquitectura ($0 COP)
-text
-React (Vite)
-  ├─ Supabase Auth (JWT)          → sesión por rol
-  ├─ Supabase DB + RLS            → metadatos y permisos
-  └─ Subida/descarga directa a R2 → URLs firmadas por Edge Function
-Supabase (fuente de verdad): autenticación, metadatos, permisos (RLS) y Realtime.
-Cloudflare R2 (10 GB gratis): solo los archivos binarios.
-IndexedDB: caché local de metadatos.
-Edge Functions: sign-upload, complete-upload, sign-download, delete-file.
+## 🌟 Visión General
 
-Nunca se guardan binarios en PostgreSQL: la base de datos solo guarda la referencia (storage_key, tamaño, tipo).
+**MG Workspace v2.0.0** es la plataforma tecnológica centralizada del **Gimnasio Martin Galeano** para la administración, resguardo documental, control de asistencia en tiempo real y evaluación académica (SIEE) de Básica Primaria. 
 
-🛠️ Stack
+Diseñada bajo una arquitectura sin servidor de **Costo $0 COP**, aprovecha la potencia de **Supabase** (PostgreSQL, Row Level Security, Realtime) y **Cloudflare R2** (almacenamiento de alta velocidad para archivos de hasta 2 GB), garantizando máxima privacidad, integridad criptográfica y alta disponibilidad en la nube.
 
-Vite · React 19 · Phosphor Icons · JSZip · Supabase · Cloudflare R2 · Plus Jakarta Sans
+---
 
-📂 Estructura
-text
-galeano-docs-react/
-├── supabase/
-│   ├── migrations/          # 001_schema.sql, 002_rls.sql
-│   └── functions/           # sign-upload, complete-upload, sign-download, delete-file
-├── src/
-│   ├── components/          # Login, Navbar, Sidebar, FilterBar, DocumentCard,
-│   │                        # DocumentTable, UploadModal, UploadProgress,
-│   │                        # ViewModal, BovedaAuthModal, TourSpotlight
-│   ├── hooks/               # useDocuments, useUpload, useRealtimeBadges, useIndexedDB
-│   ├── lib/                 # supabaseClient, compression
-│   ├── services/            # authService, documentService, fileService
-│   ├── assets/styles.css
-│   ├── App.jsx
-│   └── main.jsx
-├── .env.example
-└── package.json
-⚙️ Configuración
+## 🚀 Módulos del Sistema (Versión 2.0)
 
-.env (cliente):
+### 1. 📂 Gestión Documental y Archivo Central *(En Producción)*
+- **Control de Roles (RBAC):**
+  - **Rectoría y Administrador:** Supervisión global, emisión de circulares oficiales, edición, eliminación y auditoría por docente.
+  - **Docentes:** Espacio privado para radicación de planeaciones, guías y talleres, sin acceso a archivos ajenos ni permisos destructivos.
+- **Estructura en Paleta Pastel Unificada:**
+  - `Todos los documentos`, `Compartidos con todos`, `Institucional & Circulares`, `Planeaciones`, `Planillas`, `Guías & Talleres`, `Observador & Actas`.
+  - Comportamiento interactivo intuitivo: reposo neutral con icono atenuado, iluminación al pasar el cursor (`hover`) y selección en color pastel con texto en negrita.
+- **Circulares Institucionales con Notificación Activa:**
+  - Globo indicador en tiempo real en la campanita superior que se apaga automáticamente al confirmar la lectura del documento.
+- **Radicación Automática:** Formato estándar institucional: `MG-PRI-2026-XXXX`.
+- **Almacenamiento Cloudflare R2:** Subida directa y multipart de archivos pesados con barras de progreso y compresión inteligente.
 
-bash
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-VITE_SUPABASE_ANON_KEY=tu-anon-key
+---
 
-Secretos de R2 (solo en Edge Functions, nunca en VITE_*):
+### 2. 🔐 Bóveda Directiva & Resguardo Confidencial *(En Producción)*
+- **Exclusivo para Rectoría y Administrador:**
+  - Resguardo de máxima seguridad para actas de Consejo Directivo, balances financieros, resoluciones, soportes PEI y contratos laborales.
+- **Sistema de Doble Llave Concurrente:**
+  - Clave maestra directiva (`boveda2026` inicial) con capacidad de actualización independiente y sincronización en la nube.
+- **Partición por Año Lectivo y Subcarpetas:**
+  - Clasificación automática por vigencia fiscal y carpetas temáticas confidenciales.
 
-bash
-supabase secrets set R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... R2_BUCKET=...
+---
 
-Arranque:
+### 3. 📊 Notas y Calificaciones (SIEE) *(Versión 2 · Fase N° 1)*
+- **Jerarquía Relacional de Datos (RBAC):**
+  - Árbol relacional: `Año Lectivo (2026) ➔ Periodo (1° al 4°) ➔ Grado ➔ Director de Curso ➔ Asignatura ➔ Docente Titular ➔ Estudiantes`.
+- **Navegación en Cards Grado a Grado y Sábana a Sábana:**
+  - **Carpetas de Grados Académicos:** `Transición`, `1° Primaria`, `2° Primaria`, `3° Primaria`, `4° Primaria`, `5° Primaria` con asignación de dirección de curso y censo de estudiantes.
+  - **Sábana General Consolidada (Vista General):**
+    - Matriz integral con **todas las asignaturas del grado lado a lado**.
+    - Cálculo de **promedio general**, **puestos del grado** (1°, 2° y 3° con medallas y trofeos) y conteo de asignaturas reprobadas.
+    - **Acceso rápido interactivo:** Clic en cualquier encabezado de materia o celda para saltar directamente a su planilla detallada.
+  - **Planillas Detalladas por Asignatura:**
+    - Estructura oficial SIEE: **Cognitivo (40%)**, **Procedimental (40%)**, **Actitudinal (20%)** y cálculo de definitiva ponderada al 100%.
+    - Escala valorativa nacional: *Superior*, *Alto*, *Básico*, *Bajo*.
+    - Retroalimentación pedagógica docente (editable por el titular) y sugerencia directiva de auditoría (Rectoría).
+- **Estado de Despliegue en la Nube:**
+  - **Acceso Administrador:** Interacción completa para auditoría técnica y pruebas de sincronización.
+  - **Modo Rectora y Docentes:** Tarjetas en gris con distintivo `🔨 EN DESARROLLO · FASE N° 1` y modal de agradecimiento institucional al hacer clic.
 
-bash
-npm install
-npm run dev
-🔐 Seguridad
-- Las contraseñas nunca se guardan en texto plano en el repositorio ni en la base de datos; viajan ofuscadas bajo el algoritmo criptográfico institucional (`GM_SEC_v1$...`) y se sincronizan con la tabla `institutional_vault` en Supabase.
-- Sistema de doble llave concurrente para la Bóveda Directiva (Rectoría + Respaldo Administrador).
-- Los permisos los aplica RLS en la base de datos, no solo la interfaz.
-- Los límites de tamaño se validan de forma estricta.
+---
 
-📂 Especificaciones y Módulos en Espera
-- 📄 [Módulo "Despacho Rectora - Docentes"](docs/MODULO_RECTORA_DOCENTES.md): Propuesta de arquitectura, flujos bidireccionales y guía de entrevista para la Rectora (en espera de validación directiva).
+### 4. 🔄 Novedades & Reemplazos Docentes *(Versión 2 · Fase N° 1)*
+- **Consola de Contingencia Administrativa:**
+  - Reasignación inmediata de direcciones de curso y asignaturas frente a incapacidades médicas o licencias.
+  - Transferencia automática de planillas de notas al nuevo docente nombrado con registro de actas y trazabilidad temporal.
 
-⚠️ Pendiente
-- Hacer export periódico de la tabla documents (el plan Free de Supabase no incluye backups).
+---
+
+### 5. 👥 Control de Asistencia y Presencia en Vivo *(En Producción)*
+- **Supabase Realtime Presence:**
+  - Latido (*heartbeat*) que registra en tiempo real quién se encuentra conectado en la plataforma.
+  - Panel flotante con conteo en vivo de docentes en línea y registro de última conexión.
+
+---
+
+### 6. 🛡️ Seguridad, Identidad y Primer Ingreso *(En Producción)*
+- **Primer Ingreso Obligatorio (`ForcePasswordChangeModal`):**
+  - Las cuentas de docentes (`jessica`, `yuri`, `elcy`, etc.) cuentan con claves iniciales individuales (`jessica2026`, `yuri2026`, etc.).
+  - En su primer ingreso, el sistema exige obligatoriamente cambiar la contraseña antes de poder navegar. Una vez cambiada, la clave inicial se elimina automáticamente.
+- **Separación de Claves:**
+  - `boveda2026` está blindada exclusivamente para la Bóveda Directiva.
+- **Ofuscación Criptográfica:**
+  - Las credenciales nunca viajan ni se almacenan en texto plano; se utiliza el algoritmo `GM_SEC_v1$...` respaldado en la tabla `institutional_vault` de Supabase.
+
+---
+
+## 🏗️ Arquitectura del Sistema
+
+```
+                      [ Cliente Web - React 19 + Vite ]
+                                     │
+                 ┌───────────────────┴───────────────────┐
+                 ▼                                       ▼
+      [ Supabase Cloud ]                       [ Cloudflare R2 ]
+  ├── Autenticación (JWT)                  └── Bucket Binarios (10 GB)
+  ├── Base de Datos (PostgreSQL)                 ├── Archivos hasta 2 GB
+  ├── Row Level Security (RLS)                   └── URLs firmadas por Edge Functions
+  ├── Realtime (Presencia en vivo)
+  └── Bóveda Criptográfica (Vault)
+```
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Capa | Tecnologías |
+|---|---|
+| **Frontend** | React 19, Vite 8, Phosphor Icons, CSS3 Modular Pastel |
+| **Seguridad** | Row Level Security (RLS), JWT, Criptografía `GM_SEC_v1` |
+| **Backend & DB** | Supabase (PostgreSQL), Supabase Edge Functions |
+| **Almacenamiento** | Cloudflare R2 (S3-compatible API), JSZip |
+| **Desarrollo** | `<Frix.io/>` |
+
+---
+
+## ⚙️ Puesta en Marcha Local
+
+1. **Instalación de Dependencias:**
+   ```bash
+   npm install
+   ```
+
+2. **Variables de Entorno (`.env`):**
+   ```env
+   VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+   VITE_SUPABASE_ANON_KEY=tu-anon-key
+   ```
+
+3. **Ejecución en Desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Compilación para Producción:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 📝 Historial de Versiones
+
+### **v2.0.0 (Actual)**
+- Reestructuración completa del módulo de **Notas y Calificaciones**: navegación en cards de carpetas, sábana general consolidada del grado, ranking/puestos y paleta pastel unificada esmeralda/menta.
+- Integración del modal de primer ingreso obligatorio con contraseñas iniciales por docente.
+- Aislamiento de clave maestra de Bóveda (`boveda2026`).
+- Sistema de presencia en vivo y asistencia en tiempo real con Supabase Realtime.
+- Bloqueo de fase de desarrollo en la nube para Notas y Reemplazos con modal de agradecimiento Fase N° 1 y acceso exclusivo para Administrador.
+- Firma de autoría en pie de inicio de sesión: `desarrollado por <Frix.io/>`.
+
+### **v1.0.0**
+- Lanzamiento inicial de Gestión Documental y Bóveda Directiva con Supabase y Cloudflare R2.
+
+---
+
+## 👨‍💻 Autoría y Soporte
+
+Desarrollado con dedicación para el **Gimnasio Martin Galeano** por:  
+**`<Frix.io/>`**  
+*Ingeniería de Software & Soluciones Cloud*

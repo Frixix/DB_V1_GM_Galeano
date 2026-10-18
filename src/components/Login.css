@@ -503,12 +503,52 @@
 }
 
 .auth-footer-tag {
-  margin-top: 0.75rem;
+  margin-top: 1rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
   color: #94a3b8;
   font-size: 0.75rem;
-  font-weight: 500;
   letter-spacing: 0.02em;
+}
+
+.auth-footer-version {
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-footer-credit {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.auth-footer-brand {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 800;
+  color: #064e3b;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  letter-spacing: -0.01em;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.auth-footer-brand:hover {
+  background-color: #d1fae5;
+  border-color: #6ee7b7;
+  color: #047857;
+  transform: translateY(-1px);
 }
 
 /* ==========================================================================
