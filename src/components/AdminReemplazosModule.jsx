@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PortalNavbar from './PortalNavbar';
 import gradesService from '../services/gradesService';
 import { USERS } from '../data/users';
 import { GRADES_LIST } from '../data/gradesTreeData';
@@ -16,6 +17,9 @@ export default function AdminReemplazosModule({
   onOpenProfile,
   onOpenConnectionsModal,
   onlineCount,
+  circularesCount = 0,
+  onOpenCirculares,
+  onOpenTour,
   onLogout
 }) {
   const [selectedGrade, setSelectedGrade] = useState('5° Primaria');
@@ -134,109 +138,34 @@ export default function AdminReemplazosModule({
 
   return (
     <div className="admin-reemplazos-page">
-      {/* Header Superior Institucional */}
-      <header className="admin-page-navbar">
-        <div className="admin-navbar-left">
-          <button 
-            type="button" 
-            className="btn-back-nav" 
-            onClick={onBackToModules}
-            title="Volver al Portal Principal de Módulos"
-          >
-            <i className="ph-bold ph-arrow-left"></i>
-            <span>Volver a Módulos</span>
-          </button>
-
-          {onNavigateToGrades && (
+      {/* Header Superior Institucional Unificado */}
+      <PortalNavbar
+        currentUser={currentUser}
+        moduleTitle="Consola de Asignaciones"
+        moduleSubtitle="Supervisión Institucional • Asignaciones & Reemplazos Docentes"
+        onBackToModules={onBackToModules}
+        extraLeftActions={
+          onNavigateToGrades && (
             <button 
               type="button" 
-              className="btn-goto-grades-nav" 
+              className="btn-portal-back-modules" 
               onClick={onNavigateToGrades}
               title="Abrir Módulo de Notas y Calificaciones"
+              style={{ borderColor: '#fde68a', backgroundColor: '#fef3c7', color: '#b45309' }}
             >
               <i className="ph-bold ph-chart-line-up"></i>
               <span>Ir a Notas</span>
             </button>
-          )}
-
-          <div className="admin-page-brand">
-            <div className="portal-shield-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#15803d" />
-                <path d="M12 3.8L4.5 7.2V12C4.5 16.5 7.6 20.6 12 21.8C16.4 20.6 19.5 16.5 19.5 12V7.2L12 3.8Z" fill="#16a34a" fillOpacity="0.85" />
-                <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif" letterSpacing="-0.5">MG</text>
-              </svg>
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="admin-brand-title">Gimnasio Martin Galeano</span>
-                <span className="admin-tag-pill">Consola de Administración Curricular</span>
-              </div>
-              <span className="admin-brand-subtitle">
-                Supervisión Institucional • Asignaciones & Reemplazos Docentes
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-navbar-right">
-          {/* Presencia en Vivo */}
-          {onOpenConnectionsModal && (
-            <button 
-              type="button"
-              className="btn-presence-nav" 
-              onClick={onOpenConnectionsModal}
-              title="Supervisión en vivo del personal docente"
-            >
-              <span className="live-status-pulse"></span>
-              <span className="live-status-nav-label">
-                <strong>{onlineCount || 1}</strong> en línea
-              </span>
-              <i className="ph-bold ph-shield-check"></i>
-            </button>
-          )}
-
-          {/* Chip de Administrador */}
-          <div 
-            className="user-chip user-chip-clickable portal-user-chip" 
-            onClick={onOpenProfile}
-            role="button"
-            tabIndex={0}
-            title="Ajustes de perfil y bóveda institucional"
-          >
-            <div className="user-avatar avatar-rectora-chip">
-              {currentUser?.avatar ? (
-                <img 
-                  src={currentUser.avatar} 
-                  alt={currentUser?.name} 
-                  className="user-avatar-img"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-              ) : null}
-              <span className="user-avatar-initial" style={{ display: currentUser?.avatar ? 'none' : 'flex' }}>
-                {currentUser?.initial || 'A'}
-              </span>
-              <span className="avatar-chip-crown">👑</span>
-            </div>
-            <div className="user-info">
-              <span className="user-name">{currentUser?.name || 'Administrador'}</span>
-              <span className="user-role">Administrador General</span>
-            </div>
-            <div className="user-chip-icon-hint">
-              <i className="ph-bold ph-gear"></i>
-            </div>
-          </div>
-
-          <button 
-            type="button" 
-            className="btn btn-secondary btn-icon-only" 
-            onClick={onLogout} 
-            title="Cerrar Sesión"
-          >
-            <i className="ph-bold ph-sign-out"></i>
-          </button>
-        </div>
-      </header>
+          )
+        }
+        onOpenConnectionsModal={onOpenConnectionsModal}
+        onlineCount={onlineCount}
+        circularesCount={circularesCount}
+        onOpenCirculares={onOpenCirculares}
+        onOpenTour={onOpenTour}
+        onOpenProfile={onOpenProfile}
+        onLogout={onLogout}
+      />
 
       {/* Contenido Principal Espacioso */}
       <main className="admin-page-content">

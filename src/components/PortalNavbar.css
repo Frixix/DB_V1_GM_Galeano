@@ -1,0 +1,372 @@
+/* ==========================================================================
+   PORTAL NAVBAR - BARRA SUPERIOR INSTITUCIONAL UNIFICADA
+   Misma altura (64px), tipografía, espaciado y acciones para todo el sistema:
+   Dashboard de Módulos, Gestión Documental, Notas y Calificaciones, Bóveda Directiva.
+   ========================================================================== */
+
+.portal-navbar {
+  height: 64px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.portal-navbar *,
+.portal-navbar *::before,
+.portal-navbar *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.portal-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.portal-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+/* Botón menú móvil (hamburguesa para móviles) */
+.btn-mobile-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  font-size: 1.35rem;
+  color: #0f172a;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-mobile-toggle:hover {
+  background-color: #f1f5f9;
+}
+
+/* Botón Volver a Módulos */
+.btn-portal-back-modules {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-portal-back-modules:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+  color: #000000;
+  transform: translateX(-2px);
+}
+
+/* Escudo Institucional MG */
+.portal-shield-badge {
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1.5px solid #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.12);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-shield-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
+}
+
+/* Textos de la Marca Institucional */
+.portal-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.portal-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portal-system-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.portal-module-tag-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0f172a;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.portal-system-subtitle {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+/* Botón Guía de Sistema (Reemplazo de Subir Documento) */
+.btn-nav-guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-nav-guide i {
+  font-size: 1.05rem;
+  color: #16a34a;
+  transition: transform 0.2s ease;
+}
+
+.btn-nav-guide:hover {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.14);
+}
+
+.btn-nav-guide:hover i {
+  transform: rotate(30deg);
+}
+
+/* Campanita de Notificaciones Institucionales */
+.portal-navbar .nav-notification-bell {
+  position: relative;
+  font-size: 1.3rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+}
+
+.portal-navbar .nav-notification-bell:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Chip de Usuario Interactivo (Administrador, Rectora, Docentes) */
+.portal-navbar .user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 6px;
+  background-color: #f8fafc;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.portal-navbar .user-chip:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.portal-navbar .user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #15803d;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-navbar .user-avatar.avatar-rectora-chip {
+  background-color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.portal-navbar .user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.portal-navbar .avatar-chip-crown {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.portal-navbar .user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.portal-navbar .user-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.portal-navbar .user-role {
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.portal-navbar .user-chip-icon-hint {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  margin-left: 2px;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.portal-navbar .user-chip:hover .user-chip-icon-hint {
+  color: #0f172a;
+  transform: rotate(45deg);
+}
+
+/* Botón Cerrar Sesión */
+.portal-navbar .portal-btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  background-color: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.portal-navbar .portal-btn-logout:hover {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Responsividad */
+@media (max-width: 900px) {
+  .btn-mobile-toggle {
+    display: inline-flex;
+  }
+  .portal-system-subtitle {
+    display: none;
+  }
+  .portal-navbar .portal-btn-logout span,
+  .btn-nav-guide span {
+    display: none;
+  }
+  .btn-portal-back-modules span {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .portal-navbar {
+    padding: 0 0.75rem;
+    gap: 0.5rem;
+  }
+  .portal-navbar-left {
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .portal-navbar-right {
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .portal-shield-badge {
+    width: 34px;
+    height: 34px;
+  }
+  .portal-shield-badge svg {
+    width: 20px;
+    height: 20px;
+  }
+  .portal-system-title {
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+  .portal-module-tag-pill {
+    display: none;
+  }
+  .btn-presence-nav .live-status-nav-label {
+    display: none;
+  }
+  .portal-navbar .user-info {
+    display: none;
+  }
+  .portal-navbar .user-chip {
+    padding: 2px;
+    background: transparent;
+    border: none;
+  }
+  .portal-navbar .user-chip-icon-hint {
+    display: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import PortalNavbar from './PortalNavbar';
 import './GradesModule.css';
 import gradesService from '../services/gradesService';
 
@@ -19,7 +20,10 @@ export default function GradesModule({
   onLogout,
   onOpenProfile,
   onOpenConnectionsModal,
-  onlineCount
+  onlineCount,
+  circularesCount = 0,
+  onOpenCirculares,
+  onOpenTour
 }) {
   // Identificación del Rol RBAC
   const userKey = currentUser?.key || currentUser?.role || 'jessica';
@@ -226,104 +230,19 @@ export default function GradesModule({
   return (
     <div className="grades-module-container">
       {/* Navbar Superior Unificado */}
-      <header className="grades-navbar">
-        <div className="grades-navbar-left">
-          <button 
-            type="button" 
-            className="btn-back-to-modules" 
-            onClick={onBackToModules}
-            title="Volver al Portal Principal de Módulos"
-          >
-            <i className="ph-bold ph-arrow-left"></i>
-            <span>Volver a Módulos</span>
-          </button>
-
-          <div className="grades-brand-box">
-            <div className="portal-shield-badge" title="Gimnasio Martin Galeano">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#15803d" />
-                <path d="M12 3.8L4.5 7.2V12C4.5 16.5 7.6 20.6 12 21.8C16.4 20.6 19.5 16.5 19.5 12V7.2L12 3.8Z" fill="#16a34a" fillOpacity="0.85" />
-                <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif" letterSpacing="-0.5">MG</text>
-              </svg>
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="grades-brand-title">Gimnasio Martin Galeano</span>
-                <span className="grades-tag-pill">Notas & Calificaciones</span>
-              </div>
-              <span className="grades-brand-subtitle">
-                Sistema Integral de Evaluación Académica (SIEE)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grades-navbar-right">
-          {/* Supervisión de Conexiones en Vivo (Rectora y Admin) */}
-          {isPrivileged && onOpenConnectionsModal && (
-            <button 
-              type="button"
-              className="btn-presence-nav" 
-              onClick={onOpenConnectionsModal}
-              title="Supervisión en vivo: Ver quién está conectado y a qué horas se conectaron"
-              aria-label="Ver control de conexiones del personal"
-            >
-              <span className="live-status-pulse"></span>
-              <span className="live-status-nav-label">
-                <strong>{onlineCount || 1}</strong> en línea
-              </span>
-              <i className="ph-bold ph-shield-check"></i>
-            </button>
-          )}
-
-          {/* Chip de Usuario Interactivo y Configuración */}
-          <div 
-            className="user-chip user-chip-clickable" 
-            onClick={onOpenProfile}
-            role="button"
-            tabIndex={0}
-            title={isPrivileged ? "Configuración de administrador y ajustes de personal" : `Configuración de perfil de ${currentUser?.name}`}
-            aria-label={isPrivileged ? "Configuración de administrador" : `Configuración de perfil de ${currentUser?.name}`}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (onOpenProfile) onOpenProfile();
-              }
-            }}
-          >
-            <div className={`user-avatar ${isPrivileged ? 'avatar-rectora-chip' : ''}`}>
-              {currentUser?.avatar ? (
-                <img 
-                  src={currentUser.avatar} 
-                  alt={currentUser?.name} 
-                  className="user-avatar-img"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-              ) : null}
-              <span className="user-avatar-initial" style={{ display: currentUser?.avatar ? 'none' : 'flex' }}>
-                {currentUser?.initial || 'U'}
-              </span>
-              {isPrivileged && <span className="avatar-chip-crown">👑</span>}
-            </div>
-            <div className="user-info">
-              <span className="user-name">{currentUser?.name}</span>
-              <span className="user-role">{currentUser?.label}</span>
-            </div>
-            <div className="user-chip-icon-hint" title="Configurar cuenta y avatar">
-              <i className="ph-bold ph-gear"></i>
-            </div>
-          </div>
-
-          <button 
-            type="button" 
-            className="btn btn-secondary btn-icon-only" 
-            onClick={onLogout} 
-            title="Cerrar Sesión"
-          >
-            <i className="ph-bold ph-sign-out"></i>
-          </button>
-        </div>
-      </header>
+      <PortalNavbar
+        currentUser={currentUser}
+        moduleTitle="Notas & Calificaciones"
+        moduleSubtitle="Sistema Integral de Evaluación Académica (SIEE)"
+        onBackToModules={onBackToModules}
+        onOpenConnectionsModal={onOpenConnectionsModal}
+        onlineCount={onlineCount}
+        circularesCount={circularesCount}
+        onOpenCirculares={onOpenCirculares}
+        onOpenTour={onOpenTour}
+        onOpenProfile={onOpenProfile}
+        onLogout={onLogout}
+      />
 
       {/* Contenido Principal */}
       <main className="grades-content-area">
