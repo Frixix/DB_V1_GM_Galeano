@@ -15,6 +15,7 @@ import UploadModal from './components/UploadModal';
 import ProfileModal from './components/ProfileModal';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import BovedaPasswordModal from './components/BovedaPasswordModal';
+import ForceBovedaPasswordModal from './components/ForceBovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import ConnectionsModal from './components/ConnectionsModal';
 import TrialWatermark from './components/TrialWatermark';
@@ -23,7 +24,7 @@ import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
 import { useUserPresence } from './hooks/useUserPresence';
 import { downloadDocumentBlob } from './services/storageService';
-import { syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword } from './services/authService';
+import { syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword, hasBovedaCustomPassword } from './services/authService';
 import { syncAvatarsFromCloud, subscribeToAvatarChanges } from './services/avatarService';
 
 export default function App() {
@@ -607,6 +608,18 @@ export default function App() {
           setIsBovedaUnlocked={setIsBovedaUnlocked}
           isPrivileged={isPrivileged}
         />
+        {!hasBovedaCustomPassword(currentUser) && (
+          <ForceBovedaPasswordModal
+            currentUser={currentUser}
+            onSuccess={() => {
+              setIsBovedaUnlocked(true);
+              setAuthVaultTick((prev) => prev + 1);
+            }}
+            onCancel={() => {
+              setActiveModule(null);
+            }}
+          />
+        )}
         <ProfileModal 
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
@@ -780,17 +793,32 @@ export default function App() {
         </main>
       </div>
 
-      {/* Modal de Autenticación de Bóveda */}
-      <BovedaAuthModal 
-        isOpen={isBovedaModalOpen} 
-        onClose={() => setIsBovedaModalOpen(false)} 
-        currentUser={currentUser}
-        onSuccess={() => {
-          setIsBovedaUnlocked(true);
-          setIsBovedaModalOpen(false);
-          setCurrentFolder('boveda');
-        }} 
-      />
+      {/* Modal de Autenticación de Bóveda (o cambio forzado si usa la clave inicial boveda2026) */}
+      {isBovedaModalOpen && !hasBovedaCustomPassword(currentUser) ? (
+        <ForceBovedaPasswordModal
+          currentUser={currentUser}
+          onSuccess={() => {
+            setIsBovedaUnlocked(true);
+            setIsBovedaModalOpen(false);
+            setCurrentFolder('boveda');
+            setAuthVaultTick((prev) => prev + 1);
+          }}
+          onCancel={() => {
+            setIsBovedaModalOpen(false);
+          }}
+        />
+      ) : (
+        <BovedaAuthModal 
+          isOpen={isBovedaModalOpen} 
+          onClose={() => setIsBovedaModalOpen(false)} 
+          currentUser={currentUser}
+          onSuccess={() => {
+            setIsBovedaUnlocked(true);
+            setIsBovedaModalOpen(false);
+            setCurrentFolder('boveda');
+          }} 
+        />
+      )}
 
       {/* Modal para Ver Documento */}
       <ViewModal 

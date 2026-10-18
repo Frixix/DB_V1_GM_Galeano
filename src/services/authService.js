@@ -382,16 +382,53 @@ export function getBovedaCredentials() {
 }
 
 /**
- * Verifica si la clave ingresada coincide con CUALQUIERA de las dos llaves
- * autorizadas de la Bóveda (la del Administrador o la de la Rectora).
+ * Verifica si el usuario actual (o su rol directivo) ya configuró su clave única de Bóveda.
+ * Retorna true si ya fue personalizada (anulando 'boveda2026'), false si aún utiliza la inicial.
  */
-export function verifyBovedaPassword(inputPassword) {
+export function hasBovedaCustomPassword(currentUserOrRole) {
+  if (!currentUserOrRole) return false;
+  const role = typeof currentUserOrRole === 'string' 
+    ? currentUserOrRole 
+    : (currentUserOrRole.role || currentUserOrRole.key);
+
+  const bovedaCreds = getBovedaCredentials();
+  if (role === 'admin') {
+    return Boolean(bovedaCreds.isAdminCustom);
+  }
+  if (role === 'rectora' || role === 'induccion_rectora') {
+    return Boolean(bovedaCreds.isRectoraCustom);
+  }
+  return false;
+}
+
+/**
+ * Verifica si la clave ingresada coincide con las llaves autorizadas de la Bóveda.
+ * Si el usuario ya personalizó su clave, anula permanentemente el uso de 'boveda2026'.
+ */
+export function verifyBovedaPassword(inputPassword, currentUser = null) {
   if (!inputPassword || typeof inputPassword !== 'string') {
     return { valid: false, error: 'Ingrese una contraseña válida.' };
   }
 
   const cleanInput = inputPassword.trim();
-  const { adminPass, rectoraPass } = getBovedaCredentials();
+  const { adminPass, rectoraPass, isAdminCustom, isRectoraCustom } = getBovedaCredentials();
+
+  const role = currentUser?.role || currentUser?.key;
+
+  // Validación contextual según el usuario autenticado:
+  if (role === 'admin') {
+    if (isAdminCustom) {
+      if (cleanInput === adminPass) return { valid: true, unlockedBy: 'admin' };
+      if (isRectoraCustom && cleanInput === rectoraPass) return { valid: true, unlockedBy: 'rectora' };
+      return { valid: false, error: 'Clave de seguridad incorrecta. Acceso a la bóveda denegado.' };
+    }
+  } else if (role === 'rectora' || role === 'induccion_rectora') {
+    if (isRectoraCustom) {
+      if (cleanInput === rectoraPass) return { valid: true, unlockedBy: 'rectora' };
+      if (isAdminCustom && cleanInput === adminPass) return { valid: true, unlockedBy: 'admin' };
+      return { valid: false, error: 'Clave de seguridad incorrecta. Acceso a la bóveda denegado.' };
+    }
+  }
 
   if (cleanInput === rectoraPass) {
     return { valid: true, unlockedBy: 'rectora' };
@@ -405,9 +442,9 @@ export function verifyBovedaPassword(inputPassword) {
 }
 
 /**
- * Permite cambiar la clave de la Bóveda (solo accesible una vez dentro de la Bóveda).
+ * Permite cambiar la clave de la Bóveda.
  * Permite actualizar la clave según el perfil solicitante (rectora o admin),
- * manteniendo activas ambas llaves de forma concurrente.
+ * manteniendo activas ambas llaves de forma concurrente y eliminando 'boveda2026'.
  */
 export async function changeBovedaPassword({ keyRole = 'rectora', currentAuthPassword, newPassword, currentUser }) {
   const cleanNew = (newPassword || '').trim();
@@ -419,8 +456,8 @@ export async function changeBovedaPassword({ keyRole = 'rectora', currentAuthPas
   const cleanAuth = (currentAuthPassword || '').trim();
 
   // Validación de autorización:
-  // Puede autorizarse con la clave actual de bóveda (rectora o admin) o con la clave institucional del usuario
-  const isAuthByBoveda = cleanAuth === rectoraPass || cleanAuth === adminPass;
+  // Puede autorizarse con la clave actual de bóveda (rectora o admin), con boveda2026 inicial o con la clave del usuario
+  const isAuthByBoveda = cleanAuth === rectoraPass || cleanAuth === adminPass || cleanAuth === BOVEDA_PASSWORD;
   let isAuthByUser = false;
   if (currentUser) {
     const userKey = resolveUserKey(currentUser);
@@ -431,6 +468,10 @@ export async function changeBovedaPassword({ keyRole = 'rectora', currentAuthPas
 
   if (!isAuthByBoveda && !isAuthByUser) {
     throw new Error('La contraseña de autorización ingresada es incorrecta.');
+  }
+
+  if (cleanNew === BOVEDA_PASSWORD) {
+    throw new Error('La nueva clave de la Bóveda debe ser diferente a la clave anterior institucional (boveda2026).');
   }
 
   if (keyRole === 'rectora' && cleanNew === rectoraPass) {

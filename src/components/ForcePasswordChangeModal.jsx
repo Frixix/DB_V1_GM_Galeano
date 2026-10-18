@@ -99,7 +99,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
         {/* Encabezado Institucional No Saltable */}
         <div className="force-password-header">
           <div className="force-header-monogram">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#15803d" />
               <path d="M12 3.8L4.5 7.2V12C4.5 16.5 7.6 20.6 12 21.8C16.4 20.6 19.5 16.5 19.5 12V7.2L12 3.8Z" fill="#16a34a" fillOpacity="0.9" />
               <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif">MG</text>
@@ -263,7 +263,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
                 <i className={`ph-bold ${isDifferentFromInitial ? 'ph-check-circle' : 'ph-circle'}`}></i>
                 <span>Diferente a la clave inicial ({initialPass})</span>
               </div>
-              <div className={`verification-check-item ${doPasswordsMatch ? 'valid' : (isConfirmStarted ? 'invalid' : 'pending')}`}>
+              <div className={`verification-check-item full-width ${doPasswordsMatch ? 'valid' : (isConfirmStarted ? 'invalid' : 'pending')}`}>
                 <i className={`ph-bold ${doPasswordsMatch ? 'ph-check-circle' : (isConfirmStarted ? 'ph-x-circle' : 'ph-circle')}`}></i>
                 <span>
                   {doPasswordsMatch 

@@ -82,7 +82,7 @@ export default function BovedaModule({
     e.preventDefault();
     setUnlockError('');
 
-    const res = verifyBovedaPassword(password);
+    const res = verifyBovedaPassword(password, currentUser);
     if (res.valid) {
       setPassword('');
       setUnlockError('');

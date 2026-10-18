@@ -15,7 +15,7 @@ export default function BovedaAuthModal({ isOpen, onClose, onSuccess, currentUse
     e.preventDefault();
     setErrorMessage('');
 
-    const res = verifyBovedaPassword(password);
+    const res = verifyBovedaPassword(password, currentUser);
     if (res.valid) {
       setPassword('');
       setErrorMessage('');

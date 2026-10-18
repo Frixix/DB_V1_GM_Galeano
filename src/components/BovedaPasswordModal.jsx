@@ -324,7 +324,7 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
                   <i className={`ph-bold ${isDifferentFromAuth ? 'ph-check-circle' : 'ph-circle'}`}></i>
                   <span>Diferente a la contraseña de autorización</span>
                 </div>
-                <div className={`verification-check-item ${doPasswordsMatch ? 'valid' : (isConfirmStarted ? 'invalid' : 'pending')}`}>
+                <div className={`verification-check-item full-width ${doPasswordsMatch ? 'valid' : (isConfirmStarted ? 'invalid' : 'pending')}`}>
                   <i className={`ph-bold ${doPasswordsMatch ? 'ph-check-circle' : (isConfirmStarted ? 'ph-x-circle' : 'ph-circle')}`}></i>
                   <span>
                     {doPasswordsMatch 

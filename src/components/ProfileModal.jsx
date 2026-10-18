@@ -734,7 +734,7 @@ export default function ProfileModal({
                       <i className={`ph-bold ${isDifferentFromCurrentProfile ? 'ph-check-circle' : 'ph-circle'}`}></i>
                       <span>Diferente a la contraseña actual</span>
                     </div>
-                    <div className={`verification-check-item ${doPasswordsMatchProfile ? 'valid' : (isConfirmStartedProfile ? 'invalid' : 'pending')}`}>
+                    <div className={`verification-check-item full-width ${doPasswordsMatchProfile ? 'valid' : (isConfirmStartedProfile ? 'invalid' : 'pending')}`}>
                       <i className={`ph-bold ${doPasswordsMatchProfile ? 'ph-check-circle' : (isConfirmStartedProfile ? 'ph-x-circle' : 'ph-circle')}`}></i>
                       <span>
                         {doPasswordsMatchProfile 
