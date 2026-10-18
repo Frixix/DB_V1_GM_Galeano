@@ -84,6 +84,19 @@ export default function App() {
     handleLogout: presenceLogout,
   } = useUserPresence(currentUser);
 
+  const handleLogout = async () => {
+    try {
+      if (typeof presenceLogout === 'function') {
+        await presenceLogout();
+      }
+    } catch (err) {
+      console.warn('Error during presence logout:', err);
+    }
+    setCurrentUser(null);
+    setIsBovedaUnlocked(false);
+    setActiveModule(null);
+  };
+
   useEffect(() => {
     syncVaultWithSupabase().catch(() => {});
     syncAvatarsFromCloud().catch(() => {});
@@ -150,13 +163,6 @@ export default function App() {
   const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
   const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
   const totalUnreadCount = unreadDocs.length;
-
-  const handleLogout = async () => {
-    await presenceLogout();
-    setCurrentUser(null);
-    setIsBovedaUnlocked(false);
-    setActiveModule(null);
-  };
 
   // Manejador para abrir novedades desde la campanita unificada (en cualquier módulo)
   const handleOpenCircularesBell = () => {

@@ -120,7 +120,7 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
               <span className="force-role-badge">{userRole}</span>
             </div>
             <span className="force-security-alert">
-              <i className="ph-bold ph-shield-warning"></i>
+              <i className="ph-bold ph-shield-check"></i>
               <span>Por seguridad del colegio, debes crear tu contraseña personal antes de continuar.</span>
             </span>
           </div>
