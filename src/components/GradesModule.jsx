@@ -3,7 +3,6 @@ import PortalNavbar from './PortalNavbar';
 import GradesSidebar from './GradesSidebar';
 import './GradesModule.css';
 import gradesService from '../services/gradesService';
-import { STUDENTS_BY_GRADE } from '../data/gradesTreeData';
 
 // Clases pastel para los avatares circulares de estudiantes
 const PASTEL_AVATAR_CLASSES = [
@@ -480,147 +479,6 @@ export default function GradesModule({
           </div>
         </section>
 
-        {/* =====================================================================
-            SECCIÓN 1: NAVEGACIÓN DE CARPETAS / CARDS DE GRADOS ACADÉMICOS
-            "pasar de carpeta a carpeta, o de cards a cards"
-            ===================================================================== */}
-        <section className="grades-nav-section">
-          <div className="grades-nav-section-header">
-            <div className="section-title-wrap">
-              <i className="ph-bold ph-folder-notch-open"></i>
-              <h3>Carpetas de Grados Académicos</h3>
-            </div>
-            <div className="grades-period-pills-wrap">
-              <span className="period-label">Periodo Académico:</span>
-              {availablePeriods.map(p => (
-                <button
-                  key={p}
-                  type="button"
-                  className={`grades-period-pill ${selectedPeriod === p ? 'active' : ''}`}
-                  onClick={() => setSelectedPeriod(p)}
-                  title={`Cambiar a ${p}`}
-                >
-                  <i className="ph-bold ph-clock"></i>
-                  <span>{p.split(' ')[0]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grades-cards-grid grades-folder-grid">
-            {availableGrades.map((g) => {
-              const isSelected = selectedGrade === g;
-              const dir = gradesService.getGradeDirector(g);
-              const isUserDir = gradesService.isGradeDirector(currentUser, g);
-              const studentCount = (STUDENTS_BY_GRADE[g]?.length) || 6;
-
-              return (
-                <button
-                  key={g}
-                  type="button"
-                  className={`grades-nav-card grade-folder-card ${isSelected ? 'active' : ''}`}
-                  onClick={() => setSelectedGrade(g)}
-                  title={`Seleccionar carpeta de ${g}`}
-                >
-                  <div className="card-icon-wrap">
-                    <i className="ph-bold ph-folder"></i>
-                  </div>
-                  <div className="card-text-wrap">
-                    <div className="card-title-row">
-                      <span className="card-title">{g}</span>
-                      {isUserDir && (
-                        <span className="card-mini-pill dir-pill" title="Eres el(la) Director(a) de Curso de este grado">
-                          <i className="ph-bold ph-shield-star"></i> Dir. Curso
-                        </span>
-                      )}
-                    </div>
-                    <span className="card-subtitle">
-                      Dir: {dir.teacherName} • {studentCount} estudiantes
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* =====================================================================
-            SECCIÓN 2: NAVEGACIÓN DE SÁBANAS DE NOTAS (CARDS A CARDS)
-            Sábana General Consolidada + Sábanas por Materia
-            ===================================================================== */}
-        <section className="grades-nav-section">
-          <div className="grades-nav-section-header">
-            <div className="section-title-wrap">
-              <i className="ph-bold ph-files"></i>
-              <h3>Sábanas de Notas Disponibles • {selectedGrade}</h3>
-            </div>
-            <span className="section-meta-pill">
-              {availableSubjects.length + 1} sábanas en {selectedGrade}
-            </span>
-          </div>
-
-          <div className="grades-cards-grid sabanas-cards-grid">
-            {/* Card 1: Sábana General Consolidada (Vista General del Grado) */}
-            <button
-              type="button"
-              className={`grades-nav-card sabana-card sabana-consolidated-card ${activeSheetType === 'consolidated' ? 'active' : ''}`}
-              onClick={() => setActiveSheetType('consolidated')}
-              title="Ver la sábana general consolidada con todas las materias del grado"
-            >
-              <div className="card-icon-wrap icon-consolidada">
-                <i className="ph-bold ph-chart-bar"></i>
-              </div>
-              <div className="card-text-wrap">
-                <div className="card-title-row">
-                  <span className="card-title">Sábana General (Vista General)</span>
-                  <span className="card-general-badge">Todas las Asignaturas</span>
-                </div>
-                <span className="card-subtitle">
-                  Consolidado general, puestos, promedios y reprobadas
-                </span>
-              </div>
-            </button>
-
-            {/* Cards 2..N: Asignaturas individuales */}
-            {availableSubjects.map((subj) => {
-              const isSelected = activeSheetType === 'subject' && selectedSubject === subj;
-              const teacher = gradesService.getTeacherAssignment(selectedGrade, subj);
-              const isMySubject = gradesService.canEditScores(currentUser, selectedGrade, subj);
-              const iconClass = getSubjectIcon(subj);
-
-              return (
-                <button
-                  key={subj}
-                  type="button"
-                  className={`grades-nav-card sabana-card ${isSelected ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedSubject(subj);
-                    setActiveSheetType('subject');
-                  }}
-                  title={`Abrir planilla de notas de ${subj}`}
-                >
-                  <div className="card-icon-wrap">
-                    <i className={`ph-bold ${iconClass}`}></i>
-                  </div>
-                  <div className="card-text-wrap">
-                    <div className="card-title-row">
-                      <span className="card-title">{subj}</span>
-                      {isMySubject && (
-                        <span className="card-mini-pill editable-pill" title="Materia a tu cargo (Editable)">
-                          <i className="ph-bold ph-pencil-simple"></i> Mi Asignatura
-                        </span>
-                      )}
-                    </div>
-                    <span className="card-subtitle">
-                      Docente: {teacher.teacherName}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
         {/* Visualización Visual de la Jerarquía de Datos Relacional (RBAC) */}
         <section className="grades-tree-path-card">
           <div className="grades-tree-path-header">
@@ -699,7 +557,7 @@ export default function GradesModule({
           </div>
         </section>
 
-        {/* Barra de Filtros Rápidos y Acciones */}
+        {/* Barra de Filtros Rápidos, Modo de Sábana y Acciones */}
         <section className="grades-filter-bar">
           <div className="grades-filter-group">
             {/* Selector Año Lectivo */}
@@ -714,6 +572,49 @@ export default function GradesModule({
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Selector Rápido de Periodo */}
+            <div className="grades-select-item">
+              <label><i className="ph-bold ph-clock"></i> Periodo Académico</label>
+              <div className="grades-period-pills-wrap">
+                {availablePeriods.map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`grades-period-pill ${selectedPeriod === p ? 'active' : ''}`}
+                    onClick={() => setSelectedPeriod(p)}
+                    title={`Cambiar a ${p}`}
+                  >
+                    <span>{p.split(' ')[0]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Toggle Rápido de Tipo de Sábana */}
+            <div className="grades-select-item">
+              <label><i className="ph-bold ph-files"></i> Modo de Planilla</label>
+              <div className="grades-period-pills-wrap">
+                <button
+                  type="button"
+                  className={`grades-period-pill ${activeSheetType === 'consolidated' ? 'active' : ''}`}
+                  onClick={() => setActiveSheetType('consolidated')}
+                  title={`Ver Sábana General Consolidada de ${selectedGrade}`}
+                >
+                  <i className="ph-bold ph-chart-bar"></i>
+                  <span>Sábana General</span>
+                </button>
+                <button
+                  type="button"
+                  className={`grades-period-pill ${activeSheetType === 'subject' ? 'active' : ''}`}
+                  onClick={() => setActiveSheetType('subject')}
+                  title={`Ver Planilla de ${selectedSubject}`}
+                >
+                  <i className={`ph-bold ${getSubjectIcon(selectedSubject)}`}></i>
+                  <span>{selectedSubject}</span>
+                </button>
+              </div>
             </div>
 
             {/* Búsqueda rápida de estudiante */}
