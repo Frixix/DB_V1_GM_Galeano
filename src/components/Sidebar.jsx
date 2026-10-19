@@ -24,6 +24,19 @@ export default function Sidebar({
   const isStorageFull = totalUsedBytes >= SYSTEM_CAPACITY;
   const isStorageNearFull = !isStorageFull && (totalUsedBytes / SYSTEM_CAPACITY) >= 0.85;
 
+  const teachersList = [
+    { key: 'profe1', name: 'Profe 1', label: 'Dir. Transición', icon: 'ph-user' },
+    { key: 'jessica', name: 'Jessica', label: 'Dir. 1° Primaria', icon: 'ph-user' },
+    { key: 'yuri', name: 'Yuri', label: 'Dir. 2° Primaria', icon: 'ph-user' },
+    { key: 'profe2', name: 'Profe 2', label: 'Dir. 3° Primaria', icon: 'ph-user' },
+    { key: 'elcy', name: 'Elcy', label: 'Dir. 4° Primaria', icon: 'ph-user' },
+    { key: 'profe3', name: 'Profe 3', label: 'Dir. 5° Primaria', icon: 'ph-user' },
+    { key: 'claudia', name: 'Claudia (Rectora)', label: 'Rectoría', isRectora: true }
+  ];
+
+  const currentUserKey = currentUser?.key || currentUser?.role || (currentUser?.name ? currentUser.name.toLowerCase().replace(/\s+/g, '') : null);
+  const currentUserAvatar = (currentUserKey ? getUserAvatar(currentUserKey) : null) || currentUser?.avatar || null;
+
   return (
     <aside className="sidebar" id="mainSidebar">
       {/* Botón para retornar al área de módulos */}
@@ -41,8 +54,8 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* Sección de Auditoría por Docente (Solo Rectora/Admin) */}
-      {isPrivileged && (
+      {/* Sección de Auditoría por Docente (Solo Rectora/Admin) o Rol Propio Docente */}
+      {isPrivileged ? (
         <div className="sidebar-section" id="adminTeacherSection">
           <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -63,165 +76,130 @@ export default function Sidebar({
           </div>
           <nav className="teacher-list">
             <button 
+              type="button"
               className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
               onClick={() => onTeacherSelect('all')}
             >
               <i className="ph-bold ph-users-three"></i>
               <span>Todos los docentes</span>
             </button>
-            <button 
-              className={`teacher-btn ${currentTeacher === 'Jessica' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('Jessica')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                {getUserAvatar('jessica') ? (
-                  <div className="teacher-avatar-mini">
-                    <img 
-                      src={getUserAvatar('jessica')} 
-                      alt="Jessica" 
-                      className="teacher-avatar-img"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
-                    />
-                    <i className="ph-bold ph-user" style={{ display: 'none' }}></i>
+
+            {teachersList.map((t) => {
+              const avatarUrl = getUserAvatar(t.key);
+              const isOnline = onlineMap[t.key] || onlineMap[t.name];
+
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  className={`teacher-btn ${t.isRectora ? 'teacher-rectora-btn' : ''} ${
+                    currentTeacher === t.name ? 'active' : ''
+                  }`}
+                  onClick={() => onTeacherSelect(t.name)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
+                    <div className="teacher-avatar-mini">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={t.name}
+                          className="teacher-avatar-img"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const f = e.currentTarget.nextSibling;
+                            if (f) f.style.display = 'inline-block';
+                          }}
+                        />
+                      ) : null}
+                      <i
+                        className={`ph-bold ${t.isRectora ? 'ph-crown' : 'ph-user'}`}
+                        style={{
+                          display: avatarUrl ? 'none' : 'inline-block',
+                          color: t.isRectora ? '#d97706' : 'inherit'
+                        }}
+                      ></i>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {t.name}
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t.label}</span>
+                    </div>
                   </div>
-                ) : (
-                  <i className="ph-bold ph-user"></i>
-                )}
-                <span>Jessica</span>
-              </div>
-              <span 
-                className={`teacher-status-indicator ${onlineMap['jessica'] || onlineMap['Jessica'] ? 'online' : 'offline'}`}
-                title={onlineMap['jessica'] || onlineMap['Jessica'] ? "En línea ahora" : "Desconectado"}
-              ></span>
-              {isPrivileged && onOpenProfile && (
-                <span 
-                  className="sidebar-profile-badge"
-                  title="Personalizar perfil y logo de Jessica"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenProfile('jessica');
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <i className="ph-bold ph-sliders"></i>
-                </span>
-              )}
-            </button>
-            <button 
-              className={`teacher-btn ${currentTeacher === 'Yuri' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('Yuri')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                {getUserAvatar('yuri') ? (
-                  <div className="teacher-avatar-mini">
-                    <img 
-                      src={getUserAvatar('yuri')} 
-                      alt="Yuri" 
-                      className="teacher-avatar-img"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
-                    />
-                    <i className="ph-bold ph-user" style={{ display: 'none' }}></i>
-                  </div>
-                ) : (
-                  <i className="ph-bold ph-user"></i>
-                )}
-                <span>Yuri</span>
-              </div>
-              <span 
-                className={`teacher-status-indicator ${onlineMap['yuri'] || onlineMap['Yuri'] ? 'online' : 'offline'}`}
-                title={onlineMap['yuri'] || onlineMap['Yuri'] ? "En línea ahora" : "Desconectado"}
-              ></span>
-              {isPrivileged && onOpenProfile && (
-                <span 
-                  className="sidebar-profile-badge"
-                  title="Personalizar perfil y logo de Yuri"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenProfile('yuri');
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <i className="ph-bold ph-sliders"></i>
-                </span>
-              )}
-            </button>
-            <button 
-              className={`teacher-btn ${currentTeacher === 'Elcy' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('Elcy')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                {getUserAvatar('elcy') ? (
-                  <div className="teacher-avatar-mini">
-                    <img 
-                      src={getUserAvatar('elcy')} 
-                      alt="Elcy" 
-                      className="teacher-avatar-img"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
-                    />
-                    <i className="ph-bold ph-user" style={{ display: 'none' }}></i>
-                  </div>
-                ) : (
-                  <i className="ph-bold ph-user"></i>
-                )}
-                <span>Elcy</span>
-              </div>
-              <span 
-                className={`teacher-status-indicator ${onlineMap['elcy'] || onlineMap['Elcy'] ? 'online' : 'offline'}`}
-                title={onlineMap['elcy'] || onlineMap['Elcy'] ? "En línea ahora" : "Desconectado"}
-              ></span>
-              {isPrivileged && onOpenProfile && (
-                <span 
-                  className="sidebar-profile-badge"
-                  title="Personalizar perfil y logo de Elcy"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenProfile('elcy');
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <i className="ph-bold ph-sliders"></i>
-                </span>
-              )}
-            </button>
-            <button 
-              className={`teacher-btn teacher-rectora-btn ${currentTeacher === 'Claudia (Rectora)' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('Claudia (Rectora)')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <div className="teacher-avatar-mini">
-                  <img 
-                    src={getUserAvatar('claudia') || '/images/avatars/rectora.svg'} 
-                    alt="Claudia" 
-                    className="teacher-avatar-img"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; const f = e.currentTarget.nextSibling; if (f) f.style.display = 'inline-block'; }}
-                  />
-                  <i className="ph-bold ph-crown" style={{ color: '#d97706', display: 'none' }}></i>
-                </div>
-                <span>Claudia (Rectora)</span>
-              </div>
-              <span 
-                className={`teacher-status-indicator ${onlineMap['claudia'] || onlineMap['Claudia (Rectora)'] ? 'online' : 'offline'}`}
-                title={onlineMap['claudia'] || onlineMap['Claudia (Rectora)'] ? "En línea ahora" : "Desconectado"}
-              ></span>
-              {onOpenProfile && (
-                <span 
-                  className="sidebar-profile-badge"
-                  title="Personalizar perfil y logo de la Rectora"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenProfile('claudia');
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <i className="ph-bold ph-sliders"></i>
-                </span>
-              )}
-            </button>
+
+                  <span
+                    className={`teacher-status-indicator ${isOnline ? 'online' : 'offline'}`}
+                    title={isOnline ? 'En línea ahora' : 'Desconectado'}
+                  ></span>
+
+                  {onOpenProfile && (
+                    <span
+                      className="sidebar-profile-badge"
+                      title={`Personalizar perfil de ${t.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenProfile(t.key);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <i className="ph-bold ph-sliders"></i>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
+        </div>
+      ) : (
+        /* Para la docente conectada: vista de su propia dirección de curso y acceso a su perfil */
+        <div className="sidebar-section teacher-own-card obs-teacher-own-card">
+          <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <i className="ph-bold ph-identification-card"></i>
+              <span>Mi Rol & Dirección de Aula</span>
+            </div>
+            {onOpenProfile && (
+              <span
+                className="sidebar-profile-badge"
+                title="Personalizar mi perfil y foto"
+                onClick={() => onOpenProfile(currentUserKey)}
+                role="button"
+                tabIndex={0}
+              >
+                <i className="ph-bold ph-sliders"></i>
+              </span>
+            )}
+          </div>
+          <div className="teacher-badge-box obs-teacher-badge-box">
+            <div className="teacher-badge-icon obs-teacher-badge-icon">
+              {currentUserAvatar ? (
+                <img
+                  src={currentUserAvatar}
+                  alt={currentUser.name}
+                  className="teacher-avatar-img"
+                  style={{ width: '100%', height: '100%', borderRadius: '6px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const f = e.currentTarget.nextSibling;
+                    if (f) f.style.display = 'inline-block';
+                  }}
+                />
+              ) : null}
+              <i
+                className="ph-bold ph-chalkboard-teacher"
+                style={{ display: currentUserAvatar ? 'none' : 'inline-block' }}
+              ></i>
+            </div>
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <strong style={{ display: 'block', fontSize: '0.9rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {currentUser.name}
+              </strong>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#0f766e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {currentUser.label || 'Docente de Básica Primaria'}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

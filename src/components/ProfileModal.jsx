@@ -416,9 +416,12 @@ export default function ProfileModal({
                     onChange={(e) => handleSelectTargetUser(e.target.value)}
                   >
                     <option value="claudia">Claudia (Rectora Institucional)</option>
-                    <option value="jessica">Jessica (Docente Primaria)</option>
-                    <option value="yuri">Yuri (Docente Primaria)</option>
-                    <option value="elcy">Elcy (Docente Primaria)</option>
+                    <option value="profe1">Profe 1 (Dir. Transición)</option>
+                    <option value="jessica">Jessica (Dir. 1° Primaria)</option>
+                    <option value="yuri">Yuri (Dir. 2° Primaria)</option>
+                    <option value="profe2">Profe 2 (Dir. 3° Primaria)</option>
+                    <option value="elcy">Elcy (Dir. 4° Primaria)</option>
+                    <option value="profe3">Profe 3 (Dir. 5° Primaria)</option>
                     <option value="admin">Administrador General</option>
                     <option value="induccion_rectora">Claudia (Inducción Rectora)</option>
                     <option value="induccion">Inducción Profesoras</option>
@@ -806,7 +809,7 @@ export default function ProfileModal({
                       <div className="feature-icon"><i className="ph-bold ph-users-three"></i></div>
                       <div className="feature-info">
                         <strong>Supervisión Docente</strong>
-                        <span>Auditoría de planeaciones de Jessica, Yuri y Elcy</span>
+                        <span>Auditoría de planeaciones docentes de Transición a 5° Primaria</span>
                       </div>
                     </div>
 

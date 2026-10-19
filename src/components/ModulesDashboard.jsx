@@ -133,19 +133,24 @@ export default function ModulesDashboard({
                   <span className="portal-nav-text">Bóveda Directiva</span>
                 </button>
               )}
+
+              {/* Módulo 4: Observador & Actas */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-observador ${selectedNavModule === 'observador' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('observador')}
+                title="Acceder a Observador del Estudiante y Actas de Comités"
+                style={{ marginTop: '0.25rem' }}
+              >
+                <i className="ph-bold ph-user-list"></i>
+                <span className="portal-nav-text">Observador & Actas</span>
+              </button>
             </nav>
           </div>
 
           <div className="portal-sidebar-section">
             <p className="portal-sidebar-label">FUTUROS MÓDULOS</p>
             <nav className="portal-sidebar-nav">
-              <div className="portal-nav-item portal-nav-item-disabled">
-                <div className="portal-nav-item-disabled-left">
-                  <i className="ph-bold ph-user-list portal-text-muted" style={{ fontSize: '1.2rem' }}></i>
-                  <span className="portal-nav-text">Observador & Actas</span>
-                </div>
-                <span className="portal-pill-gray">Próximamente</span>
-              </div>
               <div className="portal-nav-item portal-nav-item-disabled">
                 <div className="portal-nav-item-disabled-left">
                   <i className="ph-bold ph-receipt portal-text-muted" style={{ fontSize: '1.2rem' }}></i>
@@ -394,20 +399,35 @@ export default function ModulesDashboard({
               </article>
             )}
 
-            {/* MÓDULO 4: EN DESARROLLO (Observador & Actas) */}
-            <article className="portal-module-card portal-module-card-disabled">
+            {/* MÓDULO 4: ACTIVO (Observador & Actas) */}
+            <article 
+              className="portal-module-card portal-module-card-teal"
+              onClick={() => handleModuleClick('observador')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('observador');
+                }
+              }}
+            >
               <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container portal-gray-icon">
-                  <i className="ph-bold ph-user-list" style={{ fontSize: '1.75rem' }}></i>
+                <div className="portal-card-icon-container portal-teal-icon">
+                  <i className="ph-bold ph-user-list" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
                 </div>
-                <span className="portal-badge-gray">Próximamente</span>
+                <span className="portal-badge-teal">Activo</span>
               </div>
+
               <div className="portal-card-body">
-                <h3 className="portal-text-gray-title">Observador & Actas</h3>
-                <p className="portal-text-gray-desc">Espacio reservado para el seguimiento pedagógico y disciplinario de estudiantes, citaciones a padres y compromisos.</p>
+                <h3 style={{ color: '#0f172a' }}>Observador & Actas</h3>
+                <p style={{ color: '#0f172a' }}>
+                  Seguimiento convivencial y pedagógico de estudiantes, citaciones con acudientes, PIAR y actas de comités internos (Convivencia, Evaluación y Consejo Académico).
+                </p>
               </div>
-              <div className="portal-card-footer portal-footer-disabled">
-                <span className="portal-label-muted">Próximamente disponible</span>
+
+              <div className="portal-card-footer">
+                <span className="portal-link-label-teal">Acceder al módulo &rarr;</span>
               </div>
             </article>
 
