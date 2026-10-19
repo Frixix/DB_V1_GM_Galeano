@@ -38,11 +38,11 @@ export default function ModulesDashboard({
 
   // Manejo de clic en módulos con control de fase de desarrollo
   const handleModuleClick = (moduleId) => {
-    if ((moduleId === 'grades' || moduleId === 'reemplazos') && !isAdmin) {
+    if (moduleId === 'reemplazos' && !isAdmin) {
       setDevModalInfo({
         moduleId,
-        moduleName: moduleId === 'grades' ? 'Notas y Calificaciones' : 'Novedades & Reemplazos Docentes',
-        icon: moduleId === 'grades' ? 'ph-bold ph-chart-line-up' : 'ph-bold ph-arrows-clockwise'
+        moduleName: 'Novedades & Reemplazos Docentes',
+        icon: 'ph-bold ph-arrows-clockwise'
       });
       return;
     }
@@ -93,14 +93,11 @@ export default function ModulesDashboard({
                 type="button"
                 className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('grades')}
-                title={isAdmin ? "Acceder a Notas y Calificaciones (Pruebas Admin)" : "Módulo en desarrollo · Fase N° 1"}
+                title="Acceder a Notas y Calificaciones (SIEE)"
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-chart-line-up"></i>
                 <span className="portal-nav-text">Notas y Calificaciones</span>
-                {!isAdmin && (
-                  <span className="portal-sidebar-dev-tag">En desarrollo</span>
-                )}
               </button>
 
               {/* Módulo 3: Novedades & Reemplazos Docentes */}
@@ -208,74 +205,35 @@ export default function ModulesDashboard({
             </article>
 
             {/* MÓDULO 2: NOTAS Y CALIFICACIONES */}
-            {isAdmin ? (
-              /* Tarjeta interactiva exclusiva para Administrador */
-              <article 
-                className="portal-module-card portal-module-card-amber"
-                onClick={() => handleModuleClick('grades')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleModuleClick('grades');
-                  }
-                }}
-              >
-                <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container">
-                    <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
-                  </div>
-                  <span className="portal-badge-amber">En Desarrollo · Fase 1 (Admin)</span>
+            <article 
+              className="portal-module-card portal-module-card-emerald"
+              onClick={() => handleModuleClick('grades')}
+              role="button"
+              tabIndex={0}
+              title="Acceder a Notas y Calificaciones (SIEE)"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('grades');
+                }
+              }}
+            >
+              <div className="portal-card-header-bar">
+                <div className="portal-card-icon-container">
+                  <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#059669' }}></i>
                 </div>
+                <span className="portal-badge-green">Activo Institucional</span>
+              </div>
 
-                <div className="portal-card-body">
-                  <h3 style={{ color: '#0f172a' }}>Notas y Calificaciones</h3>
-                  <p>Planilla interactiva de registro de calificaciones, ponderaciones por período (Cognitivo, Procedimental, Actitudinal) y cálculo de promedios.</p>
-                </div>
+              <div className="portal-card-body">
+                <h3 style={{ color: '#0f172a' }}>Notas y Calificaciones</h3>
+                <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (40%, 40%, 20%), sábanas consolidadas y cálculo automático de promedios.</p>
+              </div>
 
-                <div className="portal-card-footer">
-                  <span className="portal-link-label-amber">Acceder al módulo (Pruebas Admin) &rarr;</span>
-                </div>
-              </article>
-            ) : (
-              /* Tarjeta en gris con nota en desarrollo para Rectora y Docentes */
-              <article 
-                className="portal-module-card portal-module-card-dev-gray"
-                onClick={() => handleModuleClick('grades')}
-                role="button"
-                tabIndex={0}
-                title="Haga clic para ver el estado de desarrollo"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleModuleClick('grades');
-                  }
-                }}
-              >
-                <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container">
-                    <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem' }}></i>
-                  </div>
-                  <span className="portal-badge-dev-tag">
-                    <i className="ph-bold ph-hammer"></i> En desarrollo
-                  </span>
-                </div>
-
-                <div className="portal-card-body">
-                  <h3 style={{ color: '#334155' }}>Notas y Calificaciones</h3>
-                  <p style={{ color: '#64748b' }}>
-                    Planilla interactiva de registro de calificaciones, ponderaciones SIEE (40%, 40%, 20%), sábanas consolidadas y cálculo automático de promedios.
-                  </p>
-                </div>
-
-                <div className="portal-card-footer">
-                  <span className="portal-link-label-dev">
-                    <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
-                  </span>
-                </div>
-              </article>
-            )}
+              <div className="portal-card-footer">
+                <span className="portal-link-label-green">Acceder al módulo &rarr;</span>
+              </div>
+            </article>
 
             {/* MÓDULO 3: NOVEDADES & REEMPLAZOS DOCENTES */}
             {isAdmin ? (

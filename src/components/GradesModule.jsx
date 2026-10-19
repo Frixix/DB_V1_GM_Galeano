@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import PortalNavbar from './PortalNavbar';
+import GradesSidebar from './GradesSidebar';
 import './GradesModule.css';
 import gradesService from '../services/gradesService';
 import { STUDENTS_BY_GRADE } from '../data/gradesTreeData';
@@ -38,6 +39,7 @@ export default function GradesModule({
   onLogout,
   onOpenProfile,
   onOpenConnectionsModal,
+  onlineMap = {},
   onlineCount,
   circularesCount = 0,
   onOpenCirculares,
@@ -49,6 +51,10 @@ export default function GradesModule({
   const isRectora = currentUser?.role === 'rectora' || currentUser?.role === 'induccion_rectora';
   const isAdmin = currentUser?.role === 'admin';
   const isPrivileged = isRectora || isAdmin;
+
+  // Estados de control lateral (Sidebar) y docente activa
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState('all');
 
   // Sincronización en tiempo real de novedades y reemplazos
   const [curriculumTick, setCurriculumTick] = useState(0);
@@ -86,6 +92,26 @@ export default function GradesModule({
   const [selectedSubject, setSelectedSubject] = useState(availableSubjects[0] || 'Lengua Castellana');
   const [searchFilter, setSearchFilter] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Manejador cuando se selecciona una docente en el panel de control lateral
+  const handleTeacherSelect = (teacherName) => {
+    setSelectedTeacher(teacherName);
+    if (teacherName !== 'all') {
+      const teacherGradeMap = {
+        'Profe 1': 'Transición',
+        'Jessica': '1° Primaria',
+        'Yuri': '2° Primaria',
+        'Profe 2': '3° Primaria',
+        'Elcy': '4° Primaria',
+        'Profe 3': '5° Primaria'
+      };
+      const targetGrade = teacherGradeMap[teacherName];
+      if (targetGrade && availableGrades.includes(targetGrade)) {
+        setSelectedGrade(targetGrade);
+        setActiveSheetType('subject');
+      }
+    }
+  };
 
   // Asegurar consistencia del árbol cuando cambia el usuario o el grado
   useEffect(() => {
@@ -277,6 +303,7 @@ export default function GradesModule({
         moduleTitle="Notas & Calificaciones"
         moduleSubtitle="Sistema Integral de Evaluación Académica (SIEE)"
         onBackToModules={onBackToModules}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
@@ -286,8 +313,50 @@ export default function GradesModule({
         onLogout={onLogout}
       />
 
-      {/* Contenido Principal */}
-      <main className="grades-content-area">
+      {/* Contenedor Principal con Panel de Control Lateral Unificado */}
+      <div className="grades-body-layout">
+        <div className={`sidebar-container ${isSidebarOpen ? 'mobile-open' : ''}`}>
+          <GradesSidebar
+            currentUser={currentUser}
+            selectedGrade={selectedGrade}
+            onSelectGrade={(g) => {
+              setSelectedGrade(g);
+              setIsSidebarOpen(false);
+            }}
+            selectedSubject={selectedSubject}
+            onSelectSubject={(s) => {
+              setSelectedSubject(s);
+              setIsSidebarOpen(false);
+            }}
+            activeSheetType={activeSheetType}
+            onSelectSheetType={(type) => {
+              setActiveSheetType(type);
+              setIsSidebarOpen(false);
+            }}
+            selectedPeriod={selectedPeriod}
+            onSelectPeriod={(p) => {
+              setSelectedPeriod(p);
+              setIsSidebarOpen(false);
+            }}
+            selectedTeacher={selectedTeacher}
+            onSelectTeacher={handleTeacherSelect}
+            availableGrades={availableGrades}
+            availableSubjects={availableSubjects}
+            availablePeriods={availablePeriods}
+            onlineMap={onlineMap}
+            onlineCount={onlineCount}
+            onOpenConnectionsModal={onOpenConnectionsModal}
+            onOpenProfile={onOpenProfile}
+            onBackToModules={onBackToModules}
+          />
+        </div>
+
+        {isSidebarOpen && (
+          <div className="mobile-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
+        )}
+
+        {/* Contenido Principal */}
+        <main className="grades-content-area">
         {/* Banner de Bienvenida y Métricas Unificado en Paleta Pastel Institucional */}
         <section className="grades-banner-card">
           <div className="grades-banner-info">
@@ -1274,6 +1343,7 @@ export default function GradesModule({
           </section>
         )}
       </main>
+      </div>
 
       {/* Notificación Toast Flotante */}
       {toastMessage && (

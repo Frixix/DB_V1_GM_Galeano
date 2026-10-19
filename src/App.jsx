@@ -140,7 +140,7 @@ export default function App() {
   // solo el Administrador puede interactuar con Notas y Calificaciones y Novedades & Reemplazos
   useEffect(() => {
     const isAdmin = currentUser && currentUser.role === 'admin';
-    if (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos')) {
+    if (!isAdmin && activeModule === 'reemplazos') {
       setActiveModule(null);
     }
   }, [currentUser, activeModule]);
@@ -220,14 +220,14 @@ export default function App() {
 
   // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
   const isAdmin = currentUser && currentUser.role === 'admin';
-  if (!activeModule || (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos'))) {
+  if (!activeModule || (!isAdmin && activeModule === 'reemplazos')) {
     return (
       <>
         <ModulesDashboard 
           currentUser={currentUser}
           onSelectModule={(moduleId) => {
             const isAdmin = currentUser && currentUser.role === 'admin';
-            if (!isAdmin && (moduleId === 'grades' || moduleId === 'reemplazos')) {
+            if (!isAdmin && moduleId === 'reemplazos') {
               setActiveModule(null);
               return;
             }
@@ -322,6 +322,7 @@ export default function App() {
           onNavigateToReemplazos={() => setActiveModule('reemplazos')}
           onOpenProfile={handleOpenProfile}
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+          onlineMap={onlineMap}
           onlineCount={onlineCount}
           circularesCount={totalUnreadCount}
           onOpenCirculares={handleOpenCircularesBell}
