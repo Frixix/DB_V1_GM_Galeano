@@ -18,6 +18,7 @@ import BovedaPasswordModal from './components/BovedaPasswordModal';
 import ForceBovedaPasswordModal from './components/ForceBovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import ConnectionsModal from './components/ConnectionsModal';
+import LogoutConfirmModal from './components/LogoutConfirmModal';
 import TrialWatermark from './components/TrialWatermark';
 import { USERS } from './data/users';
 import { useDocuments } from './hooks/useDocuments';
@@ -59,6 +60,7 @@ export default function App() {
   const [avatarToast, setAvatarToast] = useState(null);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleOpenProfile = (targetUserKey = null, initialTab = null) => {
     const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
@@ -85,7 +87,14 @@ export default function App() {
     handleLogout: presenceLogout,
   } = useUserPresence(currentUser);
 
-  const handleLogout = async () => {
+  // Solicitar cierre de sesión (abre el modal interactivo de confirmación)
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  // Ejecución definitiva del cierre de sesión tras confirmación del usuario
+  const executeLogout = async () => {
+    setIsLogoutModalOpen(false);
     try {
       if (typeof presenceLogout === 'function') {
         await presenceLogout();
@@ -148,13 +157,21 @@ export default function App() {
   const currentAccountKey = currentUser.key || currentUser.role;
   if (!hasCustomPassword(currentAccountKey)) {
     return (
-      <ForcePasswordChangeModal
-        currentUser={currentUser}
-        onPasswordChanged={() => {
-          setAuthVaultTick((prev) => prev + 1);
-        }}
-        onLogout={handleLogout}
-      />
+      <>
+        <ForcePasswordChangeModal
+          currentUser={currentUser}
+          onPasswordChanged={() => {
+            setAuthVaultTick((prev) => prev + 1);
+          }}
+          onLogout={handleLogout}
+        />
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
+      </>
     );
   }
 
@@ -284,6 +301,12 @@ export default function App() {
             </button>
           </div>
         )}
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
       </>
     );
   }
@@ -365,6 +388,12 @@ export default function App() {
             </button>
           </div>
         )}
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
       </>
     );
   }
@@ -446,6 +475,12 @@ export default function App() {
             </button>
           </div>
         )}
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
       </>
     );
   }
@@ -708,6 +743,12 @@ export default function App() {
             </button>
           </div>
         )}
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
       </>
     );
   }
@@ -936,6 +977,14 @@ export default function App() {
           </button>
         </div>
       )}
+
+      {/* Modal de Confirmación de Cierre de Sesión */}
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={executeLogout}
+        currentUser={currentUser}
+      />
     </div>
   );
 }

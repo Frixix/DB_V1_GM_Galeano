@@ -84,36 +84,98 @@ export default function Login({ onLogin }) {
           1. LEFT COLUMN: INSTITUTIONAL BRANDING (Forest Green)
           ======================================================== */}
       <section className="auth-brand-column">
-        {/* Líneas topográficas/ondas de fondo */}
+        {/* Patrón académico refinado: cuadrícula y líneas de diploma con visibilidad calibrada */}
         <svg 
           className="auth-topo-svg" 
-          viewBox="0 0 800 800" 
+          viewBox="0 0 1000 1000" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
+          preserveAspectRatio="none"
         >
-          <path d="M-100 180 C 150 90, 320 380, 580 240 S 880 340, 1050 280" stroke="#ffffff" strokeWidth="1.5" />
-          <path d="M-100 280 C 180 190, 350 480, 620 330 S 920 430, 1050 370" stroke="#ffffff" strokeWidth="1.5" />
-          <path d="M-100 380 C 220 290, 390 580, 660 420 S 960 520, 1050 460" stroke="#ffffff" strokeWidth="1.5" />
-          <path d="M-100 480 C 260 390, 430 680, 700 510 S 1000 610, 1050 550" stroke="#ffffff" strokeWidth="1.5" />
-          <path d="M-100 580 C 300 490, 470 780, 740 600 S 1040 700, 1050 640" stroke="#ffffff" strokeWidth="1.5" />
-          <circle cx="680" cy="180" r="260" stroke="#ffffff" strokeWidth="1.2" strokeDasharray="6 6" opacity="0.6" />
-          <circle cx="680" cy="180" r="370" stroke="#ffffff" strokeWidth="1" opacity="0.4" />
+          <defs>
+            {/* Cuadrícula geométrica institucional suave pero visible */}
+            <pattern id="academicGrid" width="48" height="48" patternUnits="userSpaceOnUse">
+              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#000000" strokeWidth="0.9" opacity="0.28" />
+              <path d="M 47.5 0 L -0.5 0 -0.5 47.5" fill="none" stroke="#ffffff" strokeWidth="0.7" opacity="0.12" />
+              <circle cx="48" cy="0" r="1" fill="#ffffff" opacity="0.22" />
+            </pattern>
+
+            {/* Líneas diagonales de seguridad / diploma */}
+            <pattern id="diplomaLines" width="70" height="70" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="70" stroke="#000000" strokeWidth="1.2" opacity="0.22" />
+              <line x1="35" y1="0" x2="35" y2="70" stroke="#ffffff" strokeWidth="0.8" opacity="0.10" />
+            </pattern>
+
+            {/* Halo de luz central */}
+            <radialGradient id="softCenterGlow" cx="30%" cy="30%" r="65%">
+              <stop offset="0%" stopColor="#34d399" stopOpacity="0.14" />
+              <stop offset="65%" stopColor="#15803d" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
+          {/* Capas de patrones */}
+          <rect width="1000" height="1000" fill="url(#academicGrid)" />
+          <rect width="1000" height="1000" fill="url(#diplomaLines)" opacity="0.65" />
+          <rect width="1000" height="1000" fill="url(#softCenterGlow)" />
+
+          {/* Ondas fluidas de certificación (visibles, dignas y elegantes) */}
+          <g>
+            {/* Sombra de relieve negra */}
+            <path d="M-60 220 C 220 140, 420 440, 720 280 S 1080 380, 1180 320" stroke="#000000" strokeWidth="3" opacity="0.30" />
+            <path d="M-60 380 C 240 280, 440 570, 740 410 S 1100 510, 1180 450" stroke="#000000" strokeWidth="3" opacity="0.26" />
+            <path d="M-60 540 C 260 440, 460 710, 760 550 S 1120 650, 1180 590" stroke="#000000" strokeWidth="2.5" opacity="0.22" />
+
+            {/* Trazo blanco de luz nítido */}
+            <path d="M-60 217 C 220 137, 420 437, 720 277 S 1080 377, 1180 317" stroke="#ffffff" strokeWidth="1.5" opacity="0.18" />
+            <path d="M-60 377 C 240 277, 440 567, 740 407 S 1100 507, 1180 447" stroke="#ffffff" strokeWidth="1.5" opacity="0.15" />
+            <path d="M-60 537 C 260 437, 460 707, 760 547 S 1120 647, 1180 587" stroke="#ffffff" strokeWidth="1.2" opacity="0.12" />
+
+            {/* Círculos concéntricos de compás académico en esquina superior */}
+            <circle cx="860" cy="140" r="160" stroke="#000000" strokeWidth="2" opacity="0.25" />
+            <circle cx="860" cy="140" r="161" stroke="#ffffff" strokeWidth="1" opacity="0.16" strokeDasharray="4 6" />
+            <circle cx="860" cy="140" r="280" stroke="#000000" strokeWidth="2" opacity="0.22" strokeDasharray="6 6" />
+            <circle cx="860" cy="140" r="281" stroke="#ffffff" strokeWidth="1.2" opacity="0.15" strokeDasharray="6 6" />
+            <circle cx="860" cy="140" r="400" stroke="#000000" strokeWidth="1.8" opacity="0.18" />
+            <circle cx="860" cy="140" r="401" stroke="#ffffff" strokeWidth="1" opacity="0.12" />
+          </g>
         </svg>
 
         <div className="auth-brand-inner">
-          {/* Top Left Header */}
-          <div className="auth-brand-header">
-            <div className="auth-shield-badge">
-              {/* Escudo minimalista con monograma MG */}
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#ffffff" fillOpacity="0.2" stroke="#ffffff" strokeWidth="1.7" />
-                <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="7.5" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif" letterSpacing="-0.5">MG</text>
-              </svg>
+          {/* Top Left Header: EducoKrea (Marca de la Plataforma) + Colegio Martín Galeano */}
+          <div className="auth-brand-top-header">
+            {/* Logo e Identidad EducoKrea: Fénix en Origami */}
+            <div className="auth-educokrea-brand-badge">
+              <div className="auth-educokrea-emblem-wrap">
+                <img 
+                  src="/images/educokrea/symbol.svg" 
+                  alt="EducoKrea Fénix" 
+                  width="44" 
+                  height="44" 
+                  style={{ display: 'block', borderRadius: '12px' }}
+                />
+              </div>
+              <div className="auth-educokrea-text-block">
+                <span className="auth-educokrea-logotype">
+                  Educo<span className="auth-krea-highlight">Krea</span>
+                </span>
+                <span className="auth-educokrea-subpill">PLATAFORMA EDUCATIVA</span>
+              </div>
             </div>
-            <div className="auth-brand-text">
-              <span className="auth-brand-school-name">Gimnasio Martin Galeano</span>
-              <span className="auth-brand-school-sub">Sistema Integral - Básica Primaria</span>
+
+            {/* Fila institucional: Gimnasio Martin Galeano con su escudo MG */}
+            <div className="auth-brand-school-row">
+              <div className="auth-shield-badge" title="Portal Gimnasio Martin Galeano">
+                {/* Escudo minimalista con monograma MG */}
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L3 6V12C3 17.5 6.8 22.3 12 23.5C17.2 22.3 21 17.5 21 12V6L12 2Z" fill="#ffffff" fillOpacity="0.2" stroke="#ffffff" strokeWidth="1.7" />
+                  <text x="12" y="15.2" textAnchor="middle" fill="#ffffff" fontSize="7.5" fontWeight="800" fontFamily="'Plus Jakarta Sans', sans-serif" letterSpacing="-0.5">MG</text>
+                </svg>
+              </div>
+              <div className="auth-brand-text">
+                <span className="auth-brand-school-name">Gimnasio Martin Galeano</span>
+                <span className="auth-brand-school-sub">Sistema Integral - Básica Primaria</span>
+              </div>
             </div>
           </div>
 
@@ -298,7 +360,7 @@ export default function Login({ onLogin }) {
           <div className="auth-footer-tag">
             <div className="auth-footer-version">MG Workspace v2.0.0</div>
             <div className="auth-footer-credit">
-              desarrollado por <span className="auth-footer-brand">&lt;Frix.io/&gt;</span>
+              desarrollado por <span className="auth-footer-brand">&lt;FrixMoon.io/&gt;</span>
             </div>
           </div>
         </div>
