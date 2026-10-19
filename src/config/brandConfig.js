@@ -9,7 +9,7 @@ export const BRAND_CONFIG = {
   // Nombre del Producto / Plataforma
   appName: 'EducoKrea',
   appSlogan: 'Plataforma Integral de Gestión Educativa',
-  appVersion: '2.0.0',
+  appVersion: '2.1.0',
   developerCredit: '<FrixMoon.io/>',
 
   // Rutas de Identidad Visual

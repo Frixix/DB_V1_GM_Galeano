@@ -358,7 +358,7 @@ export default function Login({ onLogin }) {
 
           {/* Bottom Center Text */}
           <div className="auth-footer-tag">
-            <div className="auth-footer-version">MG Workspace v2.0.0</div>
+            <div className="auth-footer-version">MG Workspace v2.1.0</div>
             <div className="auth-footer-credit">
               desarrollado por <span className="auth-footer-brand">&lt;FrixMoon.io/&gt;</span>
             </div>
