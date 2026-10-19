@@ -472,34 +472,6 @@ export default function GradesModule({
           </div>
 
           <div className="grades-filter-actions">
-            {isAdmin && (
-              <button 
-                type="button" 
-                className="grades-btn-secondary btn-novedades-admin" 
-                onClick={() => {
-                  if (onNavigateToReemplazos) {
-                    onNavigateToReemplazos();
-                  } else if (onOpenProfile) {
-                    onOpenProfile(null, 'reemplazos');
-                  }
-                }}
-                title="Consola de Administrador: Novedades & Reemplazos Docentes Inmediatos"
-              >
-                <i className="ph-bold ph-arrows-left-right"></i>
-                <span>Novedades & Reemplazos</span>
-              </button>
-            )}
-
-            <button 
-              type="button" 
-              className="grades-btn-secondary" 
-              onClick={() => alert(`Generando boletín PDF oficial de ${activeSheetType === 'consolidated' ? 'Sábana General' : selectedSubject} - ${selectedGrade} (${selectedPeriod})...`)}
-              title="Descargar boletín de calificaciones en formato PDF"
-            >
-              <i className="ph-bold ph-file-arrow-down"></i>
-              <span>Boletín PDF</span>
-            </button>
-
             {activeSheetType === 'subject' && (
               <button 
                 type="button" 

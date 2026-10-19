@@ -102,7 +102,7 @@ class GradesService {
     if (!user || !grade) return false;
     const userKey = user.key || user.role;
     const director = this.getGradeDirector(grade);
-    return director.docente_id === userKey;
+    return director.docente_id === userKey || director.teacherName === user.name;
   }
 
   /**
@@ -128,6 +128,8 @@ class GradesService {
 
   /**
    * Devuelve los Grados a los que tiene acceso el usuario según su rol RBAC
+   * - Rectora / Admin: Todos los grados
+   * - Docente: Únicamente su grado a cargo (Dirección de Curso)
    */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
@@ -139,25 +141,31 @@ class GradesService {
       return GRADES_LIST;
     }
 
-    // Docente regular (incluye grados donde es titular de materia o director de curso)
-    const accessibleGrades = GRADES_LIST.filter(grade => {
-      if (this.isGradeDirector(user, grade)) return true;
+    // Para docente: solo su grado a cargo (la dirección de curso que tiene asignada)
+    const directedGrade = Object.keys(GRADE_DIRECTORS).find(grade => this.isGradeDirector(user, grade));
+    if (directedGrade) {
+      return [directedGrade];
+    }
 
+    // Fallback: grados donde es titular de materia
+    const accessibleGrades = GRADES_LIST.filter(grade => {
       const gradeSubjects = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
       const customSubjects = this.customAssignments[grade] || {};
       const allSubjKeys = Array.from(new Set([...Object.keys(gradeSubjects), ...Object.keys(customSubjects)]));
 
       return allSubjKeys.some(subj => {
         const assignment = this.getTeacherAssignment(grade, subj);
-        return assignment.docente_id === userKey;
+        return assignment.docente_id === userKey || assignment.teacherName === user.name;
       });
     });
 
-    return accessibleGrades.length > 0 ? accessibleGrades : ['1° Primaria'];
+    return accessibleGrades.length > 0 ? [accessibleGrades[0]] : ['1° Primaria'];
   }
 
   /**
    * Devuelve las Materias disponibles para un Grado específico según el rol del usuario
+   * - Rectora / Admin: Todas las materias del grado
+   * - Docente: Únicamente las materias que tiene a su cargo
    */
   getSubjectsForGradeAndUser(grade, user) {
     const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
@@ -176,15 +184,10 @@ class GradesService {
       return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
     }
 
-    // Si es Director de Curso del grado: ve TODAS las materias de sus alumnos
-    if (this.isGradeDirector(user, grade)) {
-      return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
-    }
-
-    // Docente regular no director: solo las materias donde es titular
+    // Para docentes: solo ven las materias que tienen a cargo
     const teacherSubjects = allSubjectsInGrade.filter(subj => {
       const assignment = this.getTeacherAssignment(grade, subj);
-      return assignment.docente_id === userKey;
+      return assignment.docente_id === userKey || assignment.teacherName === user.name;
     });
 
     return teacherSubjects.length > 0 ? teacherSubjects : (allSubjectsInGrade.slice(0, 1));
@@ -336,7 +339,7 @@ class GradesService {
     }
     const teacherInfo = this.getTeacherAssignment(grade, subject);
     const userKey = user.key || user.role;
-    return teacherInfo.docente_id === userKey;
+    return teacherInfo.docente_id === userKey || teacherInfo.teacherName === user.name;
   }
 
   canEditTeacherFeedback(user, grade, subject) {

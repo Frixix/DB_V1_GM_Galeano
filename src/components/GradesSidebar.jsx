@@ -95,13 +95,13 @@ export default function GradesSidebar({
         </div>
       )}
 
-      {/* Para docente titular: Tarjeta de perfil propio */}
+      {/* Para docente titular: Solo ella y su grado asignado (sin acceso a otros grados ni profes) */}
       {!isPrivileged && (
         <div className="sidebar-section teacher-own-card obs-teacher-own-card">
           <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="ph-bold ph-identification-card"></i>
-              <span>Mi Rol Docente</span>
+              <i className="ph-bold ph-chalkboard-teacher"></i>
+              <span>Mi Grado & Rol</span>
             </div>
             {onOpenProfile && (
               <span
@@ -136,30 +136,36 @@ export default function GradesSidebar({
               ></i>
             </div>
             <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <strong style={{ display: 'block', fontSize: '0.9rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {currentUser.name}
-              </strong>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: '#0f766e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {currentUser.label || 'Docente de Básica Primaria'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ display: 'block', fontSize: '0.9rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {currentUser.name}
+                </strong>
+                <span style={{ fontSize: '0.62rem', background: '#fef3c7', color: '#92400e', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>
+                  Dir
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#0f766e', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {selectedGrade} • {currentUser.label || 'Directora de Curso'}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* SECCIÓN UNIFICADA: Grados & Docentes (Fusión de ubicación/grados y profes con acordeón) */}
-      <div className="sidebar-section" id="gradesTeacherSection">
-        <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button
-            type="button"
-            className="btn-header-teacher-accordion"
-            onClick={() => setIsTeacherExpanded((prev) => !prev)}
-            title={isTeacherExpanded ? "Ocultar lista (subir)" : "Desplegar grados y docentes (bajar)"}
-          >
-            <i className="ph-bold ph-graduation-cap"></i>
-            <span>Grados & Docentes</span>
-            <i className={`ph-bold ${isTeacherExpanded ? 'ph-caret-up' : 'ph-caret-down'} teacher-accordion-caret`}></i>
-          </button>
+      {/* SECCIÓN UNIFICADA: Grados & Docentes (SOLO PARA ADMIN Y RECTORA) */}
+      {isPrivileged && (
+        <div className="sidebar-section" id="gradesTeacherSection">
+          <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="btn-header-teacher-accordion"
+              onClick={() => setIsTeacherExpanded((prev) => !prev)}
+              title={isTeacherExpanded ? "Ocultar lista (subir)" : "Desplegar grados y docentes (bajar)"}
+            >
+              <i className="ph-bold ph-graduation-cap"></i>
+              <span>Grados & Docentes</span>
+              <i className={`ph-bold ${isTeacherExpanded ? 'ph-caret-up' : 'ph-caret-down'} teacher-accordion-caret`}></i>
+            </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             {selectedTeacher !== 'all' && isPrivileged && (
@@ -383,6 +389,7 @@ export default function GradesSidebar({
           </nav>
         )}
       </div>
+      )}
 
       {/* Sección 2: Selector de Periodo Académico Activo */}
       <div className="sidebar-section" id="gradesPeriodSection">
@@ -413,7 +420,7 @@ export default function GradesSidebar({
         <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <i className="ph-bold ph-files"></i>
-            <span>Sábanas • {selectedGrade}</span>
+            <span>{isPrivileged ? `Sábanas • ${selectedGrade}` : `Sábanas • Mi Grado (${selectedGrade})`}</span>
           </div>
           <span style={{ fontSize: '0.65rem', color: '#059669', fontWeight: 700 }}>
             {availableSubjects.length + 1}
@@ -440,7 +447,7 @@ export default function GradesSidebar({
           {/* Subgrupo: Asignaturas Individuales */}
           <div className="obs-folder-subgroup-label" style={{ marginTop: '0.45rem', marginBottom: '0.2rem' }}>
             <i className="ph-bold ph-book-open"></i>
-            <span>MATERIAS ({selectedGrade})</span>
+            <span>{isPrivileged ? `MATERIAS (${selectedGrade})` : `MATERIAS A TU CARGO (${selectedGrade})`}</span>
           </div>
 
           {availableSubjects.map((subj) => {
