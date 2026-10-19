@@ -2251,6 +2251,108 @@ select {
   margin: 0;
 }
 
+/* Acordeón y Desplegable de Docentes en Sidebar */
+.btn-header-teacher-accordion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 3px 6px;
+  margin: 0;
+  margin-left: -6px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-header-teacher-accordion:hover {
+  background-color: #f1f5f9;
+  color: var(--primary);
+}
+
+.teacher-accordion-caret {
+  font-size: 0.82rem;
+  color: #64748b;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.btn-header-teacher-accordion:hover .teacher-accordion-caret {
+  color: var(--primary);
+}
+
+.btn-teacher-reset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-teacher-reset-chip:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.teacher-fold-caret-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-left: 2px;
+  transition: all 0.15s ease;
+}
+
+.teacher-btn:hover .teacher-fold-caret-btn {
+  color: var(--primary);
+  transform: translateY(1px);
+}
+
+.teacher-badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.teacher-list-dropdown {
+  animation: teacherListFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes teacherListFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Modal de Perfil */
 .modal-profile {
   max-width: 560px;
