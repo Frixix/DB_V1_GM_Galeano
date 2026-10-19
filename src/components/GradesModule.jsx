@@ -67,7 +67,6 @@ export default function GradesModule({
   }, []);
 
   // 1. Niveles de la Jerarquía de Datos
-  const availableYears = useMemo(() => gradesService.getAcademicYears(), []);
   const availablePeriods = useMemo(() => gradesService.getAcademicPeriods(), []);
   
   // Grados disponibles filtrados por rol, asignación curricular y dirección de curso
@@ -356,202 +355,57 @@ export default function GradesModule({
 
         {/* Contenido Principal */}
         <main className="grades-content-area">
-        {/* Banner de Bienvenida y Métricas Unificado en Paleta Pastel Institucional */}
-        <section className="grades-banner-card">
-          <div className="grades-banner-info">
-            <div className="grades-banner-title-row">
-              <h2>
-                <i className={`ph-bold ${activeSheetType === 'consolidated' ? 'ph-chart-bar' : 'ph-book-open'}`}></i>
-                {activeSheetType === 'consolidated' 
-                  ? `Sábana General Consolidada • ${selectedGrade}` 
-                  : `Planilla de Calificaciones: ${selectedSubject} (${selectedGrade})`
-                }
-              </h2>
-
-              {/* Badge Dinámico RBAC del Rol Activo */}
+        {/* Encabezado Superior Compacto de la Planilla */}
+        <section className="grades-table-header-compact">
+          <div className="grades-table-header-left">
+            <h2 className="grades-table-main-title">
+              <i className={`ph-bold ${activeSheetType === 'consolidated' ? 'ph-chart-bar' : 'ph-book-open'}`}></i>
+              {activeSheetType === 'consolidated' 
+                ? `Sábana General Consolidada • ${selectedGrade}` 
+                : `Planilla: ${selectedSubject} • ${selectedGrade}`
+              }
+            </h2>
+            <div className="grades-table-pills-row">
+              {/* Badge de Rol / Modo */}
               {activeSheetType === 'consolidated' ? (
                 <span className="grades-role-mode-pill mode-consolidada">
                   <i className="ph-bold ph-squares-four"></i>
-                  Vista General del Grado • Todas las Materias
+                  Vista General del Grado
                 </span>
               ) : canEditScores ? (
                 <span className="grades-role-mode-pill mode-docente">
                   <i className="ph-bold ph-pencil-simple-line"></i>
-                  Modo Calificación Docente • Planilla Abierta
+                  Modo Edición Docente ({currentUser?.name || teacherInfo.teacherName})
                 </span>
               ) : isViewingAsGradeDirector ? (
                 <span className="grades-role-mode-pill mode-director-curso">
                   <i className="ph-bold ph-shield-star"></i>
-                  Modo Director(a) de Curso ({selectedGrade}) • Solo Lectura de Acompañamiento
+                  Supervisión: Dir. de Curso ({gradeDirector.teacherName})
                 </span>
               ) : isRectora ? (
                 <span className="grades-role-mode-pill mode-rectora">
                   <i className="ph-bold ph-lock-key"></i>
-                  Modo Supervisión Directiva • Notas Protegidas (SIEE)
+                  Supervisión Directiva • SIEE
                 </span>
               ) : (
                 <span className="grades-role-mode-pill mode-admin">
                   <i className="ph-bold ph-shield-check"></i>
-                  Modo Auditoría Técnica • Solo Lectura
+                  Modo Auditoría Técnica
                 </span>
               )}
-            </div>
 
-            <p>
-              {activeSheetType === 'consolidated' ? (
-                <span>
-                  Sábana general con el consolidado ponderado de todas las asignaturas para <strong>{selectedGrade}</strong> durante el <strong>{selectedPeriod}</strong>. Permite auditar el promedio general, puestos y asignaturas reprobadas.
-                </span>
-              ) : (
-                <span>
-                  Estructura ponderada SIEE: <strong>Cognitivo (40%)</strong>, <strong>Procedimental (40%)</strong> y <strong>Actitudinal (20%)</strong>.
-                  {isViewingAsGradeDirector ? (
-                    <span className="grades-banner-director-notice">
-                      {' '}Como <strong>Director(a) de Curso de {selectedGrade}</strong>, supervisas las notas y retroalimentaciones de la docente <strong>{teacherInfo.teacherName}</strong>.
-                    </span>
-                  ) : !canEditScores && (
-                    <span className="grades-banner-security-notice">
-                      {' '}Por normativa SIEE, las notas solo pueden ser modificadas por el docente titular asignado.
-                    </span>
-                  )}
-                </span>
-              )}
-            </p>
-          </div>
-
-          {/* Métricas Unificadas en Paleta Pastel */}
-          <div className="grades-banner-metrics">
-            <div className="grades-metric-badge">
-              <span className="grades-metric-label">
-                <i className="ph-bold ph-chart-line-up"></i> Promedio
+              {/* Métricas Clave Compactas */}
+              <span className="grades-compact-metric-pill" title="Promedio general actual">
+                <i className="ph-bold ph-chart-line-up"></i> Prom: <strong>{activeSheetType === 'consolidated' ? consolidatedData.stats.gradeAverage : classAverage}</strong>
               </span>
-              <span className="grades-metric-val">
-                {activeSheetType === 'consolidated' ? consolidatedData.stats.gradeAverage : classAverage}
+              <span className="grades-compact-metric-pill" title="Porcentaje de aprobación">
+                <i className="ph-bold ph-check-circle"></i> Aprob: <strong>{activeSheetType === 'consolidated' ? `${consolidatedData.stats.gradePassRate}%` : `${passRate}%`}</strong>
               </span>
-            </div>
-
-            <div className="grades-metric-badge">
-              <span className="grades-metric-label">
-                <i className="ph-bold ph-check-circle"></i> Aprobación
+              <span className="grades-compact-metric-pill" title="Estudiantes en roster">
+                <i className="ph-bold ph-student"></i> Alumnos: <strong>{activeSheetType === 'consolidated' ? consolidatedData.stats.totalStudents : students.length}</strong>
               </span>
-              <span className="grades-metric-val">
-                {activeSheetType === 'consolidated' ? `${consolidatedData.stats.gradePassRate}%` : `${passRate}%`}
-              </span>
-            </div>
-
-            <div className="grades-metric-badge">
-              <span className="grades-metric-label">
-                <i className="ph-bold ph-student"></i> Roster
-              </span>
-              <span className="grades-metric-val">
-                {activeSheetType === 'consolidated' ? consolidatedData.stats.totalStudents : students.length}
-              </span>
-            </div>
-
-            <div className="grades-metric-badge">
-              <span className="grades-metric-label">
-                <i className="ph-bold ph-shield-star"></i> Dir. Curso
-              </span>
-              <span className="grades-metric-val grades-metric-titular-name" title={`Director(a) de Curso de ${selectedGrade}: ${gradeDirector.teacherName}`}>
-                {gradeDirector.teacherName}
-              </span>
-            </div>
-
-            {activeSheetType === 'consolidated' ? (
-              <div className="grades-metric-badge">
-                <span className="grades-metric-label">
-                  <i className="ph-bold ph-trophy"></i> Puesto 1°
-                </span>
-                <span className="grades-metric-val grades-metric-titular-name" title={`Mejor estudiante del grado: ${consolidatedData.stats.topStudent?.name || '—'}`}>
-                  {consolidatedData.stats.topStudent ? consolidatedData.stats.topStudent.name.split(' ')[0] : '—'}
-                </span>
-              </div>
-            ) : (
-              <div className="grades-metric-badge">
-                <span className="grades-metric-label">
-                  <i className="ph-bold ph-chalkboard-teacher"></i> Docente
-                </span>
-                <span className="grades-metric-val grades-metric-titular-name" title={`Docente de ${selectedSubject}: ${teacherInfo.teacherName}`}>
-                  {teacherInfo.teacherName}
-                </span>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Visualización Visual de la Jerarquía de Datos Relacional (RBAC) */}
-        <section className="grades-tree-path-card">
-          <div className="grades-tree-path-header">
-            <div className="tree-badge">
-              <i className="ph-bold ph-tree-structure"></i>
-              <span>Jerarquía de Datos Relacional (RBAC)</span>
-            </div>
-            <div className="tree-path-meta">
-              <span className="tree-security-pill">
-                <i className={`ph-bold ${
-                  activeSheetType === 'consolidated' 
-                    ? 'ph-chart-bar' 
-                    : (canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check'))
-                }`}></i>
-                {activeSheetType === 'consolidated'
-                  ? `Consolidado General de ${selectedGrade} • Supervisión integral`
-                  : canEditScores 
-                  ? `Docente autorizado: ${currentUser?.name || teacherInfo.teacherName}`
-                  : isViewingAsGradeDirector
-                  ? `Supervisión: Dir. de Curso ${gradeDirector.teacherName} (Docente: ${teacherInfo.teacherName})`
-                  : `Auditoría: Notas a cargo de ${teacherInfo.teacherName}`
-                }
-              </span>
-            </div>
-          </div>
-
-          <div className="grades-tree-breadcrumbs">
-            {/* Nivel 1: Año Lectivo */}
-            <div className="tree-crumb">
-              <span className="crumb-level">Año Lectivo</span>
-              <span className="crumb-val">
-                <i className="ph-bold ph-calendar-blank"></i> {selectedYear}
-              </span>
-            </div>
-
-            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
-
-            {/* Nivel 2: Período */}
-            <div className="tree-crumb">
-              <span className="crumb-level">Periodo</span>
-              <span className="crumb-val">
-                <i className="ph-bold ph-clock"></i> {selectedPeriod.split(' ')[0]}
-              </span>
-            </div>
-
-            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
-
-            {/* Nivel 3: Grado */}
-            <div className="tree-crumb">
-              <span className="crumb-level">Grado</span>
-              <span className="crumb-val">
-                <i className="ph-bold ph-student"></i> {selectedGrade}
-              </span>
-            </div>
-
-            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
-
-            {/* Director(a) de Curso Oficial por Grado */}
-            <div className="tree-crumb">
-              <span className="crumb-level">Director de Curso</span>
-              <span className="crumb-val">
-                <i className="ph-bold ph-shield-star"></i> {gradeDirector.teacherName}
-              </span>
-            </div>
-
-            <i className="ph-bold ph-caret-right tree-crumb-divider"></i>
-
-            {/* Nivel 4: Sábana Activa */}
-            <div className="tree-crumb crumb-active-leaf">
-              <span className="crumb-level">{activeSheetType === 'consolidated' ? 'Modo de Sábana' : 'Asignatura'}</span>
-              <span className="crumb-val">
-                <i className={`ph-bold ${activeSheetType === 'consolidated' ? 'ph-chart-bar' : getSubjectIcon(selectedSubject)}`}></i>
-                {activeSheetType === 'consolidated' ? 'Sábana General Consolidada' : selectedSubject}
+              <span className="grades-compact-metric-pill" title="Docente titular / Director">
+                <i className="ph-bold ph-chalkboard-teacher"></i> {activeSheetType === 'consolidated' ? `Dir: ${gradeDirector.teacherName}` : `Docente: ${teacherInfo.teacherName}`}
               </span>
             </div>
           </div>
@@ -560,19 +414,6 @@ export default function GradesModule({
         {/* Barra de Filtros Rápidos, Modo de Sábana y Acciones */}
         <section className="grades-filter-bar">
           <div className="grades-filter-group">
-            {/* Selector Año Lectivo */}
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-calendar"></i> Año Lectivo</label>
-              <select 
-                value={selectedYear} 
-                onChange={(e) => setSelectedYear(e.target.value)}
-                title="Seleccione el Año Lectivo"
-              >
-                {availableYears.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
 
             {/* Selector Rápido de Periodo */}
             <div className="grades-select-item">

@@ -565,6 +565,88 @@
 }
 
 /* ==========================================================================
+   ENCABEZADO COMPACTO DE LA TABLA DE NOTAS (ARRIBA DEL TODO)
+   ========================================================================== */
+.grades-table-header-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.95rem 1.35rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+.grades-table-header-compact::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #10b981;
+}
+
+.grades-table-header-left {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.grades-table-main-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  letter-spacing: -0.01em;
+}
+
+.grades-table-main-title i {
+  color: #10b981;
+  font-size: 1.35rem;
+}
+
+.grades-table-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.grades-compact-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #475569;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.grades-compact-metric-pill i {
+  color: #10b981;
+  font-size: 0.9rem;
+}
+
+.grades-compact-metric-pill strong {
+  color: #065f46;
+  font-weight: 700;
+}
+
+/* ==========================================================================
    TARJETA DE JERARQUÍA DE DATOS (ÁRBOL RELACIONAL RBAC)
    ========================================================================== */
 .grades-tree-path-card {
