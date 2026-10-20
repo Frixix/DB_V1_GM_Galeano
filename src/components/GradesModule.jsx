@@ -427,6 +427,7 @@ export default function GradesModule({
                     onClick={() => setSelectedPeriod(p)}
                     title={`Cambiar a ${p}`}
                   >
+                    <i className="ph-bold ph-calendar-blank"></i>
                     <span>{p.split(' ')[0]}</span>
                   </button>
                 ))}

@@ -19,6 +19,23 @@ const getSubjectIcon = (subj) => {
   return 'ph-book-bookmark';
 };
 
+// Helper para clases pastel temáticas de materias idénticas a Gestión Documental
+const getSubjectFolderClass = (subj) => {
+  if (!subj) return 'folder-subject-default';
+  const s = subj.toLowerCase();
+  if (s.includes('lengua') || s.includes('español') || s.includes('castell')) return 'folder-subject-lengua';
+  if (s.includes('mate') || s.includes('geom') || s.includes('estad')) return 'folder-subject-mate';
+  if (s.includes('natural') || s.includes('biol') || s.includes('cienc')) return 'folder-subject-naturales';
+  if (s.includes('social') || s.includes('hist') || s.includes('geog')) return 'folder-subject-sociales';
+  if (s.includes('inglés') || s.includes('ingles') || s.includes('idiom')) return 'folder-subject-ingles';
+  if (s.includes('art') || s.includes('danza') || s.includes('teatr') || s.includes('music')) return 'folder-subject-arte';
+  if (s.includes('física') || s.includes('fisica') || s.includes('depor')) return 'folder-subject-fisica';
+  if (s.includes('ética') || s.includes('etica') || s.includes('valor')) return 'folder-subject-etica';
+  if (s.includes('tecno') || s.includes('inform') || s.includes('sistem')) return 'folder-subject-tecno';
+  if (s.includes('relig')) return 'folder-subject-religion';
+  return 'folder-subject-default';
+};
+
 export default function GradesSidebar({
   currentUser,
   selectedGrade,
@@ -408,6 +425,7 @@ export default function GradesSidebar({
                 onClick={() => onSelectPeriod(p)}
                 title={`Cambiar a ${p}`}
               >
+                <i className="ph-bold ph-calendar-blank"></i>
                 <span>{p.split(' ')[0]}</span>
               </button>
             );
@@ -431,15 +449,15 @@ export default function GradesSidebar({
           {/* Card: Sábana General Consolidada */}
           <button
             type="button"
-            className={`folder-btn ${activeSheetType === 'consolidated' ? 'active' : ''}`}
+            className={`folder-btn folder-consolidada ${activeSheetType === 'consolidated' ? 'active' : ''}`}
             onClick={() => onSelectSheetType('consolidated')}
             title={`Ver Sábana General Consolidada de ${selectedGrade}`}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-              <i className="ph-bold ph-chart-bar" style={{ color: activeSheetType === 'consolidated' ? '#059669' : '#d97706' }}></i>
+              <i className="ph-bold ph-chart-bar"></i>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Sábana General</span>
-                <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Consolidado de Grado</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: activeSheetType === 'consolidated' ? 700 : 600 }}>Sábana General</span>
+                <span style={{ fontSize: '0.68rem', color: activeSheetType === 'consolidated' ? '#064e3b' : '#64748b' }}>Consolidado de Grado</span>
               </div>
             </div>
           </button>
@@ -455,12 +473,13 @@ export default function GradesSidebar({
             const teacher = gradesService.getTeacherAssignment(selectedGrade, subj);
             const isMySubject = gradesService.canEditScores(currentUser, selectedGrade, subj);
             const iconClass = getSubjectIcon(subj);
+            const subjectClass = getSubjectFolderClass(subj);
 
             return (
               <button
                 key={subj}
                 type="button"
-                className={`folder-btn ${isSelected ? 'active' : ''}`}
+                className={`folder-btn ${subjectClass} ${isSelected ? 'active' : ''}`}
                 onClick={() => {
                   onSelectSubject(subj);
                   onSelectSheetType('subject');
@@ -470,10 +489,10 @@ export default function GradesSidebar({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
                   <i className={`ph-bold ${iconClass}`}></i>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                    <span style={{ fontSize: '0.83rem', fontWeight: isSelected ? 600 : 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: '0.83rem', fontWeight: isSelected ? 700 : 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {subj}
                     </span>
-                    <span style={{ fontSize: '0.68rem', color: isMySubject ? '#059669' : '#64748b' }}>
+                    <span style={{ fontSize: '0.68rem', color: isSelected ? 'inherit' : (isMySubject ? '#059669' : '#64748b'), opacity: isSelected ? 0.9 : 1 }}>
                       {isMySubject ? '★ A tu cargo' : teacher.teacherName}
                     </span>
                   </div>

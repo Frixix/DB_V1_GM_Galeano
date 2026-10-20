@@ -54,30 +54,343 @@
   padding: 0 0.5rem;
 }
 
+/* ==========================================================================
+   ESTILOS DE PANEL DE CONTROL (SIDEBAR CALIFICACIONES):
+   COMPORTAMIENTO IDÉNTICO AL MÓDULO 1 (GESTIÓN DOCUMENTAL)
+   - Reposo: icono gris (#94a3b8), texto oscuro (#0f172a), fondo limpio
+   - Hover: icono se enciende con color temático y escala ligera (transform: scale(1.15))
+   - Active: fondo y borde pastel del color correspondiente, texto 700 y el icono permanece encendido
+   ========================================================================== */
+
+/* Botón de Docentes / Grados en Sidebar */
+.grades-sidebar .teacher-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.65rem 0.8rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 8px);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main, #0f172a);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  width: 100%;
+}
+
+.grades-sidebar .teacher-btn:hover {
+  background-color: var(--surface-alt, #f1f5f9);
+}
+
+.grades-sidebar .teacher-btn i {
+  font-size: 1.15rem;
+  color: #94a3b8;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.grades-sidebar .teacher-btn:hover i {
+  color: #10b981;
+  transform: scale(1.15);
+}
+
+.grades-sidebar .teacher-btn:hover .teacher-avatar-mini {
+  border-color: #10b981;
+  transform: scale(1.05);
+}
+
+.grades-sidebar .teacher-btn:hover .teacher-fold-caret-btn i {
+  color: #10b981;
+}
+
+.grades-sidebar .teacher-btn.active {
+  background-color: #ecfdf5 !important;
+  color: var(--primary, #064e3b) !important;
+  font-weight: 700 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.grades-sidebar .teacher-btn.active i {
+  color: #059669 !important;
+  transform: scale(1.05);
+}
+
+.grades-sidebar .teacher-btn.active .teacher-avatar-mini {
+  border-color: #059669;
+}
+
+/* Botón Rectora Especial */
+.grades-sidebar .teacher-rectora-btn:hover i {
+  color: #d97706 !important;
+  transform: scale(1.15);
+}
+
+.grades-sidebar .teacher-rectora-btn.active {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fde68a !important;
+  font-weight: 700 !important;
+}
+
+.grades-sidebar .teacher-rectora-btn.active i {
+  color: #d97706 !important;
+}
+
+/* Botón Selector de Periodos en Sidebar */
 .grades-sidebar-period-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
-  font-size: 0.73rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   text-align: center;
 }
 
+.grades-sidebar-period-btn i {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
 .grades-sidebar-period-btn:hover {
-  background: #f8fafc;
+  background-color: #f8fafc;
   border-color: #cbd5e1;
   color: #064e3b;
 }
 
+.grades-sidebar-period-btn:hover i {
+  color: #10b981;
+  transform: scale(1.15);
+}
+
 .grades-sidebar-period-btn.active {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #065f46;
-  font-weight: 700;
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #064e3b !important;
+  font-weight: 700 !important;
+}
+
+.grades-sidebar-period-btn.active i {
+  color: #059669 !important;
+}
+
+/* Base de Botones de Sábanas y Carpetas en Sidebar */
+.grades-sidebar .folder-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.65rem 0.8rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 8px);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main, #0f172a);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  width: 100%;
+}
+
+.grades-sidebar .folder-btn:hover {
+  background-color: var(--surface-alt, #f1f5f9);
+}
+
+.grades-sidebar .folder-btn i {
+  font-size: 1.15rem;
+  color: #94a3b8;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+/* 1. Sábana General Consolidada (Pastel Esmeralda SIEE) */
+.grades-sidebar .folder-btn.folder-consolidada:hover i,
+.grades-sidebar .folder-btn.folder-consolidada:active i,
+.grades-sidebar .folder-btn.folder-consolidada.active i {
+  color: #059669 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-consolidada:active,
+.grades-sidebar .folder-btn.folder-consolidada.active {
+  background-color: #ecfdf5 !important;
+  color: #064e3b !important;
+  border-color: #a7f3d0 !important;
+  font-weight: 700 !important;
+}
+
+/* 2. Lengua Castellana / Español (Pastel Azul Refinado) */
+.grades-sidebar .folder-btn.folder-subject-lengua:hover i,
+.grades-sidebar .folder-btn.folder-subject-lengua:active i,
+.grades-sidebar .folder-btn.folder-subject-lengua.active i {
+  color: #1d4ed8 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-lengua:active,
+.grades-sidebar .folder-btn.folder-subject-lengua.active {
+  background-color: #eff6ff !important;
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
+  font-weight: 700 !important;
+}
+
+/* 3. Matemáticas (Pastel Ámbar Dorado) */
+.grades-sidebar .folder-btn.folder-subject-mate:hover i,
+.grades-sidebar .folder-btn.folder-subject-mate:active i,
+.grades-sidebar .folder-btn.folder-subject-mate.active i {
+  color: #b45309 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-mate:active,
+.grades-sidebar .folder-btn.folder-subject-mate.active {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fde68a !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Ciencias Naturales (Pastel Menta / Bosque) */
+.grades-sidebar .folder-btn.folder-subject-naturales:hover i,
+.grades-sidebar .folder-btn.folder-subject-naturales:active i,
+.grades-sidebar .folder-btn.folder-subject-naturales.active i {
+  color: #059669 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-naturales:active,
+.grades-sidebar .folder-btn.folder-subject-naturales.active {
+  background-color: #ecfdf5 !important;
+  color: #064e3b !important;
+  border-color: #a7f3d0 !important;
+  font-weight: 700 !important;
+}
+
+/* 5. Ciencias Sociales (Pastel Índigo Institucional) */
+.grades-sidebar .folder-btn.folder-subject-sociales:hover i,
+.grades-sidebar .folder-btn.folder-subject-sociales:active i,
+.grades-sidebar .folder-btn.folder-subject-sociales.active i {
+  color: #4338ca !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-sociales:active,
+.grades-sidebar .folder-btn.folder-subject-sociales.active {
+  background-color: #e0e7ff !important;
+  color: #3730a3 !important;
+  border-color: #c7d2fe !important;
+  font-weight: 700 !important;
+}
+
+/* 6. Inglés / Lenguas Extranjeras (Pastel Púrpura Elegante) */
+.grades-sidebar .folder-btn.folder-subject-ingles:hover i,
+.grades-sidebar .folder-btn.folder-subject-ingles:active i,
+.grades-sidebar .folder-btn.folder-subject-ingles.active i {
+  color: #7e22ce !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-ingles:active,
+.grades-sidebar .folder-btn.folder-subject-ingles.active {
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
+  border-color: #e9d5ff !important;
+  font-weight: 700 !important;
+}
+
+/* 7. Educación Artística (Pastel Rosa / Magenta) */
+.grades-sidebar .folder-btn.folder-subject-arte:hover i,
+.grades-sidebar .folder-btn.folder-subject-arte:active i,
+.grades-sidebar .folder-btn.folder-subject-arte.active i {
+  color: #be185d !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-arte:active,
+.grades-sidebar .folder-btn.folder-subject-arte.active {
+  background-color: #fce7f3 !important;
+  color: #9d174d !important;
+  border-color: #fbcfe8 !important;
+  font-weight: 700 !important;
+}
+
+/* 8. Educación Física (Pastel Mandarina / Naranja Activo) */
+.grades-sidebar .folder-btn.folder-subject-fisica:hover i,
+.grades-sidebar .folder-btn.folder-subject-fisica:active i,
+.grades-sidebar .folder-btn.folder-subject-fisica.active i {
+  color: #c2410c !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-fisica:active,
+.grades-sidebar .folder-btn.folder-subject-fisica.active {
+  background-color: #ffedd5 !important;
+  color: #9a3412 !important;
+  border-color: #fed7aa !important;
+  font-weight: 700 !important;
+}
+
+/* 9. Ética y Valores (Pastel Coral Suave) */
+.grades-sidebar .folder-btn.folder-subject-etica:hover i,
+.grades-sidebar .folder-btn.folder-subject-etica:active i,
+.grades-sidebar .folder-btn.folder-subject-etica.active i {
+  color: #e11d48 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-etica:active,
+.grades-sidebar .folder-btn.folder-subject-etica.active {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fecdd3 !important;
+  font-weight: 700 !important;
+}
+
+/* 10. Tecnología e Informática (Pastel Cian Tecnológico) */
+.grades-sidebar .folder-btn.folder-subject-tecno:hover i,
+.grades-sidebar .folder-btn.folder-subject-tecno:active i,
+.grades-sidebar .folder-btn.folder-subject-tecno.active i {
+  color: #0891b2 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-tecno:active,
+.grades-sidebar .folder-btn.folder-subject-tecno.active {
+  background-color: #cffafe !important;
+  color: #155e75 !important;
+  border-color: #a5f3fc !important;
+  font-weight: 700 !important;
+}
+
+/* 11. Educación Religiosa (Pastel Teal / Místico) */
+.grades-sidebar .folder-btn.folder-subject-religion:hover i,
+.grades-sidebar .folder-btn.folder-subject-religion:active i,
+.grades-sidebar .folder-btn.folder-subject-religion.active i {
+  color: #0f766e !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-religion:active,
+.grades-sidebar .folder-btn.folder-subject-religion.active {
+  background-color: #ccfbf1 !important;
+  color: #115e59 !important;
+  border-color: #99f6e4 !important;
+  font-weight: 700 !important;
+}
+
+/* 12. Asignatura Predeterminada / General */
+.grades-sidebar .folder-btn.folder-subject-default:hover i,
+.grades-sidebar .folder-btn.folder-subject-default:active i,
+.grades-sidebar .folder-btn.folder-subject-default.active i {
+  color: #059669 !important;
+  transform: scale(1.15);
+}
+.grades-sidebar .folder-btn.folder-subject-default:active,
+.grades-sidebar .folder-btn.folder-subject-default.active {
+  background-color: #ecfdf5 !important;
+  color: #064e3b !important;
+  border-color: #a7f3d0 !important;
+  font-weight: 700 !important;
 }
 
 /* ==========================================================================
@@ -1660,5 +1973,47 @@
   }
   .btn-header-subject-jump i {
     color: #10b981 !important;
+  }
+  .grades-sidebar .teacher-btn i {
+    color: #10b981 !important;
+  }
+  .grades-sidebar .teacher-rectora-btn i {
+    color: #d97706 !important;
+  }
+  .grades-sidebar-period-btn i {
+    color: #10b981 !important;
+  }
+  .grades-sidebar .folder-btn.folder-consolidada i {
+    color: #059669 !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-lengua i {
+    color: #1d4ed8 !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-mate i {
+    color: #b45309 !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-naturales i {
+    color: #059669 !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-sociales i {
+    color: #4338ca !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-ingles i {
+    color: #7e22ce !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-arte i {
+    color: #be185d !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-fisica i {
+    color: #c2410c !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-etica i {
+    color: #e11d48 !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-tecno i {
+    color: #0891b2 !important;
+  }
+  .grades-sidebar .folder-btn.folder-subject-religion i {
+    color: #0f766e !important;
   }
 }
