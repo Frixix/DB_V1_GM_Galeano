@@ -34,7 +34,6 @@ const getSubjectIcon = (subj) => {
 export default function GradesModule({ 
   currentUser, 
   onBackToModules, 
-  onNavigateToReemplazos,
   onLogout,
   onOpenProfile,
   onOpenConnectionsModal,

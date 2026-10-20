@@ -57,10 +57,10 @@ Diseñada bajo una arquitectura sin servidor de **Costo $0 COP**, aprovecha la p
 
 ---
 
-### 4. 🔄 Novedades & Reemplazos Docentes *(Versión 2 · Fase N° 1)*
-- **Consola de Contingencia Administrativa:**
-  - Reasignación inmediata de direcciones de curso y asignaturas frente a incapacidades médicas o licencias.
-  - Transferencia automática de planillas de notas al nuevo docente nombrado con registro de actas y trazabilidad temporal.
+### 4. 🔄 Novedades & Reemplazos Docentes *(Archivado / Clausurado de la Interfaz)*
+- **Estado:** Módulo retirado y ocultado del flujo visual por directiva de simplificación operativa.
+- **Documentación y Memoria Técnica:** La lógica relacional de sustitución atómica, matrices curriculares y persistencia se encuentra detallada en [`docs/ARQUITECTURA_NOVEDADES_Y_REEMPLAZOS.md`](file:///C:/Users/robin/Documents%20internos%20C/producción/DB_V1_GM_Galeano/docs/ARQUITECTURA_NOVEDADES_Y_REEMPLAZOS.md).
+
 
 ---
 

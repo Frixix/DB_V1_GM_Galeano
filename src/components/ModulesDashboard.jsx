@@ -39,11 +39,15 @@ export default function ModulesDashboard({
 
   // Manejo de clic en módulos con control de fase de desarrollo
   const handleModuleClick = (moduleId) => {
-    if ((moduleId === 'grades' || moduleId === 'reemplazos') && !isAdmin) {
+    if (moduleId === 'reemplazos') {
+      return; // Módulo clausurado por directiva
+    }
+
+    if (moduleId === 'grades' && !isAdmin) {
       setDevModalInfo({
         moduleId,
-        moduleName: moduleId === 'grades' ? 'Notas & Calificaciones' : 'Novedades & Reemplazos Docentes',
-        icon: moduleId === 'grades' ? 'ph-bold ph-chart-line-up' : 'ph-bold ph-arrows-clockwise',
+        moduleName: 'Notas & Calificaciones',
+        icon: 'ph-bold ph-chart-line-up',
         canEnter: false
       });
       return;
@@ -115,22 +119,7 @@ export default function ModulesDashboard({
                 <span className="portal-nav-text">Recursos Pedagógicos & Circulares</span>
               </button>
 
-              {/* Módulo 3: Novedades & Reemplazos Docentes */}
-              {(isAdmin || isPrivileged) && (
-                <button 
-                  type="button"
-                  className={`portal-nav-item portal-nav-item-reemplazos ${selectedNavModule === 'reemplazos' ? 'active' : ''}`}
-                  onClick={() => handleModuleClick('reemplazos')}
-                  title={isAdmin ? "Consola de Reasignación y Novedades Docentes (Admin)" : "Módulo en desarrollo · Fase N° 1"}
-                  style={{ marginTop: '0.25rem' }}
-                >
-                  <i className="ph-bold ph-arrows-clockwise"></i>
-                  <span className="portal-nav-text">Novedades & Reemplazos</span>
-                  {!isAdmin && (
-                    <span className="portal-sidebar-dev-tag">En desarrollo</span>
-                  )}
-                </button>
-              )}
+
 
               {/* Módulo Activo: Bóveda Directiva */}
               {isPrivileged && (
@@ -263,75 +252,7 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-            {/* MÓDULO 3: NOVEDADES & REEMPLAZOS DOCENTES */}
-            {isAdmin ? (
-              /* Tarjeta interactiva exclusiva para Administrador */
-              <article 
-                className="portal-module-card portal-module-card-cyan"
-                onClick={() => handleModuleClick('reemplazos')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleModuleClick('reemplazos');
-                  }
-                }}
-              >
-                <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container portal-cyan-icon">
-                    <i className="ph-bold ph-arrows-clockwise" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
-                  </div>
-                  <span className="portal-badge-cyan">En Desarrollo · Fase 1 (Admin)</span>
-                </div>
 
-                <div className="portal-card-body">
-                  <h3 style={{ color: '#0f172a' }}>Novedades & Reemplazos Docentes</h3>
-                  <p>Consola integral de contingencia para reasignación inmediata de direcciones de curso, cobertura por incapacidad médica y registro de actas.</p>
-                </div>
-
-                <div className="portal-card-footer">
-                  <span className="portal-link-label-cyan">Gestionar Reemplazos (Admin) &rarr;</span>
-                </div>
-              </article>
-            ) : isPrivileged ? (
-              /* Tarjeta en gris con nota en desarrollo para Rectora */
-              <article 
-                className="portal-module-card portal-module-card-dev-gray"
-                onClick={() => handleModuleClick('reemplazos')}
-                role="button"
-                tabIndex={0}
-                title="Haga clic para ver el estado de desarrollo"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleModuleClick('reemplazos');
-                  }
-                }}
-              >
-                <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container">
-                    <i className="ph-bold ph-arrows-clockwise" style={{ fontSize: '1.75rem' }}></i>
-                  </div>
-                  <span className="portal-badge-dev-tag">
-                    <i className="ph-bold ph-hammer"></i> En desarrollo
-                  </span>
-                </div>
-
-                <div className="portal-card-body">
-                  <h3 style={{ color: '#334155' }}>Novedades & Reemplazos Docentes</h3>
-                  <p style={{ color: '#64748b' }}>
-                    Consola integral de contingencia para reasignación inmediata de direcciones de curso, cobertura por incapacidad médica y novedades docentes.
-                  </p>
-                </div>
-
-                <div className="portal-card-footer">
-                  <span className="portal-link-label-dev">
-                    <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
-                  </span>
-                </div>
-              </article>
-            ) : null}
 
             {/* MÓDULO ACTIVO: BÓVEDA DIRECTIVA */}
             {isPrivileged ? (
@@ -497,7 +418,7 @@ export default function ModulesDashboard({
                   </>
                 ) : (
                   <>
-                    ¡Queremos darle las <strong>gracias por probar la Fase N° 1</strong> de este módulo! Su acompañamiento y validación durante este período han sido fundamentales para consolidar la arquitectura de notas y reemplazos de la institución.
+                    ¡Queremos darle las <strong>gracias por probar la Fase N° 1</strong> de este módulo! Su acompañamiento y validación durante este período han sido fundamentales para consolidar la arquitectura de notas y calificaciones de la institución.
                   </>
                 )}
               </p>

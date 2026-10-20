@@ -14,7 +14,6 @@ import {
   processAvatarImageFile 
 } from '../services/avatarService';
 import { USERS } from '../data/users';
-import AdminReemplazosTab from './AdminReemplazosTab';
 
 export default function ProfileModal({ 
   isOpen, 
@@ -25,7 +24,7 @@ export default function ProfileModal({
   onProfileUpdated,
   onAvatarUpdated 
 }) {
-  const [activeTab, setActiveTab] = useState(initialTab || 'avatar'); // 'avatar' | 'security' | 'features' | 'reemplazos'
+  const [activeTab, setActiveTab] = useState(initialTab || 'avatar'); // 'avatar' | 'security' | 'features'
 
   // Estados de contraseña
   const [currentPassword, setCurrentPassword] = useState('');
@@ -407,20 +406,6 @@ export default function ProfileModal({
               <i className="ph-bold ph-sparkle"></i>
               <span>Capacidades del Rol</span>
             </button>
-
-            {/* Pestaña Novedades & Reemplazos (Comentada temporalmente por solicitud del usuario) */}
-            {/* {isAdmin && (
-              <button 
-                type="button" 
-                className={`profile-tab-btn ${activeTab === 'reemplazos' ? 'active' : ''}`}
-                onClick={() => setActiveTab('reemplazos')}
-                title="Gestión de novedades, licencias y reemplazos docentes por grado"
-              >
-                <i className="ph-bold ph-arrows-left-right"></i>
-                <span>Novedades & Reemplazos</span>
-                <span className="profile-tab-admin-pill">Admin</span>
-              </button>
-            )} */}
           </div>
 
           {/* ========================================================
@@ -880,15 +865,6 @@ export default function ProfileModal({
               </div>
             </div>
           )}
-
-          {/* Pestaña 4: Gestión de reemplazos comentada temporalmente por solicitud del usuario
-          {activeTab === 'reemplazos' && isAdmin && (
-            <AdminReemplazosTab 
-              currentUser={currentUser}
-              onCurriculumUpdated={onProfileUpdated}
-            />
-          )}
-          */}
         </div>
 
         {/* Pie del Modal */}
