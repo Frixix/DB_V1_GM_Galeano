@@ -187,6 +187,131 @@ export default function App() {
     }
   }, [currentUser, activeModule]);
 
+  const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
+  const isCoordinador = currentUser && currentUser.role === 'coordinador';
+  const canAuditDocs = isPrivileged || isCoordinador;
+
+  // Identificar si un documento o circular está pendiente de revisión por el usuario actual
+  const isDocUnread = useCallback((doc) => {
+    if (!currentUser) return false;
+    const isSharedOrPublic = Boolean(doc.isPublic) || doc.folder === 'institucional';
+    const isFromOtherUser = doc.teacher !== currentUser.name;
+    const isNotReadYet = !readCircularIds.includes(doc.id);
+    return isSharedOrPublic && isFromOtherUser && isNotReadYet;
+  }, [currentUser, readCircularIds]);
+
+  const unreadDocs = documents.filter(isDocUnread);
+  const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
+  const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
+  const totalUnreadCount = unreadDocs.length;
+
+  // Manejador para abrir novedades desde la campanita unificada (en cualquier módulo)
+  const handleOpenCircularesBell = useCallback(() => {
+    setActiveModule('docs');
+    if (unreadDocs.length > 0) {
+      const target = unreadDocs[0];
+      if (target.folder === 'institucional') {
+        setCurrentFolder('institucional');
+      } else {
+        setCurrentFolder('publico');
+      }
+      setSelectedDocForView(target);
+      setIsViewModalOpen(true);
+      markCircularAsRead(target.id);
+    } else {
+      setCurrentFolder('institucional');
+    }
+  }, [unreadDocs, markCircularAsRead]);
+
+  // Manejador para abrir la guía interactiva desde la barra superior unificada
+  const handleOpenTour = useCallback(() => {
+    setActiveModule('docs');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('gmg_open_tour'));
+    }, 150);
+  }, []);
+
+  // Manejador del clic en carpetas de Gestión Documental
+  const handleFolderSelect = useCallback((folderKey) => {
+    setCurrentFolder(folderKey);
+    setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
+  }, []);
+
+  // Manejador para ver documento (al leer una circular o compartido se apaga la notificación y el puntito)
+  const handleViewDocument = useCallback((id) => {
+    const doc = documents.find(d => d.id === id);
+    if (doc) {
+      setSelectedDocForView(doc);
+      setIsViewModalOpen(true);
+      if (doc.isPublic || doc.folder === 'institucional') {
+        markCircularAsRead(doc.id);
+      }
+    }
+  }, [documents, markCircularAsRead]);
+
+  // Manejador para descargar archivo (también apaga la notificación y el puntito rojo)
+  const handleDownloadDocument = useCallback(async (docOrId) => {
+    const doc = typeof docOrId === 'object' && docOrId !== null ? docOrId : documents.find(d => d.id === docOrId);
+    if (!doc) return;
+
+    if (doc.isPublic || doc.folder === 'institucional') {
+      markCircularAsRead(doc.id);
+    }
+
+    let downloadBlob = doc.fileBlob instanceof Blob ? doc.fileBlob : null;
+
+    if (!downloadBlob && doc.storageKey) {
+      downloadBlob = await downloadDocumentBlob(doc.storageKey);
+    }
+
+    if (downloadBlob instanceof Blob) {
+      const url = URL.createObjectURL(downloadBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.fileName || `${doc.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const content = `========================================\nGIMNASIO MARTIN GALEANO\nSistema de Gestión Documental de Básica Primaria\n========================================\n\nRadicado: ${doc.id}\nTítulo: ${doc.title}\nDocente / Responsable: ${doc.teacher}\nGrado: ${doc.grade}\nÁrea / Materia: ${doc.subject}\nPeriodo: ${doc.period || 'General'}\nFecha de Radicación: ${doc.uploadedAt}\n\nObservaciones / Resumen del Documento:\n${doc.notes || 'Sin observaciones registradas.'}\n\n========================================\nArchivo resguardado institucionalmente.\n`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const downloadName = doc.fileName ? doc.fileName.replace(/\.[^/.]+$/, ".txt") : `${doc.id}.txt`;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }, [documents, markCircularAsRead]);
+
+  // Manejador para eliminar documento
+  const handleDeleteDocument = useCallback((id) => {
+    const target = documents.find(d => d.id === id);
+    const confirmMessage = target 
+      ? `¿Está seguro de eliminar el registro "${target.title}" (Radicado: ${id})?\nEsta acción no se puede deshacer.`
+      : `¿Está seguro de eliminar el registro ${id}?`;
+
+    if (window.confirm(confirmMessage)) {
+      deleteDocument(id);
+      setSelectedDocForView(prev => {
+        if (prev?.id === id) {
+          setIsViewModalOpen(false);
+          return null;
+        }
+        return prev;
+      });
+    }
+  }, [documents, deleteDocument]);
+
+  // Manejador para registrar nuevo documento
+  const handleUploadSuccess = useCallback((newDoc) => {
+    addDocument(newDoc);
+  }, [addDocument]);
+
   if (!currentUser) {
     return (
       <Login onLogin={(user) => {
@@ -231,48 +356,6 @@ export default function App() {
       </>
     );
   }
-
-  const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
-
-  // Identificar si un documento o circular está pendiente de revisión por el usuario actual
-  const isDocUnread = useCallback((doc) => {
-    if (!currentUser) return false;
-    const isSharedOrPublic = Boolean(doc.isPublic) || doc.folder === 'institucional';
-    const isFromOtherUser = doc.teacher !== currentUser.name;
-    const isNotReadYet = !readCircularIds.includes(doc.id);
-    return isSharedOrPublic && isFromOtherUser && isNotReadYet;
-  }, [currentUser, readCircularIds]);
-
-  const unreadDocs = documents.filter(isDocUnread);
-  const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
-  const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
-  const totalUnreadCount = unreadDocs.length;
-
-  // Manejador para abrir novedades desde la campanita unificada (en cualquier módulo)
-  const handleOpenCircularesBell = useCallback(() => {
-    setActiveModule('docs');
-    if (unreadDocs.length > 0) {
-      const target = unreadDocs[0];
-      if (target.folder === 'institucional') {
-        setCurrentFolder('institucional');
-      } else {
-        setCurrentFolder('publico');
-      }
-      setSelectedDocForView(target);
-      setIsViewModalOpen(true);
-      markCircularAsRead(target.id);
-    } else {
-      setCurrentFolder('institucional');
-    }
-  }, [unreadDocs, markCircularAsRead]);
-
-  // Manejador para abrir la guía interactiva desde la barra superior unificada
-  const handleOpenTour = useCallback(() => {
-    setActiveModule('docs');
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('gmg_open_tour'));
-    }, 150);
-  }, []);
 
   // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
   if (!activeModule || activeModule === 'reemplazos') {
@@ -614,90 +697,6 @@ export default function App() {
       </>
     );
   }
-
-  // Manejador del clic en carpetas de Gestión Documental
-  const handleFolderSelect = useCallback((folderKey) => {
-    setCurrentFolder(folderKey);
-    setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
-  }, []);
-
-  // Manejador para ver documento (al leer una circular o compartido se apaga la notificación y el puntito)
-  const handleViewDocument = useCallback((id) => {
-    const doc = documents.find(d => d.id === id);
-    if (doc) {
-      setSelectedDocForView(doc);
-      setIsViewModalOpen(true);
-      if (doc.isPublic || doc.folder === 'institucional') {
-        markCircularAsRead(doc.id);
-      }
-    }
-  }, [documents, markCircularAsRead]);
-
-  // Manejador para descargar archivo (también apaga la notificación y el puntito rojo)
-  const handleDownloadDocument = useCallback(async (docOrId) => {
-    const doc = typeof docOrId === 'object' && docOrId !== null ? docOrId : documents.find(d => d.id === docOrId);
-    if (!doc) return;
-
-    if (doc.isPublic || doc.folder === 'institucional') {
-      markCircularAsRead(doc.id);
-    }
-
-    let downloadBlob = doc.fileBlob instanceof Blob ? doc.fileBlob : null;
-
-    if (!downloadBlob && doc.storageKey) {
-      downloadBlob = await downloadDocumentBlob(doc.storageKey);
-    }
-
-    if (downloadBlob instanceof Blob) {
-      const url = URL.createObjectURL(downloadBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.fileName || `${doc.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else {
-      const content = `========================================\nGIMNASIO MARTIN GALEANO\nSistema de Gestión Documental de Básica Primaria\n========================================\n\nRadicado: ${doc.id}\nTítulo: ${doc.title}\nDocente / Responsable: ${doc.teacher}\nGrado: ${doc.grade}\nÁrea / Materia: ${doc.subject}\nPeriodo: ${doc.period || 'General'}\nFecha de Radicación: ${doc.uploadedAt}\n\nObservaciones / Resumen del Documento:\n${doc.notes || 'Sin observaciones registradas.'}\n\n========================================\nArchivo resguardado institucionalmente.\n`;
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const downloadName = doc.fileName ? doc.fileName.replace(/\.[^/.]+$/, ".txt") : `${doc.id}.txt`;
-      a.download = downloadName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  }, [documents, markCircularAsRead]);
-
-  // Manejador para eliminar documento
-  const handleDeleteDocument = useCallback((id) => {
-    const target = documents.find(d => d.id === id);
-    const confirmMessage = target 
-      ? `¿Está seguro de eliminar el registro "${target.title}" (Radicado: ${id})?\nEsta acción no se puede deshacer.`
-      : `¿Está seguro de eliminar el registro ${id}?`;
-
-    if (window.confirm(confirmMessage)) {
-      deleteDocument(id);
-      setSelectedDocForView(prev => {
-        if (prev?.id === id) {
-          setIsViewModalOpen(false);
-          return null;
-        }
-        return prev;
-      });
-    }
-  }, [documents, deleteDocument]);
-
-  // Manejador para registrar nuevo documento
-  const handleUploadSuccess = useCallback((newDoc) => {
-    addDocument(newDoc);
-  }, [addDocument]);
-
-  const isCoordinador = currentUser && currentUser.role === 'coordinador';
-  const canAuditDocs = isPrivileged || isCoordinador;
 
   const filteredDocs = documents.filter(doc => {
     // 1. Bóveda: solo si el usuario es privilegiado y está desbloqueada
