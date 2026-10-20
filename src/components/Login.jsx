@@ -276,60 +276,35 @@ export default function Login({ onLogin }) {
             </p>
           </div>
 
-          {/* Bottom Footer: Social proof / Connected staff (Tarjeta Glassmorphism Premium) */}
+          {/* Bottom Footer: Social proof / Connected staff (Tarjeta Glassmorphism Premium Dinámica) */}
           <div className="auth-social-card auth-social-proof">
             <div className="auth-avatar-stack">
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#7c3aed' }}>
-                <div className="auth-stack-avatar-inner">
-                  <img 
-                    src="/images/avatars/jessica.svg" 
-                    alt="Jessica" 
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                  <span className="auth-avatar-initial">J</span>
-                </div>
-                <span className="auth-avatar-tooltip">Jessica • Español</span>
-              </div>
+              {staffMembers.slice(0, 4).map((staff, idx) => {
+                const avatarUrl = getUserAvatar(staff.key) || USERS[staff.key]?.avatar;
+                const initial = USERS[staff.key]?.initial || staff.name.charAt(0);
+                const bgColors = ['#7c3aed', '#047857', '#059669', '#1d4ed8'];
+                const bg = bgColors[idx % bgColors.length];
 
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#047857' }}>
-                <div className="auth-stack-avatar-inner">
-                  <img 
-                    src="/images/avatars/rectora.svg" 
-                    alt="Claudia (Rectora)" 
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                  <span className="auth-avatar-initial">👑</span>
-                </div>
-                <span className="auth-avatar-tooltip">Claudia • Rectora</span>
-              </div>
-
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#059669' }}>
-                <div className="auth-stack-avatar-inner">
-                  <img 
-                    src="/images/avatars/yuri.svg" 
-                    alt="Yuri" 
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                  <span className="auth-avatar-initial">Y</span>
-                </div>
-                <span className="auth-avatar-tooltip">Yuri • Ciencias</span>
-              </div>
-
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#1d4ed8' }}>
-                <div className="auth-stack-avatar-inner">
-                  <img 
-                    src="/images/avatars/elcy.svg" 
-                    alt="Elcy" 
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                  <span className="auth-avatar-initial">E</span>
-                </div>
-                <span className="auth-avatar-tooltip">Elcy • Inglés</span>
-              </div>
+                return (
+                  <div key={staff.key} className="auth-stack-avatar" style={{ backgroundColor: bg }}>
+                    <div className="auth-stack-avatar-inner">
+                      {avatarUrl ? (
+                        <img 
+                          src={avatarUrl} 
+                          alt={staff.name} 
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      ) : null}
+                      <span className="auth-avatar-initial">{initial}</span>
+                    </div>
+                    <span className="auth-avatar-tooltip">{staff.name} • {staff.roleTitle}</span>
+                  </div>
+                );
+              })}
 
               <div className="auth-stack-avatar auth-stack-more">
                 <div className="auth-stack-avatar-inner">
-                  <span>+12</span>
+                  <span>+{Math.max(1, staffMembers.length - 4)}</span>
                 </div>
                 <span className="auth-avatar-tooltip">Planta docente activa</span>
               </div>

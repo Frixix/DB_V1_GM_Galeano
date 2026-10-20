@@ -131,9 +131,29 @@ export default function App() {
       }
     });
 
+    const handleTeachersUpdated = () => {
+      setCurrentUser((prev) => {
+        if (!prev) return null;
+        const key = prev.key || prev.role;
+        const updatedUser = USERS[key];
+        if (updatedUser) {
+          return {
+            ...prev,
+            name: updatedUser.name || prev.name,
+            label: updatedUser.label || prev.label,
+            status: updatedUser.status || prev.status || 'activa'
+          };
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('gmg_teachers_updated', handleTeachersUpdated);
+
     return () => {
       if (typeof unsubscribeVault === 'function') unsubscribeVault();
       if (typeof unsubscribeAvatars === 'function') unsubscribeAvatars();
+      window.removeEventListener('gmg_teachers_updated', handleTeachersUpdated);
     };
   }, [refreshPresence]);
 

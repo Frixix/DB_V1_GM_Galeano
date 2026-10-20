@@ -438,11 +438,12 @@ class FinalExamsService {
       return {
         grade,
         subject: subj,
+        studentCount,
+        ...evalData,
         teacher: teacher.teacherName,
         teacherId: teacher.docente_id,
-        director: this.getGradeDirector(grade),
-        studentCount,
-        ...evalData
+        uploadedBy: evalData.uploaded ? (evalData.uploadedBy || teacher.teacherName) : teacher.teacherName,
+        director: this.getGradeDirector(grade)
       };
     });
 

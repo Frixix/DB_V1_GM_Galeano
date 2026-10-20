@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { USERS } from '../data/users.js';
 import teacherService from '../services/teacherService.js';
 import { getUserAvatar } from '../services/avatarService.js';
 
@@ -79,16 +80,31 @@ export function TeacherOwnCard({
         <div style={{ minWidth: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <strong style={{ display: 'block', fontSize: '0.9rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {currentUser.name}
+              {(currentUserKey && USERS[currentUserKey]?.name) || currentUser.name}
             </strong>
             {currentUser.role === 'docente' && (
               <span style={{ fontSize: '0.62rem', background: '#fef3c7', color: '#92400e', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>
                 Dir
               </span>
             )}
+            {((currentUserKey && USERS[currentUserKey]?.status) || currentUser.status) && ((currentUserKey && USERS[currentUserKey]?.status) || currentUser.status) !== 'activa' && (
+              <span 
+                style={{ 
+                  fontSize: '0.62rem', 
+                  background: ((currentUserKey && USERS[currentUserKey]?.status) || currentUser.status) === 'incapacidad' ? '#fee2e2' : '#fef3c7', 
+                  color: ((currentUserKey && USERS[currentUserKey]?.status) || currentUser.status) === 'incapacidad' ? '#b91c1c' : '#92400e', 
+                  padding: '1px 4px', 
+                  borderRadius: '4px', 
+                  fontWeight: 700 
+                }}
+                title={`Estado administrativo: ${((currentUserKey && USERS[currentUserKey]?.status) || currentUser.status)}`}
+              >
+                {((currentUserKey && USERS[currentUserKey]?.status) || currentUser.status) === 'incapacidad' ? 'EPS' : 'Novedad'}
+              </span>
+            )}
           </div>
           <p style={{ margin: 0, fontSize: '0.75rem', color: '#0f766e', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {selectedGrade ? `${selectedGrade} • ` : ''}{currentUser.label || 'Docente Titular'}
+            {selectedGrade ? `${selectedGrade} • ` : ''}{(currentUserKey && USERS[currentUserKey]?.label) || currentUser.label || 'Docente Titular'}
           </p>
         </div>
       </div>
@@ -275,9 +291,26 @@ export default function TeacherAccordion({
                     ></i>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {t.name}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {t.name}
+                      </span>
+                      {t.status && t.status !== 'activa' && (
+                        <span 
+                          style={{ 
+                            fontSize: '0.62rem', 
+                            background: t.status === 'incapacidad' ? '#fee2e2' : '#fef3c7', 
+                            color: t.status === 'incapacidad' ? '#b91c1c' : '#92400e', 
+                            padding: '1px 4px', 
+                            borderRadius: '4px', 
+                            fontWeight: 700 
+                          }}
+                          title={`Estado: ${t.status === 'incapacidad' ? 'Incapacidad Médica' : t.status === 'permiso' ? 'Permiso' : 'Licencia'}`}
+                        >
+                          {t.status === 'incapacidad' ? 'EPS' : t.status === 'permiso' ? 'Permiso' : 'Licencia'}
+                        </span>
+                      )}
+                    </div>
                     <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t.label}</span>
                   </div>
                 </div>

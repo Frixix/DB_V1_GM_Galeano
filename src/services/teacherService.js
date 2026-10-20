@@ -130,7 +130,7 @@ class TeacherService {
 
     saveUserOverride(key, updates);
 
-    // Si el nombre cambió, actualizar en directores y asignaciones activas
+    // Si el nombre cambió, actualizar en directores, asignaciones y árbol relacional SIEE
     if (updates.name && updates.name !== prevName) {
       const newName = updates.name;
       GRADES_LIST.forEach(grade => {
@@ -154,6 +154,23 @@ class TeacherService {
         });
       });
       gradesService.persistCustomState();
+
+      // Sincronizar en el árbol relacional completo de planillas SIEE
+      const now = new Date().toISOString();
+      ACADEMIC_YEARS.forEach(y => {
+        ACADEMIC_PERIODS.forEach(p => {
+          GRADES_LIST.forEach(grade => {
+            const subjects = gradesService.getSubjectsForGrade(grade);
+            subjects.forEach(subj => {
+              if (gradesService.tree[y]?.[p]?.[grade]?.[subj]?.docente_id === key) {
+                gradesService.tree[y][p][grade][subj].teacherName = newName;
+                gradesService.tree[y][p][grade][subj].lastUpdated = now;
+              }
+            });
+          });
+        });
+      });
+      gradesService.persistTree();
     }
 
     this.addAuditLog(
@@ -485,15 +502,16 @@ class TeacherService {
 
   getStaffMembersForLogin() {
     return [
-      { key: 'claudia', name: USERS.claudia?.name || 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría Institucional' },
-      { key: 'coordinacion', name: USERS.coordinacion?.name || 'Coordinación Académica', roleTitle: 'Coordinación', grade: 'Supervisión Institucional' },
+      { key: 'claudia', name: USERS.claudia?.name || 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría Institucional', status: USERS.claudia?.status || 'activa' },
+      { key: 'coordinacion', name: USERS.coordinacion?.name || 'Coordinación Académica', roleTitle: 'Coordinación', grade: 'Supervisión Institucional', status: USERS.coordinacion?.status || 'activa' },
       ...this.getTeachers().map(t => {
         const dirGrade = t.directedGrade ? `Dir. ${t.directedGrade}` : 'Docente';
         return {
           key: t.key,
           name: t.name,
           roleTitle: t.label ? t.label.split('•')[0].trim() : 'Docente',
-          grade: dirGrade
+          grade: dirGrade,
+          status: t.status || 'activa'
         };
       })
     ];
@@ -519,6 +537,7 @@ class TeacherService {
       name: t.name,
       label: t.label || `Dir. ${t.directedGrade || 'Curso'}`,
       grade: t.directedGrade || '1° Primaria',
+      status: t.status || 'activa',
       icon: 'ph-user'
     }));
 
@@ -526,6 +545,7 @@ class TeacherService {
       key: 'claudia',
       name: USERS.claudia?.name || 'Claudia (Rectora)',
       label: 'Rectoría',
+      status: USERS.claudia?.status || 'activa',
       isRectora: true
     });
 

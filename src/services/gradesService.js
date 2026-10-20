@@ -368,8 +368,11 @@ class GradesService {
       };
       this.persistTree();
     } else {
-      // Sincronizar docente asignado si hubo reemplazo administrativo
-      if (this.tree[year][period][grade][subject].docente_id !== teacherInfo.docente_id) {
+      // Sincronizar docente asignado si hubo reemplazo administrativo o actualización de perfil docente
+      if (
+        this.tree[year][period][grade][subject].docente_id !== teacherInfo.docente_id ||
+        this.tree[year][period][grade][subject].teacherName !== teacherInfo.teacherName
+      ) {
         this.tree[year][period][grade][subject].docente_id = teacherInfo.docente_id;
         this.tree[year][period][grade][subject].teacherName = teacherInfo.teacherName;
         this.persistTree();

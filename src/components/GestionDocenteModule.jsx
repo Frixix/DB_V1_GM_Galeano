@@ -126,10 +126,30 @@ export default function GestionDocenteModule({
     if (!profile) return;
     try {
       teacherService.updateTeacherProfile(teacherKey, profile, currentUser);
-      loadData();
-      showToast(`¡Perfil de ${profile.name} guardado con éxito! Se refleja en Login, Calificaciones y Evaluaciones.`);
+      setTeachers(teacherService.getTeachers());
+      setMatrix(teacherService.getCurriculumMatrix());
+      setDirectorsMap(teacherService.getGradeDirectorsMap());
+      setAuditLogs(teacherService.getAuditLogs());
+      showToast(`¡Perfil de ${profile.name} guardado con éxito! Se sincronizó en toda la plataforma.`);
     } catch (err) {
       alert(`Error al actualizar perfil: ${err.message}`);
+    }
+  };
+
+  // Guardar todos los perfiles docentes modificados
+  const handleSaveAllProfiles = () => {
+    try {
+      let count = 0;
+      Object.entries(editingProfiles).forEach(([key, prof]) => {
+        if (prof) {
+          teacherService.updateTeacherProfile(key, prof, currentUser);
+          count++;
+        }
+      });
+      loadData();
+      showToast(`¡${count} perfiles docentes guardados y sincronizados en toda la plataforma!`);
+    } catch (err) {
+      alert(`Error al guardar perfiles: ${err.message}`);
     }
   };
 
@@ -508,24 +528,71 @@ export default function GestionDocenteModule({
             ===================================================================== */}
         {activeTab === 'perfiles' && (
           <section className="gd-tab-pane">
+            {/* Barra superior de control de perfiles docentes */}
+            <div className="gd-perfiles-header-bar">
+              <div className="gd-perfiles-header-info">
+                <h3 className="gd-perfiles-title">
+                  <i className="ph-bold ph-identification-badge"></i>
+                  Directorio & Perfiles de la Planta Docente
+                </h3>
+                <p className="gd-perfiles-subtitle">
+                  Edita nombres institucionales, especialidades y estados administrativos. Se sincronizan en tiempo real con Login, Calificaciones, Evaluaciones y Sidebars.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                className="gd-btn-save-all-profiles"
+                onClick={handleSaveAllProfiles}
+                title="Guardar todos los perfiles de la planta docente de una sola vez"
+              >
+                <i className="ph-bold ph-floppy-disk"></i>
+                <span>Guardar Todos los Cambios</span>
+              </button>
+            </div>
+
             <div className="gd-teachers-grid">
               {teachers.map((t) => {
                 const profile = editingProfiles[t.key] || { name: t.name, label: t.label, status: t.status };
                 const avatarUrl = t.avatar || getUserAvatar(t.key);
 
+                const getStatusBadge = (statusVal) => {
+                  switch (statusVal) {
+                    case 'incapacidad':
+                      return <span className="gd-status-pill gd-status-incapacidad">Incapacidad EPS</span>;
+                    case 'permiso':
+                      return <span className="gd-status-pill gd-status-permiso">Permiso</span>;
+                    case 'licencia':
+                      return <span className="gd-status-pill gd-status-licencia">Licencia</span>;
+                    default:
+                      return <span className="gd-status-pill gd-status-activa">Activa en Aula</span>;
+                  }
+                };
+
                 return (
                   <article key={t.key} className="gd-teacher-card">
                     <div className="gd-tc-header">
                       <div className="gd-tc-left">
-                        <div className="gd-tc-avatar">
+                        <div 
+                          className="gd-tc-avatar gd-tc-avatar-clickable"
+                          onClick={() => onOpenProfile && onOpenProfile(t.key)}
+                          title={`Clic para personalizar foto o avatar de ${profile.name}`}
+                          role="button"
+                          tabIndex={0}
+                        >
                           {avatarUrl ? (
                             <img src={avatarUrl} alt={profile.name} />
                           ) : (
                             t.initial || t.key.slice(0, 2).toUpperCase()
                           )}
+                          <span className="gd-avatar-hover-icon">
+                            <i className="ph-bold ph-sliders"></i>
+                          </span>
                         </div>
                         <div>
-                          <h4 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>{profile.name}</h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h4 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>{profile.name}</h4>
+                            {getStatusBadge(profile.status)}
+                          </div>
                           <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Usuario: @{t.key}</span>
                         </div>
                       </div>
@@ -545,6 +612,7 @@ export default function GestionDocenteModule({
                           ...editingProfiles,
                           [t.key]: { ...profile, name: e.target.value }
                         })}
+                        onBlur={() => handleSaveProfile(t.key)}
                       />
                     </div>
 
@@ -559,6 +627,7 @@ export default function GestionDocenteModule({
                           ...editingProfiles,
                           [t.key]: { ...profile, label: e.target.value }
                         })}
+                        onBlur={() => handleSaveProfile(t.key)}
                         placeholder="Ej: Docente de Inglés • Dir. 4° Primaria"
                       />
                     </div>
@@ -569,10 +638,14 @@ export default function GestionDocenteModule({
                         id={`edit-status-${t.key}`}
                         className="gd-select-styled"
                         value={profile.status}
-                        onChange={(e) => setEditingProfiles({
-                          ...editingProfiles,
-                          [t.key]: { ...profile, status: e.target.value }
-                        })}
+                        onChange={(e) => {
+                          const updated = { ...profile, status: e.target.value };
+                          setEditingProfiles({
+                            ...editingProfiles,
+                            [t.key]: updated
+                          });
+                        }}
+                        onBlur={() => handleSaveProfile(t.key)}
                       >
                         <option value="activa">Activa en Aula</option>
                         <option value="incapacidad">En Incapacidad Médica EPS</option>
@@ -586,18 +659,32 @@ export default function GestionDocenteModule({
                         type="button" 
                         className="gd-btn-save-teacher"
                         onClick={() => handleSaveProfile(t.key)}
+                        title="Guardar cambios de este docente"
                       >
                         <i className="ph-bold ph-floppy-disk"></i> Guardar Perfil
                       </button>
 
-                      <button 
-                        type="button" 
-                        className="gd-btn-reset-pass"
-                        onClick={() => handleResetPassword(t.key, profile.name)}
-                        title="Restablece la contraseña por defecto de fábrica"
-                      >
-                        <i className="ph-bold ph-key"></i> Clave Inicial
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {onOpenProfile && (
+                          <button 
+                            type="button" 
+                            className="gd-btn-edit-avatar"
+                            onClick={() => onOpenProfile(t.key)}
+                            title={`Personalizar foto/avatar de ${profile.name}`}
+                          >
+                            <i className="ph-bold ph-sliders"></i> Foto
+                          </button>
+                        )}
+
+                        <button 
+                          type="button" 
+                          className="gd-btn-reset-pass"
+                          onClick={() => handleResetPassword(t.key, profile.name)}
+                          title="Restablece la contraseña por defecto de fábrica"
+                        >
+                          <i className="ph-bold ph-key"></i> Clave
+                        </button>
+                      </div>
                     </div>
                   </article>
                 );
