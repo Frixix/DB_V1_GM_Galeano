@@ -42,7 +42,7 @@ export default function ModulesDashboard({
     if ((moduleId === 'grades' || moduleId === 'reemplazos') && !isAdmin) {
       setDevModalInfo({
         moduleId,
-        moduleName: moduleId === 'grades' ? 'Notas y Calificaciones' : 'Novedades & Reemplazos Docentes',
+        moduleName: moduleId === 'grades' ? 'Notas & Calificaciones' : 'Novedades & Reemplazos Docentes',
         icon: moduleId === 'grades' ? 'ph-bold ph-chart-line-up' : 'ph-bold ph-arrows-clockwise',
         canEnter: false
       });
@@ -89,15 +89,15 @@ export default function ModulesDashboard({
           <div className="portal-sidebar-section">
             <p className="portal-sidebar-label">MÓDULOS DEL SISTEMA</p>
             <nav className="portal-sidebar-nav">
-              {/* Módulo 1 (Destacado SIEE): Notas y Calificaciones */}
+              {/* Módulo 1 (Destacado SIEE): Notas & Calificaciones */}
               <button 
                 type="button"
                 className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('grades')}
-                title={isAdmin ? "Acceder a Notas y Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
+                title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
               >
                 <i className="ph-bold ph-chart-line-up"></i>
-                <span className="portal-nav-text">Notas y Calificaciones</span>
+                <span className="portal-nav-text">Notas & Calificaciones</span>
                 {!isAdmin && (
                   <span className="portal-sidebar-dev-tag">En desarrollo</span>
                 )}
@@ -192,13 +192,13 @@ export default function ModulesDashboard({
 
           {/* Cuadrícula de Tarjetas de Módulos */}
           <section className="portal-modules-grid">
-            {/* MÓDULO 1 (DESTACADO SIEE - PRIMERA POSICIÓN): NOTAS Y CALIFICACIONES */}
+            {/* MÓDULO 1 (DESTACADO SIEE - PRIMERA POSICIÓN): NOTAS & CALIFICACIONES */}
             <article 
               className="portal-module-card portal-module-card-amber"
               onClick={() => handleModuleClick('grades')}
               role="button"
               tabIndex={0}
-              title={isAdmin ? "Acceder a Notas y Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
+              title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -218,7 +218,7 @@ export default function ModulesDashboard({
               </div>
 
               <div className="portal-card-body">
-                <h3 style={{ color: '#0f172a' }}>Notas y Calificaciones</h3>
+                <h3 style={{ color: '#0f172a' }}>Notas & Calificaciones</h3>
                 <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (40%, 40%, 20%), sábanas consolidadas y cálculo automático de promedios.</p>
               </div>
 

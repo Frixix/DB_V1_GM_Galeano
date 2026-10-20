@@ -150,7 +150,7 @@ export default function AdminReemplazosModule({
               type="button" 
               className="btn-portal-back-modules" 
               onClick={onNavigateToGrades}
-              title="Abrir Módulo de Notas y Calificaciones"
+              title="Abrir Módulo de Notas & Calificaciones"
               style={{ borderColor: '#fde68a', backgroundColor: '#fef3c7', color: '#b45309' }}
             >
               <i className="ph-bold ph-chart-line-up"></i>
