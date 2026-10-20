@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
-import { getUserAvatar } from '../services/avatarService.js';
-import teacherService from '../services/teacherService.js';
 import gradesService from '../services/gradesService.js';
+import TeacherAccordion, { SidebarBackBtn } from './TeacherAccordion.jsx';
 
 // Helper para iconos temáticos de materias
 const getSubjectIcon = (subj) => {
@@ -60,26 +58,6 @@ export default function GradesSidebar({
 }) {
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
 
-  const [teachersList, setTeachersList] = useState(() => teacherService.getSidebarTeachers());
-
-  useEffect(() => {
-    const unsubscribe = teacherService.subscribe(() => {
-      setTeachersList(teacherService.getSidebarTeachers());
-    });
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
-    };
-  }, []);
-
-  const currentUserKey = currentUser?.key || currentUser?.role || (currentUser?.name ? currentUser.name.toLowerCase().replace(/\s+/g, '') : null);
-  const currentUserAvatar = (currentUserKey ? getUserAvatar(currentUserKey) : null) || currentUser?.avatar || null;
-
-  // Estado del acordeón desplegable para subir y bajar la lista de grados y docentes (abierto por defecto)
-  const [isTeacherExpanded, setIsTeacherExpanded] = useState(true);
-  const selectedTeacherObj = selectedTeacher !== 'all'
-    ? teachersList.find((t) => t.name === selectedTeacher || t.key === selectedTeacher)
-    : teachersList.find((t) => t.grade === selectedGrade) || null;
-
   const handleSelectGradeTeacher = (t) => {
     if (t.grade && onSelectGrade) {
       onSelectGrade(t.grade);
@@ -99,215 +77,26 @@ export default function GradesSidebar({
   return (
     <aside className="sidebar grades-sidebar" id="gradesSidebar">
       {/* Botón para retornar al área de módulos */}
-      {onBackToModules && (
-        <div className="sidebar-section sidebar-section-modules-back">
-          <button
-            type="button"
-            className="btn-sidebar-back-modules"
-            onClick={onBackToModules}
-            title="Volver al Panel Principal de Módulos"
-          >
-            <i className="ph-bold ph-squares-four"></i>
-            <span>Volver a Módulos</span>
-          </button>
-        </div>
-      )}
+      <SidebarBackBtn onBackToModules={onBackToModules} />
 
-      {/* Para docente titular: Solo ella y su grado asignado (sin acceso a otros grados ni profes) */}
-      {!isPrivileged && (
-        <div className="sidebar-section teacher-own-card obs-teacher-own-card">
-          <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="ph-bold ph-chalkboard-teacher"></i>
-              <span>Mi Grado & Rol</span>
-            </div>
-            {onOpenProfile && (
-              <span
-                className="sidebar-profile-badge"
-                title="Personalizar mi perfil y foto"
-                onClick={() => onOpenProfile(currentUserKey)}
-                role="button"
-                tabIndex={0}
-              >
-                <i className="ph-bold ph-sliders"></i>
-              </span>
-            )}
-          </div>
-          <div className="teacher-badge-box obs-teacher-badge-box">
-            <div className="teacher-badge-icon obs-teacher-badge-icon">
-              {currentUserAvatar ? (
-                <img
-                  src={currentUserAvatar}
-                  alt={currentUser.name}
-                  className="teacher-avatar-img"
-                  style={{ width: '100%', height: '100%', borderRadius: '6px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    const f = e.currentTarget.nextSibling;
-                    if (f) f.style.display = 'inline-block';
-                  }}
-                />
-              ) : null}
-              <i
-                className="ph-bold ph-chalkboard-teacher"
-                style={{ display: currentUserAvatar ? 'none' : 'inline-block' }}
-              ></i>
-            </div>
-            <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <strong style={{ display: 'block', fontSize: '0.9rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {currentUser.name}
-                </strong>
-                <span style={{ fontSize: '0.62rem', background: '#fef3c7', color: '#92400e', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>
-                  Dir
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: '#0f766e', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {selectedGrade} • {currentUser.label || 'Directora de Curso'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN UNIFICADA: Ver por Docente (Idéntica a Recursos Pedagógicos & Circulares) */}
-      {isPrivileged && (
-        <div className="sidebar-section" id="gradesTeacherSection">
-          <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button
-              type="button"
-              className="btn-header-teacher-accordion"
-              onClick={() => setIsTeacherExpanded((prev) => !prev)}
-              aria-expanded={isTeacherExpanded}
-              title={isTeacherExpanded ? "Plegar docentes (subir)" : "Desplegar docentes (bajar)"}
-            >
-              <i className="ph-bold ph-users"></i>
-              <span>Ver por Docente</span>
-              <i className={`ph-bold ${isTeacherExpanded ? 'ph-caret-up' : 'ph-caret-down'} teacher-accordion-caret`}></i>
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {selectedTeacher !== 'all' && (
-                <button
-                  type="button"
-                  className="btn-teacher-reset-chip"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleResetAll();
-                  }}
-                  title="Docente activo. Clic para restablecer a todos"
-                >
-                  <i className="ph-bold ph-x"></i>
-                  <span>{selectedTeacher}</span>
-                </button>
-              )}
-              {onOpenConnectionsModal && (
-                <button
-                  type="button"
-                  className="btn-header-presence-pill"
-                  onClick={onOpenConnectionsModal}
-                  title="Abrir panel de horarios y conexiones"
-                >
-                  <span className="live-status-pulse"></span>
-                  <span>{onlineCount} en línea</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Acordeón: se despliega (bajar) o se repliega completamente (subir) */}
-          {isTeacherExpanded && (
-            <nav className="teacher-list teacher-list-dropdown">
-              <button
-                type="button"
-                className={`teacher-btn ${selectedTeacher === 'all' ? 'active' : ''}`}
-                onClick={handleResetAll}
-                title="Supervisión general de todos los docentes y cursos"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                  <i className="ph-bold ph-users-three"></i>
-                  <span>Todos los docentes</span>
-                </div>
-                {selectedTeacher === 'all' && (
-                  <i className="ph-bold ph-check" style={{ color: '#059669', fontSize: '0.9rem' }}></i>
-                )}
-              </button>
-
-              {teachersList.map((t) => {
-                const avatarUrl = getUserAvatar(t.key);
-                const isOnline = onlineMap[t.key] || onlineMap[t.name];
-                const isSelected = (selectedTeacher === t.name) || (selectedTeacher === 'all' && t.grade === selectedGrade);
-
-                return (
-                  <button
-                    key={t.key}
-                    type="button"
-                    className={`teacher-btn ${t.isRectora ? 'teacher-rectora-btn' : ''} ${
-                      isSelected ? 'active' : ''
-                    }`}
-                    onClick={() => handleSelectGradeTeacher(t)}
-                    title={`Seleccionar ${t.name} (${t.label})`}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-                      <div className="teacher-avatar-mini">
-                        {avatarUrl ? (
-                          <img
-                            src={avatarUrl}
-                            alt={t.name}
-                            className="teacher-avatar-img"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              const f = e.currentTarget.nextSibling;
-                              if (f) f.style.display = 'inline-block';
-                            }}
-                          />
-                        ) : null}
-                        <i
-                          className={`ph-bold ${t.isRectora ? 'ph-crown' : 'ph-user'}`}
-                          style={{
-                            display: avatarUrl ? 'none' : 'inline-block',
-                            color: t.isRectora ? '#d97706' : 'inherit'
-                          }}
-                        ></i>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {t.name}
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t.label}</span>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`teacher-status-indicator ${isOnline ? 'online' : 'offline'}`}
-                      title={isOnline ? 'En línea ahora' : 'Desconectado'}
-                    ></span>
-
-                    {onOpenProfile && (
-                      <span
-                        className="sidebar-profile-badge"
-                        title={`Personalizar perfil de ${t.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenProfile(t.key);
-                        }}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <i className="ph-bold ph-sliders"></i>
-                      </span>
-                    )}
-
-                    {isSelected && (
-                      <i className="ph-bold ph-check" style={{ color: '#059669', fontSize: '0.9rem', marginLeft: '4px' }}></i>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          )}
-        </div>
-      )}
+      {/* Sección Unificada de Docentes (Acordeón para Directivos o Tarjeta para Docente Titular) */}
+      <TeacherAccordion
+        currentUser={currentUser}
+        isPrivileged={isPrivileged}
+        selectedTeacher={selectedTeacher}
+        selectedGrade={selectedGrade}
+        onSelectTeacher={(name, t) => handleSelectGradeTeacher(t)}
+        onReset={handleResetAll}
+        defaultExpanded={true}
+        onlineMap={onlineMap}
+        onlineCount={onlineCount}
+        onOpenConnectionsModal={onOpenConnectionsModal}
+        onOpenProfile={onOpenProfile}
+        sectionId="gradesTeacherSection"
+        ownCardTitle="Mi Grado & Rol"
+        allLabel="Todos los docentes"
+        accentColor="#059669"
+      />
 
       {/* Sección 2: Selector de Periodo Académico Activo */}
       <div className="sidebar-section" id="gradesPeriodSection">
