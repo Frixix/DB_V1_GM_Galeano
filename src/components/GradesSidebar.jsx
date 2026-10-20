@@ -1,5 +1,5 @@
 import gradesService from '../services/gradesService.js';
-import TeacherAccordion, { SidebarBackBtn } from './TeacherAccordion.jsx';
+import BaseSidebar from './common/BaseSidebar.jsx';
 
 // Helper para iconos temáticos de materias
 const getSubjectIcon = (subj) => {
@@ -58,12 +58,12 @@ export default function GradesSidebar({
 }) {
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
 
-  const handleSelectGradeTeacher = (t) => {
-    if (t.grade && onSelectGrade) {
+  const handleSelectGradeTeacher = (name, t) => {
+    if (t?.grade && onSelectGrade) {
       onSelectGrade(t.grade);
     }
     if (onSelectTeacher) {
-      onSelectTeacher(t.name);
+      onSelectTeacher(t ? t.name : name);
     }
   };
 
@@ -75,29 +75,25 @@ export default function GradesSidebar({
   };
 
   return (
-    <aside className="sidebar grades-sidebar" id="gradesSidebar">
-      {/* Botón para retornar al área de módulos */}
-      <SidebarBackBtn onBackToModules={onBackToModules} />
-
-      {/* Sección Unificada de Docentes (Acordeón para Directivos o Tarjeta para Docente Titular) */}
-      <TeacherAccordion
-        currentUser={currentUser}
-        isPrivileged={isPrivileged}
-        selectedTeacher={selectedTeacher}
-        selectedGrade={selectedGrade}
-        onSelectTeacher={(name, t) => handleSelectGradeTeacher(t)}
-        onReset={handleResetAll}
-        defaultExpanded={true}
-        onlineMap={onlineMap}
-        onlineCount={onlineCount}
-        onOpenConnectionsModal={onOpenConnectionsModal}
-        onOpenProfile={onOpenProfile}
-        sectionId="gradesTeacherSection"
-        ownCardTitle="Mi Grado & Rol"
-        allLabel="Todos los docentes"
-        accentColor="#059669"
-      />
-
+    <BaseSidebar
+      currentModule="calificaciones"
+      currentUser={currentUser}
+      isPrivileged={isPrivileged}
+      selectedTeacher={selectedTeacher}
+      selectedGrade={selectedGrade}
+      onSelectTeacher={handleSelectGradeTeacher}
+      onResetTeacher={handleResetAll}
+      onBackToModules={onBackToModules}
+      onlineMap={onlineMap}
+      onlineCount={onlineCount}
+      onOpenConnectionsModal={onOpenConnectionsModal}
+      onOpenProfile={onOpenProfile}
+      defaultExpanded={true}
+      sectionId="gradesTeacherSection"
+      ownCardTitle="Mi Grado & Rol"
+      accentColor="#059669"
+      id="gradesSidebar"
+    >
       {/* Sección 2: Selector de Periodo Académico Activo */}
       <div className="sidebar-section" id="gradesPeriodSection">
         <div className="sidebar-header">
@@ -192,31 +188,6 @@ export default function GradesSidebar({
           })}
         </nav>
       </div>
-
-      {/* Sección 5: Resumen Normativo SIEE */}
-      <div className="db-summary-card" id="gradesSieeSummary" style={{ marginTop: 'auto' }}>
-        <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ph-bold ph-scales"></i>
-            <span>Ponderación SIEE</span>
-          </div>
-          <span className="storage-plan-pill" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-            100%
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.73rem', color: '#475569', marginTop: '0.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Cognitivo:</span> <strong>40%</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Procedimental:</span> <strong>40%</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Actitudinal:</span> <strong>20%</strong>
-          </div>
-        </div>
-      </div>
-    </aside>
+    </BaseSidebar>
   );
 }

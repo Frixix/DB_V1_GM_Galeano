@@ -1,5 +1,5 @@
-import { COMMITTEE_MEMBERS, isUserCommitteeMember } from '../data/initialObservador.js';
-import TeacherAccordion, { SidebarBackBtn } from './TeacherAccordion.jsx';
+import { isUserCommitteeMember } from '../data/initialObservador.js';
+import BaseSidebar from './common/BaseSidebar.jsx';
 
 export default function ObservadorSidebar({
   currentUser,
@@ -31,24 +31,23 @@ export default function ObservadorSidebar({
   };
 
   return (
-    <aside className="sidebar obs-sidebar" id="observadorSidebar">
-      {/* Botón para retornar al área de módulos */}
-      <SidebarBackBtn onBackToModules={onBackToModules} />
-
-      {/* Sección Unificada de Docentes (Acordeón para Directivos o Tarjeta para Docente Titular) */}
-      <TeacherAccordion
-        currentUser={currentUser}
-        isPrivileged={isPrivileged}
-        currentTeacher={currentTeacher}
-        onTeacherSelect={onTeacherSelect}
-        defaultExpanded={false}
-        onlineMap={onlineMap}
-        onlineCount={onlineCount}
-        onOpenConnectionsModal={onOpenConnectionsModal}
-        onOpenProfile={onOpenProfile}
-        sectionId="obsTeacherSection"
-      />
-
+    <BaseSidebar
+      currentModule="observador"
+      currentUser={currentUser}
+      isPrivileged={isPrivileged}
+      selectedTeacher={currentTeacher}
+      onSelectTeacher={onTeacherSelect}
+      onBackToModules={onBackToModules}
+      onlineMap={onlineMap}
+      onlineCount={onlineCount}
+      onOpenConnectionsModal={onOpenConnectionsModal}
+      onOpenProfile={onOpenProfile}
+      defaultExpanded={false}
+      sectionId="obsTeacherSection"
+      accentColor="#0f766e"
+      id="observadorSidebar"
+      counts={counts}
+    >
       {/* Sección 2: Ubicación y Rutas (Estructura de Observador y Actas) */}
       <div className="sidebar-section" id="obsRoutesSection">
         <div className="sidebar-header">
@@ -196,38 +195,6 @@ export default function ObservadorSidebar({
           </button>
         </nav>
       </div>
-
-      {/* Sección 3: Tarjeta de Resumen Normativo e Institucional */}
-      <div className="obs-summary-card" id="obsSummaryCard">
-        <div className="obs-summary-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ph-bold ph-seal-check" style={{ color: '#0f766e', fontSize: '1.1rem' }}></i>
-            <span style={{ fontWeight: 700, fontSize: '0.825rem', color: '#0f172a' }}>
-              Marco Convivencial & SIEE
-            </span>
-          </div>
-          <span className="obs-norm-pill">Ley 1620 / Dec. 1290</span>
-        </div>
-
-        <div className="obs-stat-grid">
-          <div className="obs-stat-item">
-            <span className="obs-stat-number">{counts.en_seguimiento}</span>
-            <span className="obs-stat-label">En Seguimiento</span>
-          </div>
-          <div className="obs-stat-item">
-            <span className="obs-stat-number">{counts.actas_firmadas}</span>
-            <span className="obs-stat-label">Actas Firmadas</span>
-          </div>
-          <div className="obs-stat-item">
-            <span className="obs-stat-number">{counts.all}</span>
-            <span className="obs-stat-label">Total Radicados</span>
-          </div>
-        </div>
-
-        <p className="obs-summary-note">
-          Trazabilidad legal de observadores, citaciones de acudientes y actas institucionales.
-        </p>
-      </div>
-    </aside>
+    </BaseSidebar>
   );
 }

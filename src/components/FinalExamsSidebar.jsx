@@ -1,5 +1,4 @@
-import finalExamsService from '../services/finalExamsService.js';
-import TeacherAccordion, { SidebarBackBtn } from './TeacherAccordion.jsx';
+import BaseSidebar from './common/BaseSidebar.jsx';
 
 export default function FinalExamsSidebar({
   currentUser,
@@ -22,9 +21,9 @@ export default function FinalExamsSidebar({
 }) {
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
 
-  const handleSelectGradeTeacher = (t) => {
+  const handleSelectGradeTeacher = (name, t) => {
     if (onSelectTeacher) {
-      onSelectTeacher(t.name);
+      onSelectTeacher(t ? t.name : name);
     }
   };
 
@@ -32,33 +31,26 @@ export default function FinalExamsSidebar({
     if (onSelectTeacher) onSelectTeacher('all');
   };
 
-  const progressPercent = stats?.progressPercent || 0;
-  const deadlineInfo = stats?.deadlineInfo || {};
-
   return (
-    <aside className="sidebar final-exams-sidebar" id="finalExamsSidebar">
-      {/* Botón para retornar al área de módulos */}
-      <SidebarBackBtn onBackToModules={onBackToModules} />
-
-      {/* Sección Unificada de Docentes (Acordeón para Directivos o Tarjeta para Docente Titular) */}
-      <TeacherAccordion
-        currentUser={currentUser}
-        isPrivileged={isPrivileged}
-        selectedTeacher={selectedTeacher}
-        onSelectTeacher={(name) => handleSelectGradeTeacher({ name })}
-        onTeacherSelect={onSelectTeacher}
-        onReset={handleResetTeacher}
-        defaultExpanded={true}
-        onlineMap={onlineMap}
-        onlineCount={onlineCount}
-        onOpenConnectionsModal={onOpenConnectionsModal}
-        onOpenProfile={onOpenProfile}
-        sectionId="finalTeacherSection"
-        ownCardTitle="Mi Perfil Docente"
-        accentColor="#6366f1"
-        getTeacherTitle={(t) => `Ver exámenes a cargo de ${t.name}`}
-      />
-
+    <BaseSidebar
+      currentModule="evaluaciones"
+      currentUser={currentUser}
+      isPrivileged={isPrivileged}
+      selectedTeacher={selectedTeacher}
+      onSelectTeacher={handleSelectGradeTeacher}
+      onResetTeacher={handleResetTeacher}
+      onBackToModules={onBackToModules}
+      onlineMap={onlineMap}
+      onlineCount={onlineCount}
+      onOpenConnectionsModal={onOpenConnectionsModal}
+      onOpenProfile={onOpenProfile}
+      defaultExpanded={true}
+      sectionId="finalTeacherSection"
+      ownCardTitle="Mi Perfil Docente"
+      accentColor="#6366f1"
+      id="finalExamsSidebar"
+      stats={stats}
+    >
       {/* SECCIÓN 2: Grados Escolares */}
       <div className="sidebar-section" id="finalGradesSection">
         <div className="sidebar-header">
@@ -167,44 +159,6 @@ export default function FinalExamsSidebar({
           </button>
         </nav>
       </div>
-
-      {/* SECCIÓN 5: Control de Impresión & Copias */}
-      <div className="db-summary-card" id="finalPrintSummaryCard" style={{ marginTop: 'auto' }}>
-        <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ph-bold ph-printer" style={{ color: '#6d28d9' }}></i>
-            <span>Control de Impresión</span>
-          </div>
-          <span className="storage-plan-pill" style={{ background: '#ede9fe', color: '#5b21b6', border: '1px solid #ddd6fe' }}>
-            {progressPercent}% Listo
-          </span>
-        </div>
-
-        <div className="storage-bar-wrapper" style={{ marginTop: '0.65rem' }}>
-          <div 
-            className="storage-bar-progress" 
-            style={{ 
-              width: `${progressPercent}%`,
-              background: progressPercent === 100 ? '#059669' : 'linear-gradient(90deg, #6366f1, #7c3aed)'
-            }}
-          ></div>
-        </div>
-
-        <div className="storage-labels" style={{ marginTop: '0.35rem' }}>
-          <span>{stats?.uploadedCount || 0} de {stats?.totalSubjects || 0} materias</span>
-          <span>{stats?.totalCopiesNeeded || 0} copias requeridas</span>
-        </div>
-
-        <div style={{ marginTop: '0.65rem', padding: '0.55rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.72rem', color: '#475569' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#6d28d9', fontWeight: 700, marginBottom: '2px' }}>
-            <i className="ph-bold ph-calendar-check"></i>
-            <span>Fecha Límite:</span>
-          </div>
-          <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>
-            {deadlineInfo.deadlineDate || '27 de Marzo 2026'} ({deadlineInfo.deliveryTime || '17:00'})
-          </p>
-        </div>
-      </div>
-    </aside>
+    </BaseSidebar>
   );
 }
