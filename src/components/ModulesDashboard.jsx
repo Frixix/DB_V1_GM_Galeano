@@ -24,6 +24,7 @@ export default function ModulesDashboard({
 
   const isAdmin = currentUser?.role === 'admin';
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isDocente = !isPrivileged;
 
   // Cerrar modal con tecla Escape
   useEffect(() => {
@@ -42,7 +43,18 @@ export default function ModulesDashboard({
       setDevModalInfo({
         moduleId,
         moduleName: moduleId === 'grades' ? 'Notas y Calificaciones' : 'Novedades & Reemplazos Docentes',
-        icon: moduleId === 'grades' ? 'ph-bold ph-chart-line-up' : 'ph-bold ph-arrows-clockwise'
+        icon: moduleId === 'grades' ? 'ph-bold ph-chart-line-up' : 'ph-bold ph-arrows-clockwise',
+        canEnter: false
+      });
+      return;
+    }
+
+    if (moduleId === 'observador' && isDocente) {
+      setDevModalInfo({
+        moduleId: 'observador',
+        moduleName: 'Observador & Actas',
+        icon: 'ph-bold ph-user-list',
+        canEnter: true
       });
       return;
     }
@@ -139,11 +151,14 @@ export default function ModulesDashboard({
                 type="button"
                 className={`portal-nav-item portal-nav-item-observador ${selectedNavModule === 'observador' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('observador')}
-                title="Acceder a Observador del Estudiante y Actas de Comités"
+                title={isDocente ? "Módulo en desarrollo • Fase N° 1 (Clic para echar un vistazo)" : "Acceder a Observador del Estudiante y Actas de Comités"}
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-user-list"></i>
                 <span className="portal-nav-text">Observador & Actas</span>
+                {isDocente && (
+                  <span className="portal-sidebar-dev-tag">En desarrollo</span>
+                )}
               </button>
             </nav>
           </div>
@@ -370,12 +385,13 @@ export default function ModulesDashboard({
               </article>
             )}
 
-            {/* MÓDULO 4: ACTIVO (Observador & Actas) */}
+            {/* MÓDULO 4: OBSERVADOR & ACTAS */}
             <article 
               className="portal-module-card portal-module-card-teal"
               onClick={() => handleModuleClick('observador')}
               role="button"
               tabIndex={0}
+              title={isDocente ? "Módulo en desarrollo • Fase N° 1 (Clic para ver estado o echar un vistazo)" : "Acceder a Observador del Estudiante y Actas de Comités"}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -387,7 +403,11 @@ export default function ModulesDashboard({
                 <div className="portal-card-icon-container portal-teal-icon">
                   <i className="ph-bold ph-user-list" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
                 </div>
-                <span className="portal-badge-teal">Activo</span>
+                {isDocente ? (
+                  <span className="portal-badge-teal">En desarrollo • Fase N° 1</span>
+                ) : (
+                  <span className="portal-badge-teal">Activo</span>
+                )}
               </div>
 
               <div className="portal-card-body">
@@ -398,7 +418,21 @@ export default function ModulesDashboard({
               </div>
 
               <div className="portal-card-footer">
-                <span className="portal-link-label-teal">Acceder al módulo &rarr;</span>
+                {isDocente ? (
+                  <span 
+                    className="portal-link-label-teal"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onSelectModule) onSelectModule('observador');
+                    }}
+                    title="Acceso directo: Echar un vistazo y entrar al módulo"
+                  >
+                    <i className="ph-bold ph-eye" style={{ marginRight: '5px' }}></i>
+                    Echar un vistazo &rarr;
+                  </span>
+                ) : (
+                  <span className="portal-link-label-teal">Acceder al módulo &rarr;</span>
+                )}
               </div>
             </article>
 
@@ -448,40 +482,91 @@ export default function ModulesDashboard({
               <span className="dev-modal-pill">
                 <i className="ph-bold ph-sparkle"></i> Fase N° 1 Culminada
               </span>
-              <h3>Módulo en Desarrollo</h3>
+              <h3>
+                {devModalInfo.moduleId === 'observador'
+                  ? 'Observador & Actas • En Desarrollo'
+                  : 'Módulo en Desarrollo'}
+              </h3>
               <p className="dev-modal-intro">
-                Estimada <strong>{currentUser?.name || 'Jessica'}</strong> y comunidad educativa:
+                Estimada <strong>{currentUser?.name || 'Docente'}</strong> y comunidad educativa:
               </p>
               <p className="dev-modal-thankyou">
-                ¡Queremos darle las <strong>gracias por probar la Fase N° 1</strong> de este módulo! Su acompañamiento y validación durante este período han sido fundamentales para consolidar la arquitectura de notas y reemplazos de la institución.
+                {devModalInfo.moduleId === 'observador' ? (
+                  <>
+                    ¡Queremos darle las <strong>gracias por validar la Fase N° 1</strong> de este módulo! Su acompañamiento y aportes son fundamentales para consolidar el sistema institucional de seguimiento convivencial, citaciones y actas de comités.
+                  </>
+                ) : (
+                  <>
+                    ¡Queremos darle las <strong>gracias por probar la Fase N° 1</strong> de este módulo! Su acompañamiento y validación durante este período han sido fundamentales para consolidar la arquitectura de notas y reemplazos de la institución.
+                  </>
+                )}
               </p>
 
               <div className="dev-modal-highlight-box">
                 <div className="dev-modal-highlight-icon">
-                  <i className="ph-bold ph-cloud-check"></i>
+                  <i className={`ph-bold ${devModalInfo.moduleId === 'observador' ? 'ph-user-list' : 'ph-cloud-check'}`}></i>
                 </div>
                 <div className="dev-modal-highlight-text">
-                  <strong>Pruebas de Sincronización en la Nube</strong>
-                  <p>
-                    Actualmente este módulo se encuentra en pruebas de rendimiento y seguridad en la nube (Supabase y Cloudflare R2), garantizando que las calificaciones y registros queden blindados contra cualquier alteración o pérdida.
-                  </p>
+                  {devModalInfo.moduleId === 'observador' ? (
+                    <>
+                      <strong>Validación Pedagógica & Seguimiento Activo</strong>
+                      <p>
+                        El módulo cuenta con radicación de observaciones pedagógicas, citaciones con acudientes y actas institucionales. Hemos habilitado el acceso para que puedas echar un vistazo y explorar los registros de tu grado.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Pruebas de Sincronización en la Nube</strong>
+                      <p>
+                        Actualmente este módulo se encuentra en pruebas de rendimiento y seguridad en la nube (Supabase y Cloudflare R2), garantizando que las calificaciones y registros queden blindados contra cualquier alteración o pérdida.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
               <p className="dev-modal-footer-note">
-                Durante esta fase en la nube, el módulo permanecerá bajo auditoría técnica exclusiva del Administrador. Muy pronto estará habilitado en producción para toda la institución.
+                {devModalInfo.canEnter
+                  ? 'Haz clic en "Echar un vistazo y entrar" para acceder y explorar todas las secciones del módulo.'
+                  : 'Durante esta fase en la nube, el módulo permanecerá bajo auditoría técnica exclusiva del Administrador. Muy pronto estará habilitado en producción para toda la institución.'}
               </p>
             </div>
 
             <div className="dev-modal-actions">
-              <button 
-                type="button" 
-                className="dev-modal-btn-confirm"
-                onClick={() => setDevModalInfo(null)}
-              >
-                <i className="ph-bold ph-check-circle"></i>
-                <span>Entendido, volver al panel</span>
-              </button>
+              {devModalInfo.canEnter ? (
+                <>
+                  <button 
+                    type="button" 
+                    className="dev-modal-btn-cancel"
+                    onClick={() => setDevModalInfo(null)}
+                  >
+                    <span>Volver al panel</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="dev-modal-btn-enter"
+                    onClick={() => {
+                      const targetModule = devModalInfo.moduleId;
+                      setDevModalInfo(null);
+                      if (onSelectModule) {
+                        onSelectModule(targetModule);
+                      }
+                    }}
+                  >
+                    <i className="ph-bold ph-eye"></i>
+                    <span>Echar un vistazo y entrar</span>
+                  </button>
+                </>
+              ) : (
+                <button 
+                  type="button" 
+                  className="dev-modal-btn-confirm"
+                  onClick={() => setDevModalInfo(null)}
+                >
+                  <i className="ph-bold ph-check-circle"></i>
+                  <span>Entendido, volver al panel</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
