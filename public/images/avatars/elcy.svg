@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/><stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="60" fill="url(#avatarGrad)" />
+  <g transform="translate(18, 18) scale(0.7)">
+    <circle cx="60" cy="40" r="26" fill="#ffffff" fill-opacity="0.95"/>
+     <path d="M15 105 C15 72 38 66 60 66 C82 66 105 72 105 105 Z" fill="#ffffff" fill-opacity="0.95"/>
+     <rect x="25" y="42" width="70" height="42" rx="10" fill="#ffffff"/>
+     <text x="60" y="70" text-anchor="middle" fill="#1d4ed8" font-size="22" font-weight="900" font-family="sans-serif">EN</text>
+     <circle cx="88" cy="34" r="14" fill="#38bdf8"/>
+     <polygon points="88,24 91,31 98,31 93,35 95,42 88,38 81,42 83,35 78,31 85,31" fill="#ffffff"/>
+  </g>
+</svg>

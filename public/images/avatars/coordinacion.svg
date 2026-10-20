@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="60" fill="url(#avatarGrad)" />
+  <g transform="translate(18, 18) scale(0.7)">
+    <rect x="28" y="24" width="64" height="74" rx="10" fill="#ffffff"/>
+     <rect x="42" y="16" width="36" height="14" rx="4" fill="#c7d2fe" stroke="#4f46e5" stroke-width="3"/>
+     <line x1="40" y1="46" x2="80" y2="46" stroke="#4f46e5" stroke-width="4" stroke-linecap="round"/>
+     <line x1="40" y1="60" x2="80" y2="60" stroke="#4f46e5" stroke-width="4" stroke-linecap="round"/>
+     <line x1="40" y1="74" x2="68" y2="74" stroke="#4f46e5" stroke-width="4" stroke-linecap="round"/>
+     <circle cx="88" cy="32" r="12" fill="#10b981"/>
+     <path d="M84 32 L87 35 L93 29" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

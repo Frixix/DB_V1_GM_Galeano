@@ -4,15 +4,19 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 const AVATAR_PREFIX = 'avatar_';
 const AVATARS_STORAGE_KEY = 'gm_user_avatars_v1';
 
-// Avatares base por defecto
+// Avatares base por defecto (SVGs institucionales oficiales)
 export const DEFAULT_AVATARS = {
   induccion_rectora: '/images/avatars/rectora.svg',
   induccion: '/images/avatars/rectora.svg',
-  admin: null,
+  admin: '/images/avatars/admin.svg',
   claudia: '/images/avatars/rectora.svg',
-  jessica: null,
-  yuri: null,
-  elcy: null,
+  coordinacion: '/images/avatars/coordinacion.svg',
+  jessica: '/images/avatars/jessica.svg',
+  yuri: '/images/avatars/yuri.svg',
+  elcy: '/images/avatars/elcy.svg',
+  profe1: '/images/avatars/profe1.svg',
+  profe2: '/images/avatars/profe2.svg',
+  profe3: '/images/avatars/profe3.svg',
 };
 
 /**
@@ -237,9 +241,23 @@ initLocalAvatars();
  */
 export function getUserAvatar(userKey) {
   if (!userKey) return null;
+  const key = String(userKey).trim();
+  const lowerKey = key.toLowerCase();
+  const normalizedKey = lowerKey.replace(/\s+/g, '');
+
   const cache = getStoredAvatars();
-  if (cache[userKey]) return normalizeAvatarUri(cache[userKey]);
-  const userVal = USERS[userKey]?.avatar || DEFAULT_AVATARS[userKey] || null;
+  if (cache[key]) return normalizeAvatarUri(cache[key]);
+  if (cache[lowerKey]) return normalizeAvatarUri(cache[lowerKey]);
+  if (cache[normalizedKey]) return normalizeAvatarUri(cache[normalizedKey]);
+
+  // Buscar en USERS por clave directa, clave normalizada o nombre
+  const userObj = USERS[key] || USERS[lowerKey] || USERS[normalizedKey] ||
+    Object.values(USERS).find(u => u.name?.toLowerCase() === lowerKey);
+
+  const defaultSvg = DEFAULT_AVATARS[key] || DEFAULT_AVATARS[lowerKey] || DEFAULT_AVATARS[normalizedKey] ||
+    (userObj?.role ? DEFAULT_AVATARS[userObj.role] : null);
+
+  const userVal = userObj?.avatar || defaultSvg || null;
   return normalizeAvatarUri(userVal);
 }
 

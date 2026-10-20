@@ -279,8 +279,15 @@ export default function Login({ onLogin }) {
           {/* Bottom Footer: Social proof / Connected staff */}
           <div className="auth-social-proof">
             <div className="auth-avatar-stack">
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#059669' }}>JP</div>
-              <div className="auth-stack-avatar" title="Claudia (Rectora)" style={{ backgroundColor: '#047857' }}>
+              <div className="auth-stack-avatar" title="Jessica • Docente Lengua Castellana" style={{ backgroundColor: '#7c3aed' }}>
+                <img 
+                  src="/images/avatars/jessica.svg" 
+                  alt="Jessica" 
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>J</span>
+              </div>
+              <div className="auth-stack-avatar" title="Claudia • Rectora Institucional" style={{ backgroundColor: '#047857' }}>
                 <img 
                   src="/images/avatars/rectora.svg" 
                   alt="Rectora" 
@@ -288,8 +295,22 @@ export default function Login({ onLogin }) {
                 />
                 <span style={{ fontSize: '0.75rem' }}>👑</span>
               </div>
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#10b981' }}>YC</div>
-              <div className="auth-stack-avatar" style={{ backgroundColor: '#15803d' }}>EC</div>
+              <div className="auth-stack-avatar" title="Yuri • Docente Ciencias Naturales y Sociales" style={{ backgroundColor: '#059669' }}>
+                <img 
+                  src="/images/avatars/yuri.svg" 
+                  alt="Yuri" 
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>Y</span>
+              </div>
+              <div className="auth-stack-avatar" title="Elcy • Docente Inglés" style={{ backgroundColor: '#1d4ed8' }}>
+                <img 
+                  src="/images/avatars/elcy.svg" 
+                  alt="Elcy" 
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>E</span>
+              </div>
               <div className="auth-stack-avatar auth-stack-more">+12</div>
             </div>
             <span className="auth-social-label">Personal conectado en la plataforma</span>
