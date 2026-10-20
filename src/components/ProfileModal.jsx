@@ -3,7 +3,8 @@ import {
   resolveUserKey, 
   hasCustomPassword, 
   getPasswordUpdatedAt, 
-  changeUserPassword 
+  changeUserPassword,
+  resetUserPasswordToDefault
 } from '../services/authService';
 import { 
   PRESET_AVATARS, 
@@ -253,6 +254,33 @@ export default function ProfileModal({
       }
     } catch (err) {
       setPasswordError(err.message || 'Error al actualizar la contraseña.');
+    } finally {
+      setIsSubmittingPassword(false);
+    }
+  };
+
+  const handleResetToDefault = async () => {
+    if (!currentUserKey) return;
+    setIsSubmittingPassword(true);
+    setPasswordError(null);
+    setPasswordStatus(null);
+    try {
+      const res = await resetUserPasswordToDefault(currentUserKey);
+      if (res.success) {
+        setPasswordStatus(
+          `✓ Contraseña restablecida con éxito a la clave inicial por defecto (${res.defaultPass}). En el próximo ingreso se le solicitará cambiarla como si fuera su primer inicio de sesión.`
+        );
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        if (onProfileUpdated) {
+          onProfileUpdated(currentUserKey);
+        }
+      } else {
+        setPasswordError(res.error || 'No se pudo restablecer la contraseña.');
+      }
+    } catch (err) {
+      setPasswordError('Error al restablecer la contraseña por defecto.');
     } finally {
       setIsSubmittingPassword(false);
     }
@@ -619,6 +647,32 @@ export default function ProfileModal({
                         Última modificación: {new Date(lastPassUpdated).toLocaleDateString()} a las {new Date(lastPassUpdated).toLocaleTimeString()}
                       </small>
                     )}
+                    {/* Botón temporal de pruebas: Reestablecer contraseña por defecto */}
+                    <div style={{ marginTop: '0.65rem' }}>
+                      <button
+                        type="button"
+                        onClick={handleResetToDefault}
+                        disabled={isSubmittingPassword}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '0.78rem',
+                          padding: '0.35rem 0.75rem',
+                          borderRadius: '8px',
+                          fontWeight: 700,
+                          backgroundColor: '#fef3c7',
+                          color: '#92400e',
+                          border: '1px solid #fcd34d',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                        title="Herramienta de pruebas (Temporal): Restablecer contraseña institucional de fábrica"
+                      >
+                        <i className="ph-bold ph-arrow-counter-clockwise"></i>
+                        <span>Reestablecer clave (por defecto)</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (

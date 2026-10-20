@@ -345,6 +345,79 @@ export async function changeUserPassword(userKey, currentPassword, newPassword) 
   };
 }
 
+export const DEFAULT_PASSWORDS = {
+  induccion_rectora: 'induccionrectora2026',
+  induccion: 'induccion2026',
+  admin: 'admin2026',
+  claudia: 'rectora2026',
+  profe1: 'profe12026',
+  jessica: 'jessica2026',
+  yuri: 'yuri2026',
+  profe2: 'profe22026',
+  elcy: 'elcy2026',
+  profe3: 'profe32026'
+};
+
+/**
+ * Restablece la contraseña de un usuario a su valor institucional por defecto.
+ * Elimina cualquier clave personalizada de localStorage y de Supabase institutional_vault,
+ * permitiendo que el usuario vuelva a ingresar con su clave inicial de fábrica
+ * y se le vuelva a exigir el cambio obligatorio en su primer ingreso,
+ * como si nunca hubiera cambiado la contraseña.
+ */
+export async function resetUserPasswordToDefault(userKey) {
+  if (!userKey) return { success: false, error: 'Usuario no especificado' };
+  const resolvedKey = resolveUserKey(userKey) || userKey;
+  const defaultPass = DEFAULT_PASSWORDS[resolvedKey] || USERS[resolvedKey]?.pass;
+
+  // 1. Eliminar del almacenamiento local seguro
+  const creds = getStoredCredentials();
+  if (creds[resolvedKey]) {
+    delete creds[resolvedKey];
+    saveStoredCredentials(creds);
+  }
+
+  // 2. Restaurar en el objeto USERS en memoria
+  if (USERS[resolvedKey] && defaultPass) {
+    USERS[resolvedKey].pass = defaultPass;
+  }
+
+  // 3. Eliminar de Supabase (institutional_vault)
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase
+        .from('institutional_vault')
+        .delete()
+        .eq('user_key', resolvedKey);
+      if (error) {
+        console.warn(`[Vault] Advertencia al eliminar '${resolvedKey}' en Supabase:`, error);
+      }
+    } catch (syncErr) {
+      console.warn(`[Vault] Error de conexión al eliminar '${resolvedKey}' en Supabase:`, syncErr);
+    }
+  }
+
+  return {
+    success: true,
+    userKey: resolvedKey,
+    defaultPass,
+    userName: USERS[resolvedKey]?.name || resolvedKey
+  };
+}
+
+/**
+ * Restablece masivamente las contraseñas de todas las profesoras y rectora a sus valores por defecto
+ */
+export async function resetAllStaffPasswordsToDefault() {
+  const staffKeys = ['claudia', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'];
+  const results = [];
+  for (const k of staffKeys) {
+    const res = await resetUserPasswordToDefault(k);
+    results.push(res);
+  }
+  return { success: true, count: results.length, results };
+}
+
 // =====================================================================
 // GESTIÓN DE SEGURIDAD DE LA BÓVEDA (DOBLE CONTRASEÑA CONCURRENTE)
 // =====================================================================

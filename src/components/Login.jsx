@@ -1,8 +1,26 @@
 import { useState, useEffect } from 'react';
 import { USERS } from '../data/users';
-import { verifyCredentials, syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword } from '../services/authService';
+import { 
+  verifyCredentials, 
+  syncVaultWithSupabase, 
+  subscribeToVaultChanges, 
+  hasCustomPassword,
+  resetUserPasswordToDefault,
+  resetAllStaffPasswordsToDefault,
+  DEFAULT_PASSWORDS
+} from '../services/authService';
 import { syncAvatarsFromCloud, getUserAvatar } from '../services/avatarService';
 import './Login.css';
+
+const STAFF_MEMBERS = [
+  { key: 'claudia', name: 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría' },
+  { key: 'profe1', name: 'Profe 1', roleTitle: 'Docente', grade: 'Transición' },
+  { key: 'jessica', name: 'Jessica', roleTitle: 'Docente', grade: '1° Primaria' },
+  { key: 'yuri', name: 'Yuri', roleTitle: 'Docente', grade: '2° Primaria' },
+  { key: 'profe2', name: 'Profe 2', roleTitle: 'Docente', grade: '3° Primaria' },
+  { key: 'elcy', name: 'Elcy', roleTitle: 'Docente', grade: '4° Primaria' },
+  { key: 'profe3', name: 'Profe 3', roleTitle: 'Docente', grade: '5° Primaria' },
+];
 
 export default function Login({ onLogin }) {
   const [userKey, setUserKey] = useState('');
@@ -10,6 +28,8 @@ export default function Login({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [, setVaultTick] = useState(0);
+  const [resetToast, setResetToast] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     // Sincronizar credenciales ofuscadas y avatares desde la nube al cargar
@@ -46,6 +66,60 @@ export default function Login({ onLogin }) {
     
     const activeAvatar = getUserAvatar(userKey) || expectedUser.avatar || null;
     onLogin({ ...expectedUser, key: userKey, avatar: activeAvatar });
+  };
+
+  const handleResetSingleUser = async (targetKey) => {
+    if (!targetKey) return;
+    setIsResetting(true);
+    setLoginError('');
+    try {
+      const res = await resetUserPasswordToDefault(targetKey);
+      if (res.success) {
+        setUserKey(targetKey);
+        setPassword(res.defaultPass || '');
+        setVaultTick((prev) => prev + 1);
+        setResetToast({
+          type: 'success',
+          message: `✓ Clave de ${res.userName} restablecida por defecto (${res.defaultPass}). Como si fuera su primer ingreso.`
+        });
+        setTimeout(() => setResetToast(null), 6000);
+      } else {
+        setResetToast({
+          type: 'error',
+          message: `No se pudo restablecer la clave: ${res.error || 'Error desconocido'}`
+        });
+      }
+    } catch (err) {
+      setResetToast({
+        type: 'error',
+        message: 'Error al restablecer la contraseña por defecto.'
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleResetAllStaff = async () => {
+    setIsResetting(true);
+    setLoginError('');
+    try {
+      const res = await resetAllStaffPasswordsToDefault();
+      if (res.success) {
+        setVaultTick((prev) => prev + 1);
+        setResetToast({
+          type: 'success',
+          message: `✓ Se restablecieron a valores de fábrica las claves de todas las profesoras y rectora (${res.count} cuentas).`
+        });
+        setTimeout(() => setResetToast(null), 6000);
+      }
+    } catch (err) {
+      setResetToast({
+        type: 'error',
+        message: 'Error al restablecer las claves.'
+      });
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const handlePillClick = (passKey, pillUserKey) => {
@@ -337,10 +411,22 @@ export default function Login({ onLogin }) {
 
                 {userKey && hasCustomPassword(userKey) && (
                   <div className="auth-credentials-secure-hint">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    <span>Contraseña personalizada activa (clave inicial eliminada)</span>
+                    <div className="auth-hint-text-wrap">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      </svg>
+                      <span>Contraseña personalizada activa (clave inicial eliminada)</span>
+                    </div>
+                    {/* Botón temporal rápido para restablecer clave del usuario seleccionado */}
+                    <button
+                      type="button"
+                      className="auth-btn-reset-single-inline"
+                      onClick={() => handleResetSingleUser(userKey)}
+                      disabled={isResetting}
+                      title={`Restablecer contraseña por defecto de ${USERS[userKey]?.name || userKey} a valor de fábrica`}
+                    >
+                      ↺ Reestablecer clave (por defecto)
+                    </button>
                   </div>
                 )}
               </div>
@@ -354,6 +440,75 @@ export default function Login({ onLogin }) {
                 </svg>
               </button>
             </form>
+
+            {/* Mensaje flotante de confirmación de restablecimiento */}
+            {resetToast && (
+              <div className={`auth-reset-toast ${resetToast.type}`}>
+                <div className="auth-reset-toast-body">
+                  <span className="auth-reset-toast-icon">
+                    {resetToast.type === 'success' ? '✓' : '⚠️'}
+                  </span>
+                  <span>{resetToast.message}</span>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setResetToast(null)} 
+                  className="auth-reset-toast-close"
+                  aria-label="Cerrar notificación"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            {/* ========================================================
+                PANEL TEMPORAL DE PRUEBAS: REESTABLECER CLAVE (POR DEFECTO)
+                ======================================================== */}
+            <div className="auth-dev-reset-panel">
+              <div className="auth-dev-reset-header">
+                <div className="auth-dev-reset-title-group">
+                  <span className="auth-dev-badge">TEMPORAL</span>
+                  <span className="auth-dev-title-text">Reestablecer Claves (Por Defecto)</span>
+                </div>
+                <button
+                  type="button"
+                  className="auth-btn-reset-all"
+                  onClick={handleResetAllStaff}
+                  disabled={isResetting}
+                  title="Restablecer todas las profesoras y rectora a sus contraseñas iniciales de fábrica"
+                >
+                  ↺ Reestablecer Todas
+                </button>
+              </div>
+
+              <p className="auth-dev-reset-desc">
+                Restaura el perfil como si nunca hubiera cambiado su clave (se le solicitará crear una nueva al iniciar sesión):
+              </p>
+
+              <div className="auth-dev-reset-grid">
+                {STAFF_MEMBERS.map((staff) => {
+                  const isCustom = hasCustomPassword(staff.key);
+                  return (
+                    <button
+                      key={staff.key}
+                      type="button"
+                      className={`auth-dev-staff-btn ${isCustom ? 'is-custom' : 'is-default'} ${userKey === staff.key ? 'is-selected' : ''}`}
+                      onClick={() => handleResetSingleUser(staff.key)}
+                      disabled={isResetting}
+                      title={`Clic para restablecer y seleccionar a ${staff.name} (${staff.grade})`}
+                    >
+                      <div className="auth-dev-staff-meta">
+                        <span className="auth-dev-staff-name">{staff.name}</span>
+                        <span className="auth-dev-staff-grade">{staff.grade}</span>
+                      </div>
+                      <span className={`auth-dev-status-tag ${isCustom ? 'tag-custom' : 'tag-default'}`}>
+                        {isCustom ? '↺ Reestablecer' : '✓ Por defecto'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Bottom Center Text */}

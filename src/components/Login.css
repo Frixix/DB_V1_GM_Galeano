@@ -463,16 +463,258 @@
 
 .auth-credentials-secure-hint {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
   font-size: 0.72rem;
   color: #059669;
   font-weight: 600;
   margin-top: 0.4rem;
-  padding: 0.35rem 0.6rem;
+  padding: 0.45rem 0.65rem;
   background-color: #ecfdf5;
   border: 1px solid #a7f3d0;
   border-radius: 8px;
+}
+
+.auth-hint-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth-btn-reset-single-inline {
+  align-self: flex-start;
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.22rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.auth-btn-reset-single-inline:hover {
+  background-color: #fde68a;
+  color: #92400e;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   PANEL TEMPORAL DE PRUEBAS: RESTABLECER CLAVE INICIAL POR DEFECTO
+   ========================================================================== */
+
+/* Toast de confirmación */
+.auth-reset-toast {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  animation: authToastSlideIn 0.2s ease-out;
+}
+
+@keyframes authToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-reset-toast.success {
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.auth-reset-toast.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.auth-reset-toast-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.auth-reset-toast-icon {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.auth-reset-toast-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: currentColor;
+  opacity: 0.65;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  transition: opacity 0.15s ease;
+}
+
+.auth-reset-toast-close:hover {
+  opacity: 1;
+}
+
+/* Panel contenedor */
+.auth-dev-reset-panel {
+  margin-top: 1.15rem;
+  padding: 0.85rem;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}
+
+.auth-dev-reset-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.auth-dev-reset-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.auth-dev-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.auth-dev-title-text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.auth-btn-reset-all {
+  background-color: #fff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.22rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.auth-btn-reset-all:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+  transform: translateY(-1px);
+}
+
+.auth-dev-reset-desc {
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.35;
+  margin: 0 0 0.65rem 0;
+}
+
+/* Grilla de botones de profesoras y rectora */
+.auth-dev-reset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+}
+
+.auth-dev-staff-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.auth-dev-staff-btn:hover {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.auth-dev-staff-btn.is-selected {
+  border-color: #15803d;
+  background-color: #ecfdf5;
+  box-shadow: 0 0 0 1px #15803d;
+}
+
+.auth-dev-staff-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.auth-dev-staff-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-dev-staff-grade {
+  font-size: 0.68rem;
+  color: #64748b;
+}
+
+.auth-dev-status-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.auth-dev-status-tag.tag-custom {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.auth-dev-status-tag.tag-default {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 
 /* Botón de Acción Principal */
