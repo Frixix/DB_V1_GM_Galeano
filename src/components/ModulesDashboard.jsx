@@ -175,6 +175,19 @@ export default function ModulesDashboard({
                   <span className="portal-sidebar-dev-tag">En desarrollo</span>
                 )}
               </button>
+
+              {/* Módulo 5: Evaluaciones Finales */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-evaluaciones ${selectedNavModule === 'evaluaciones' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('evaluaciones')}
+                title="Acceder a Evaluaciones Finales & Cierres SIEE"
+                style={{ marginTop: '0.25rem' }}
+              >
+                <i className="ph-bold ph-graduation-cap"></i>
+                <span className="portal-nav-text">Evaluaciones Finales</span>
+                <span className="portal-sidebar-active-tag" style={{ background: '#ede9fe', color: '#6d28d9', borderColor: '#ddd6fe' }}>Activo</span>
+              </button>
             </nav>
           </div>
 
@@ -449,7 +462,40 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-            {/* MÓDULO 5: EN DESARROLLO (Matrículas & Pagos) */}
+            {/* MÓDULO 5: EVALUACIONES FINALES */}
+            <article 
+              className="portal-module-card portal-module-card-violet"
+              onClick={() => handleModuleClick('evaluaciones')}
+              role="button"
+              tabIndex={0}
+              title="Acceder a Evaluaciones Finales, Nivelaciones y Comisiones de Promoción (SIEE)"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('evaluaciones');
+                }
+              }}
+            >
+              <div className="portal-card-header-bar">
+                <div className="portal-card-icon-container portal-violet-icon">
+                  <i className="ph-bold ph-graduation-cap" style={{ fontSize: '1.75rem', color: '#6d28d9' }}></i>
+                </div>
+                <span className="portal-badge-violet">Activo · SIEE</span>
+              </div>
+
+              <div className="portal-card-body">
+                <h3 style={{ color: '#0f172a' }}>Evaluaciones Finales</h3>
+                <p style={{ color: '#0f172a' }}>
+                  Consola de exámenes acumulativos, sustentaciones finales, actas de nivelación, sábanas de comisiones de promoción y cierre oficial de año lectivo.
+                </p>
+              </div>
+
+              <div className="portal-card-footer">
+                <span className="portal-link-label-violet">Gestionar Evaluaciones Finales &rarr;</span>
+              </div>
+            </article>
+
+            {/* MÓDULO 6: EN DESARROLLO (Matrículas & Pagos) */}
             <article className="portal-module-card portal-module-card-disabled">
               <div className="portal-card-header-bar">
                 <div className="portal-card-icon-container portal-gray-icon">

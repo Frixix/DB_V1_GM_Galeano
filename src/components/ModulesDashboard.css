@@ -670,6 +670,61 @@
   transform: translateX(4px);
 }
 
+/* ==========================================================================
+   ESTILOS PARA MÓDULO 5: EVALUACIONES FINALES (VIOLETA INSTITUCIONAL)
+   ========================================================================== */
+.portal-module-card-violet {
+  position: relative;
+  border-color: #ddd6fe;
+  background-color: #ffffff;
+}
+
+.portal-module-card-violet::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #7c3aed;
+  transition: height 0.2s ease;
+}
+
+.portal-module-card-violet:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.14), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  border-color: #8b5cf6;
+}
+
+.portal-module-card-violet .portal-card-icon-container.portal-violet-icon {
+  background-color: #f5f3ff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.portal-badge-violet {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5b21b6;
+  background-color: #ede9fe;
+  border: 1px solid #ddd6fe;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.portal-link-label-violet {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6d28d9;
+  transition: transform 0.15s ease;
+}
+
+.portal-module-card-violet:hover .portal-link-label-violet {
+  transform: translateX(4px);
+}
+
 .portal-sidebar-active-tag {
   font-size: 0.65rem;
   font-weight: 700;

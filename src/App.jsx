@@ -4,6 +4,7 @@ import ModulesDashboard from './components/ModulesDashboard';
 import GradesModule from './components/GradesModule';
 import BovedaModule from './components/BovedaModule';
 import ObservadorModule from './components/ObservadorModule';
+import FinalExamsModule from './components/FinalExamsModule';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -414,6 +415,93 @@ export default function App() {
   }
 
 
+
+  // Módulo 5: Evaluaciones Finales (Pruebas Acumulativas & Cierres SIEE)
+  if (activeModule === 'evaluaciones') {
+    return (
+      <>
+        <FinalExamsModule 
+          currentUser={currentUser}
+          onBackToModules={() => setActiveModule(null)}
+          onOpenProfile={handleOpenProfile}
+          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+          onlineMap={onlineMap}
+          onlineCount={onlineCount}
+          circularesCount={totalUnreadCount}
+          onOpenCirculares={handleOpenCircularesBell}
+          onOpenTour={handleOpenTour}
+          onLogout={handleLogout}
+        />
+        <ProfileModal 
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          currentUser={currentUser}
+          initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
+          onProfileUpdated={(updatedUser) => {
+            setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+          }}
+          onAvatarUpdated={(targetKey, newAvatar) => {
+            const targetName = USERS[targetKey]?.name || targetKey;
+            setCurrentUser((prev) => {
+              if (prev && (prev.key === targetKey || prev.role === targetKey)) {
+                return { ...prev, avatar: newAvatar };
+              }
+              return prev;
+            });
+            setAvatarTick((t) => t + 1);
+            setAvatarToast({ name: targetName });
+            setTimeout(() => {
+              setAvatarToast(null);
+            }, 4500);
+
+            if (typeof refreshPresence === 'function') {
+              refreshPresence();
+            }
+          }}
+        />
+        <ConnectionsModal 
+          isOpen={isConnectionsModalOpen}
+          onClose={() => setIsConnectionsModalOpen(false)}
+          presenceData={presenceData}
+          currentUser={currentUser}
+          onSelectTeacher={(teacherName) => {
+            setCurrentTeacher(teacherName);
+            setCurrentFolder('all');
+            setActiveModule('docs');
+          }}
+          onRefresh={refreshPresence}
+          loading={presenceLoading}
+        />
+        <TrialWatermark documents={documents} />
+        {avatarToast && (
+          <div className="avatar-global-toast-notification">
+            <div className="toast-chulito-icon">
+              <i className="ph-bold ph-check"></i>
+            </div>
+            <div className="toast-chulito-content">
+              <strong>¡Foto de perfil actualizada!</strong>
+              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
+            </div>
+            <button 
+              type="button" 
+              className="toast-close-btn" 
+              onClick={() => setAvatarToast(null)} 
+              aria-label="Cerrar notificación"
+            >
+              <i className="ph-bold ph-x"></i>
+            </button>
+          </div>
+        )}
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
+      </>
+    );
+  }
 
   // Manejador del clic en carpetas de Gestión Documental
   const handleFolderSelect = (folderKey) => {
