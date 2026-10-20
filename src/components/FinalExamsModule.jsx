@@ -3,7 +3,7 @@ import PortalNavbar from './PortalNavbar';
 import FinalExamsSidebar from './FinalExamsSidebar';
 import finalExamsService, { DEFAULT_DEADLINES } from '../services/finalExamsService';
 import { getUserAvatar } from '../services/avatarService';
-import { STUDENTS_BY_GRADE, TEACHER_CURRICULUM_ASSIGNMENTS } from '../data/gradesTreeData';
+import { STUDENTS_BY_GRADE, TEACHER_CURRICULUM_ASSIGNMENTS, GRADES_LIST } from '../data/gradesTreeData';
 import './FinalExamsModule.css';
 
 // Helper para iconos temáticos de materias
@@ -59,14 +59,15 @@ export default function FinalExamsModule({
   }, [currentUser, curriculumTick]);
 
   const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
-  const [selectedGrade, setSelectedGrade] = useState(availableGrades[0] || '1° Primaria');
+  const [selectedGrade, setSelectedGrade] = useState('all'); // 'all' o grado específico
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'uploaded' | 'pending'
   const [search, setSearch] = useState('');
   const [currentView, setCurrentView] = useState('cards'); // 'cards' | 'table'
 
   // Modales
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [subjectForUpload, setSubjectForUpload] = useState(null);
+  const [uploadTargetSubject, setUploadTargetSubject] = useState(null);
+  const [uploadTargetGrade, setUploadTargetGrade] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedItemForView, setSelectedItemForView] = useState(null);
   const [isDeadlinesModalOpen, setIsDeadlinesModalOpen] = useState(false);
@@ -77,17 +78,16 @@ export default function FinalExamsModule({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Sincronizar grado inicial si cambia usuario
-  useEffect(() => {
-    if (!availableGrades.includes(selectedGrade)) {
-      setSelectedGrade(availableGrades[0] || '1° Primaria');
-    }
-  }, [availableGrades, selectedGrade]);
-
-  // Obtener datos consolidados de control de impresión para el grado y periodo
+  // Obtener datos consolidados de control de impresión según grado y docente seleccionado
   const printControlData = useMemo(() => {
+    if (selectedGrade === 'all') {
+      if (selectedTeacher !== 'all') {
+        return finalExamsService.getPrintControlForTeacher(selectedPeriod, selectedTeacher);
+      }
+      return finalExamsService.getPrintControlAll(selectedPeriod);
+    }
     return finalExamsService.getPrintControlForGrade(selectedPeriod, selectedGrade);
-  }, [selectedPeriod, selectedGrade, curriculumTick]);
+  }, [selectedPeriod, selectedGrade, selectedTeacher, curriculumTick]);
 
   const { items = [], stats = {} } = printControlData;
 
@@ -96,9 +96,14 @@ export default function FinalExamsModule({
     return items.filter((item) => {
       // Filtro por docente seleccionado
       if (selectedTeacher !== 'all') {
-        if (item.teacher !== selectedTeacher) {
+        if (item.teacher !== selectedTeacher && item.uploadedBy !== selectedTeacher) {
           return false;
         }
+      }
+
+      // Filtro por grado si está seleccionado un curso específico
+      if (selectedGrade !== 'all' && item.grade !== selectedGrade) {
+        return false;
       }
 
       // Filtro por estado de subida
@@ -110,17 +115,20 @@ export default function FinalExamsModule({
         const q = search.toLowerCase();
         const matchSubj = item.subject.toLowerCase().includes(q);
         const matchTeacher = item.teacher.toLowerCase().includes(q);
+        const matchGrade = item.grade ? item.grade.toLowerCase().includes(q) : false;
+        const matchUploader = item.uploadedBy ? item.uploadedBy.toLowerCase().includes(q) : false;
         const matchFile = item.fileName ? item.fileName.toLowerCase().includes(q) : false;
-        if (!matchSubj && !matchTeacher && !matchFile) return false;
+        if (!matchSubj && !matchTeacher && !matchGrade && !matchUploader && !matchFile) return false;
       }
 
       return true;
     });
-  }, [items, selectedTeacher, statusFilter, search]);
+  }, [items, selectedTeacher, selectedGrade, statusFilter, search]);
 
-  // Manejador para abrir modal de subida para una materia específica
-  const handleOpenUpload = (subj = null) => {
-    setSubjectForUpload(subj);
+  // Manejador para abrir modal de subida para una materia y grado específicos
+  const handleOpenUpload = (subj = null, grade = null) => {
+    setUploadTargetSubject(subj);
+    setUploadTargetGrade(grade || (selectedGrade !== 'all' ? selectedGrade : availableGrades[0]));
     setIsUploadModalOpen(true);
   };
 
@@ -135,7 +143,7 @@ export default function FinalExamsModule({
     if (item.downloadUrl) {
       const a = document.createElement('a');
       a.href = item.downloadUrl;
-      a.download = item.fileName || `Evaluacion_${item.subject}.pdf`;
+      a.download = item.fileName || `Evaluacion_${item.subject}_${item.grade}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -150,12 +158,12 @@ export default function FinalExamsModule({
 
 Radicado Oficial:   ${item.id || 'EVAL-BORRADOR'}
 Materia / Asignatura:${item.subject}
-Grado Escolar:      ${selectedGrade}
+Grado Escolar:      ${item.grade}
 Periodo Académico:  ${selectedPeriod}
-Docente Responsable:${item.teacher}
-Estudiantes / Copias:${item.studentCount} copias requeridas
+Docente a Cargo:    ${item.teacher}
+Copias Requeridas:  ${item.copiesNeeded || item.studentCount} copias para ${item.grade}
 Fecha de Carga:     ${item.uploadedAt || '2026-03-24 14:00'}
-Responsable Carga:  ${item.uploadedBy || item.teacher}
+Subido Oficial Por: ${item.uploadedBy || item.teacher}
 Estado Fotocopiado: ${item.copiesStatus?.toUpperCase() || 'APROBADO PARA IMPRESIÓN'}
 
 --------------------------------------------------------------------------------
@@ -174,33 +182,33 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = item.fileName ? item.fileName.replace('.pdf', '.txt') : `Evaluacion_${item.subject}_${selectedGrade}.txt`;
+    a.download = item.fileName ? item.fileName.replace('.pdf', '.txt') : `Evaluacion_${item.subject}_${item.grade}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast(`✓ Descargando evaluación de ${item.subject}`);
+    showToast(`✓ Descargando evaluación de ${item.subject} (${item.grade})`);
   };
 
   // Manejador para eliminar evaluación
-  const handleDeleteEvaluation = (subj) => {
-    if (!window.confirm(`¿Está seguro de eliminar la evaluación de "${subj}" para el grado ${selectedGrade}?\nEsta acción permitirá subir un nuevo archivo de examen.`)) {
+  const handleDeleteEvaluation = (grade, subj) => {
+    if (!window.confirm(`¿Está seguro de eliminar la evaluación de "${subj}" para el grado ${grade}?\nEsta acción permitirá subir un nuevo archivo de examen.`)) {
       return;
     }
-    const ok = finalExamsService.deleteEvaluation(selectedPeriod, selectedGrade, subj);
+    const ok = finalExamsService.deleteEvaluation(selectedPeriod, grade, subj);
     if (ok) {
-      showToast(`Evaluación de ${subj} eliminada correctamente`);
-      if (selectedItemForView?.subject === subj) {
+      showToast(`Evaluación de ${subj} (${grade}) eliminada correctamente`);
+      if (selectedItemForView?.subject === subj && selectedItemForView?.grade === grade) {
         setIsViewModalOpen(false);
       }
     }
   };
 
   // Manejador para actualizar el estado de fotocopiado
-  const handleUpdateCopiesStatus = (subj, newStatus) => {
-    finalExamsService.updateCopiesStatus(selectedPeriod, selectedGrade, subj, newStatus);
+  const handleUpdateCopiesStatus = (grade, subj, newStatus) => {
+    finalExamsService.updateCopiesStatus(selectedPeriod, grade, subj, newStatus);
     showToast(`Estado de impresión actualizado a: ${newStatus}`);
-    if (selectedItemForView?.subject === subj) {
+    if (selectedItemForView?.subject === subj && selectedItemForView?.grade === grade) {
       setSelectedItemForView((prev) => prev ? { ...prev, copiesStatus: newStatus } : null);
     }
   };
@@ -226,7 +234,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
       />
 
       <div className="final-exams-body-layout">
-        {/* Sidebar Izquierda: Ver por Docente, Periodo Académico, Filtros y Progreso */}
+        {/* Sidebar Izquierda: Ver por Docente, Grados Escolares, Periodo y Progreso */}
         <div className={`sidebar-container ${isSidebarOpen ? 'mobile-open' : ''}`}>
           <FinalExamsSidebar
             currentUser={currentUser}
@@ -243,7 +251,10 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
             statusFilter={statusFilter}
             onSelectStatusFilter={(f) => setStatusFilter(f)}
             selectedTeacher={selectedTeacher}
-            onSelectTeacher={(t) => setSelectedTeacher(t)}
+            onSelectTeacher={(t) => {
+              setSelectedTeacher(t);
+              setIsSidebarOpen(false);
+            }}
             availableGrades={availableGrades}
             availablePeriods={availablePeriods}
             stats={stats}
@@ -270,10 +281,10 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h2 className="final-banner-title">
-                    Evaluaciones Finales • {selectedGrade}
+                    Evaluaciones Finales • {selectedGrade === 'all' ? (selectedTeacher !== 'all' ? `Docente: ${selectedTeacher}` : 'Todos los Grados') : selectedGrade}
                   </h2>
                   <span className="final-grade-badge">
-                    {stats?.studentCount || 0} Estudiantes Matriculados
+                    {selectedTeacher !== 'all' ? `Filtro Docente: ${selectedTeacher}` : (selectedGrade === 'all' ? 'Vista Institucional Completa' : `${stats?.studentCount || 0} Estudiantes`)}
                   </span>
                 </div>
                 <p className="final-banner-desc">
@@ -298,7 +309,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
               <button
                 type="button"
                 className="final-btn-primary"
-                onClick={() => handleOpenUpload(null)}
+                onClick={() => handleOpenUpload(null, null)}
                 title="Subir evaluación final para impresión"
               >
                 <i className="ph-bold ph-upload-simple"></i>
@@ -330,7 +341,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
               </div>
             </div>
 
-            {/* Métricas Rápidas del Grado */}
+            {/* Métricas Rápidas */}
             <div className="final-stats-chips-container">
               <div className="final-stat-chip">
                 <span className="stat-chip-number">{stats?.uploadedCount || 0} / {stats?.totalSubjects || 0}</span>
@@ -346,7 +357,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
               </div>
               <div className="final-stat-chip">
                 <span className="stat-chip-number percent">{stats?.progressPercent || 0}%</span>
-                <span className="stat-chip-label">Avance del Curso</span>
+                <span className="stat-chip-label">Avance</span>
               </div>
             </div>
           </section>
@@ -360,7 +371,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                 <input
                   type="text"
                   className="final-search-input"
-                  placeholder="Buscar por materia, docente o archivo..."
+                  placeholder="Buscar por materia, docente, grado o archivo..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -377,6 +388,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                   value={selectedGrade}
                   onChange={(e) => setSelectedGrade(e.target.value)}
                 >
+                  <option value="all">Todos los grados</option>
                   {availableGrades.map((g) => (
                     <option key={g} value={g}>{g}</option>
                   ))}
@@ -394,7 +406,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="all">Todas las materias ({items.length})</option>
+                  <option value="all">Todas ({items.length})</option>
                   <option value="uploaded">✓ Listas para impresión ({stats?.uploadedCount || 0})</option>
                   <option value="pending">⏳ Pendientes de subida ({stats?.pendingCount || 0})</option>
                 </select>
@@ -429,7 +441,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                 <div className="final-exams-grid">
                   {filteredItems.map((item) => {
                     const avatarUrl = getUserAvatar(item.teacherId);
-                    const canUpload = finalExamsService.canUploadForSubject(currentUser, selectedGrade, item.subject);
+                    const canUpload = finalExamsService.canUploadForSubject(currentUser, item.grade, item.subject);
                     const isOwnTeacher = currentUser && (
                       item.teacherId === currentUser.key ||
                       item.teacher === currentUser.name
@@ -437,22 +449,25 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
 
                     return (
                       <article
-                        key={item.subject}
+                        key={`${item.grade}_${item.subject}`}
                         className={`final-subject-card ${item.uploaded ? 'is-uploaded' : 'is-pending'}`}
                       >
-                        {/* Cabecera de la Materia */}
+                        {/* Cabecera de la Materia con Distintivo de Grado */}
                         <div className="subject-card-header">
                           <div className="subject-icon-box">
                             <i className={`ph-bold ${getSubjectIcon(item.subject)}`}></i>
                           </div>
                           <div className="subject-title-box">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                              <span className="card-grade-chip">{item.grade}</span>
+                              <span className="subject-period-tag">{selectedPeriod.split(' ')[0]}</span>
+                            </div>
                             <h3 className="subject-title">{item.subject}</h3>
-                            <span className="subject-period-tag">{selectedPeriod}</span>
                           </div>
                           {item.uploaded ? (
                             <span className="subject-status-pill uploaded" title="Evaluación cargada y lista para fotocopiado">
                               <i className="ph-bold ph-check-circle"></i>
-                              <span>Lista para Impresión</span>
+                              <span>Lista</span>
                             </span>
                           ) : (
                             <span className="subject-status-pill pending" title="Examen pendiente por subir">
@@ -462,7 +477,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                           )}
                         </div>
 
-                        {/* Docente Responsable */}
+                        {/* Docente Responsable Asignado Oficialmente */}
                         <div className="subject-teacher-row">
                           <div className="teacher-avatar-box">
                             {avatarUrl ? (
@@ -504,7 +519,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                                     {item.fileName}
                                   </span>
                                   <span className="file-subtext">
-                                    {item.fileSize} • Subido el {item.uploadedAt}
+                                    {item.fileSize} • Subido por: <strong>{item.uploadedBy}</strong> el {item.uploadedAt}
                                   </span>
                                 </div>
                               </div>
@@ -512,7 +527,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                               <div className="copies-status-box">
                                 <div className="copies-metric">
                                   <i className="ph-bold ph-copy"></i>
-                                  <span><strong>{item.copiesNeeded}</strong> copias requeridas ({selectedGrade})</span>
+                                  <span><strong>{item.copiesNeeded}</strong> copias requeridas ({item.grade})</span>
                                 </div>
                                 <span className={`print-badge ${item.copiesStatus}`}>
                                   <i className={`ph-bold ${item.copiesStatus === 'impreso' ? 'ph-printer-check' : 'ph-stamp'}`}></i>
@@ -534,10 +549,10 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                               </div>
                               <div>
                                 <p className="pending-text">
-                                  Examen final aún no cargado al repositorio.
+                                  Pendiente por <strong>{item.teacher}</strong>
                                 </p>
                                 <span className="pending-hint">
-                                  Requerido: {item.studentCount} copias para {selectedGrade}
+                                  Requerido: {item.copiesNeeded || item.studentCount} copias para {item.grade}
                                 </span>
                               </div>
                             </div>
@@ -572,7 +587,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                                 <button
                                   type="button"
                                   className="btn-card-action btn-update"
-                                  onClick={() => handleOpenUpload(item.subject)}
+                                  onClick={() => handleOpenUpload(item.subject, item.grade)}
                                   title="Actualizar o sustituir el archivo de evaluación"
                                 >
                                   <i className="ph-bold ph-arrow-clockwise"></i>
@@ -586,7 +601,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                                 <button
                                   type="button"
                                   className="btn-card-action btn-upload-now"
-                                  onClick={() => handleOpenUpload(item.subject)}
+                                  onClick={() => handleOpenUpload(item.subject, item.grade)}
                                   title="Cargar examen para reproducción"
                                 >
                                   <i className="ph-bold ph-upload-simple"></i>
@@ -595,7 +610,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                               ) : (
                                 <span className="card-pending-badge-text">
                                   <i className="ph-bold ph-hourglass-high"></i>
-                                  Pendiente por {item.teacher}
+                                  Pendiente ({item.grade})
                                 </span>
                               )}
                             </>
@@ -606,11 +621,12 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                   })}
                 </div>
               ) : (
-                /* Vista en Tabla Institucional */
+                /* Vista en Tabla Institucional con Columna de Grado */
                 <div className="final-table-wrapper">
                   <table className="final-data-table">
                     <thead>
                       <tr>
+                        <th>Grado</th>
                         <th>Materia / Asignatura</th>
                         <th>Docente a Cargo</th>
                         <th>Estado de Subida</th>
@@ -623,10 +639,13 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                     <tbody>
                       {filteredItems.map((item) => {
                         const avatarUrl = getUserAvatar(item.teacherId);
-                        const canUpload = finalExamsService.canUploadForSubject(currentUser, selectedGrade, item.subject);
+                        const canUpload = finalExamsService.canUploadForSubject(currentUser, item.grade, item.subject);
 
                         return (
-                          <tr key={item.subject}>
+                          <tr key={`${item.grade}_${item.subject}`}>
+                            <td>
+                              <span className="card-grade-chip">{item.grade}</span>
+                            </td>
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <i className={`ph-bold ${getSubjectIcon(item.subject)}`} style={{ color: '#6366f1', fontSize: '1.1rem' }}></i>
@@ -657,13 +676,18 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                               )}
                             </td>
                             <td>
-                              <strong>{item.studentCount}</strong> copias
+                              <strong>{item.copiesNeeded || item.studentCount}</strong> copias
                             </td>
                             <td>
                               {item.uploaded ? (
-                                <span className="table-file-name" title={item.fileName}>
-                                  {item.fileName}
-                                </span>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span className="table-file-name" title={item.fileName}>
+                                    {item.fileName}
+                                  </span>
+                                  <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
+                                    Subido por: {item.uploadedBy}
+                                  </span>
+                                </div>
                               ) : (
                                 <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin archivo</span>
                               )}
@@ -701,7 +725,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                                       <button
                                         type="button"
                                         className="table-action-btn"
-                                        onClick={() => handleOpenUpload(item.subject)}
+                                        onClick={() => handleOpenUpload(item.subject, item.grade)}
                                         title="Actualizar archivo"
                                       >
                                         <i className="ph-bold ph-arrow-clockwise"></i>
@@ -713,7 +737,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                                     <button
                                       type="button"
                                       className="table-action-btn upload"
-                                      onClick={() => handleOpenUpload(item.subject)}
+                                      onClick={() => handleOpenUpload(item.subject, item.grade)}
                                       title="Subir evaluación"
                                     >
                                       <i className="ph-bold ph-upload-simple"></i>
@@ -742,6 +766,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                     setSearch('');
                     setStatusFilter('all');
                     setSelectedTeacher('all');
+                    setSelectedGrade('all');
                   }}
                 >
                   Restablecer Filtros
@@ -756,7 +781,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
       <button
         type="button"
         className="btn-floating-upload final-floating-save-btn"
-        onClick={() => handleOpenUpload(null)}
+        onClick={() => handleOpenUpload(null, null)}
         title="Subir evaluación para impresión"
         style={{
           background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
@@ -780,15 +805,17 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
         isOpen={isUploadModalOpen}
         onClose={() => {
           setIsUploadModalOpen(false);
-          setSubjectForUpload(null);
+          setUploadTargetSubject(null);
+          setUploadTargetGrade(null);
         }}
         currentUser={currentUser}
-        initialGrade={selectedGrade}
+        initialGrade={uploadTargetGrade || (selectedGrade !== 'all' ? selectedGrade : availableGrades[0])}
         initialPeriod={selectedPeriod}
-        initialSubject={subjectForUpload}
+        initialSubject={uploadTargetSubject}
         onUploadSuccess={(msg) => {
           setIsUploadModalOpen(false);
-          setSubjectForUpload(null);
+          setUploadTargetSubject(null);
+          setUploadTargetGrade(null);
           showToast(msg);
         }}
       />
@@ -797,7 +824,6 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
       <ViewExamModal
         isOpen={isViewModalOpen}
         item={selectedItemForView}
-        selectedGrade={selectedGrade}
         selectedPeriod={selectedPeriod}
         currentUser={currentUser}
         isPrivileged={isPrivileged}
@@ -806,11 +832,11 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
           setSelectedItemForView(null);
         }}
         onDownload={handleDownloadExam}
-        onDelete={handleDeleteEvaluation}
-        onUpdateCopiesStatus={handleUpdateCopiesStatus}
-        onReplace={(subj) => {
+        onDelete={(grade, subj) => handleDeleteEvaluation(grade, subj)}
+        onUpdateCopiesStatus={(grade, subj, st) => handleUpdateCopiesStatus(grade, subj, st)}
+        onReplace={(grade, subj) => {
           setIsViewModalOpen(false);
-          handleOpenUpload(subj);
+          handleOpenUpload(subj, grade);
         }}
       />
 
@@ -842,9 +868,11 @@ function UploadExamModal({
   initialSubject,
   onUploadSuccess
 }) {
-  const [period, setPeriod] = useState(initialPeriod || '1° Periodo (25%)');
-  const [grade, setGrade] = useState(initialGrade || '1° Primaria');
   const availableGrades = useMemo(() => finalExamsService.getGradesForUser(currentUser), [currentUser]);
+  const defaultGrade = initialGrade && initialGrade !== 'all' ? initialGrade : (availableGrades[0] || '1° Primaria');
+
+  const [period, setPeriod] = useState(initialPeriod || '1° Periodo (25%)');
+  const [grade, setGrade] = useState(defaultGrade);
 
   const availableSubjects = useMemo(() => {
     return finalExamsService.getSubjectsForGradeAndUser(grade, currentUser);
@@ -855,16 +883,25 @@ function UploadExamModal({
   const [notes, setNotes] = useState('Impresión a doble cara, tamaño carta, grapado en esquina.');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Al cambiar grado en el modal, reajustar automáticamente la materia disponible
+  const handleGradeChange = (newGrade) => {
+    setGrade(newGrade);
+    const newSubjects = finalExamsService.getSubjectsForGradeAndUser(newGrade, currentUser);
+    if (newSubjects.length > 0 && !newSubjects.includes(subject)) {
+      setSubject(newSubjects[0]);
+    }
+  };
+
   useEffect(() => {
     if (initialSubject && availableSubjects.includes(initialSubject)) {
       setSubject(initialSubject);
-    } else if (availableSubjects.length > 0) {
+    } else if (availableSubjects.length > 0 && !availableSubjects.includes(subject)) {
       setSubject(availableSubjects[0]);
     }
   }, [initialSubject, availableSubjects]);
 
   useEffect(() => {
-    if (initialGrade) setGrade(initialGrade);
+    if (initialGrade && initialGrade !== 'all') setGrade(initialGrade);
     if (initialPeriod) setPeriod(initialPeriod);
   }, [initialGrade, initialPeriod]);
 
@@ -888,7 +925,7 @@ function UploadExamModal({
         user: currentUser
       });
 
-      onUploadSuccess(`✓ Evaluación de ${subject} guardada y remitida para impresión (${studentCount} copias).`);
+      onUploadSuccess(`✓ Evaluación de ${subject} (${grade}) guardada para ${assignment.teacherName} (${studentCount} copias).`);
     } catch (err) {
       alert(`Error al guardar la evaluación: ${err.message}`);
     } finally {
@@ -934,7 +971,7 @@ function UploadExamModal({
               <select
                 className="final-form-input"
                 value={grade}
-                onChange={(e) => setGrade(e.target.value)}
+                onChange={(e) => handleGradeChange(e.target.value)}
               >
                 {availableGrades.map((g) => (
                   <option key={g} value={g}>{g}</option>
@@ -956,12 +993,12 @@ function UploadExamModal({
             </select>
           </div>
 
-          {/* Tarjeta de Docente Asignado & Copias */}
+          {/* Tarjeta de Docente Asignado Oficialmente & Copias */}
           <div className="final-modal-assignment-preview">
             <div className="assignment-teacher-info">
               <i className="ph-bold ph-user-check"></i>
               <div>
-                <span className="info-lbl">Docente a cargo de la materia:</span>
+                <span className="info-lbl">Docente Oficial a Cargo:</span>
                 <strong className="info-val">{assignment.teacherName}</strong>
               </div>
             </div>
@@ -1041,7 +1078,6 @@ function UploadExamModal({
 function ViewExamModal({
   isOpen,
   item,
-  selectedGrade,
   selectedPeriod,
   currentUser,
   isPrivileged,
@@ -1053,7 +1089,7 @@ function ViewExamModal({
 }) {
   if (!isOpen || !item) return null;
 
-  const canUpload = finalExamsService.canUploadForSubject(currentUser, selectedGrade, item.subject);
+  const canUpload = finalExamsService.canUploadForSubject(currentUser, item.grade, item.subject);
 
   return (
     <div className="final-modal-overlay" onClick={onClose}>
@@ -1064,7 +1100,7 @@ function ViewExamModal({
               <i className="ph-bold ph-file-text"></i>
             </div>
             <div>
-              <h3>{item.subject} • {selectedGrade}</h3>
+              <h3>{item.subject} • {item.grade}</h3>
               <p>Control de Fotocopiado & Especificaciones del Examen</p>
             </div>
           </div>
@@ -1079,6 +1115,10 @@ function ViewExamModal({
             <div className="detail-row">
               <span className="detail-lbl">Radicado:</span>
               <strong className="detail-val">{item.id || 'EVAL-2026'}</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Grado Escolar:</span>
+              <strong className="detail-val">{item.grade}</strong>
             </div>
             <div className="detail-row">
               <span className="detail-lbl">Periodo:</span>
@@ -1103,7 +1143,7 @@ function ViewExamModal({
             <div className="detail-row">
               <span className="detail-lbl">Copias Requeridas:</span>
               <strong className="detail-val" style={{ color: '#4338ca' }}>
-                {item.studentCount} Copias ({selectedGrade})
+                {item.copiesNeeded || item.studentCount} Copias ({item.grade})
               </strong>
             </div>
           </div>
@@ -1118,14 +1158,14 @@ function ViewExamModal({
                 <button
                   type="button"
                   className={`btn-status-choice ${item.copiesStatus === 'aprobado' ? 'active aprobado' : ''}`}
-                  onClick={() => onUpdateCopiesStatus(item.subject, 'aprobado')}
+                  onClick={() => onUpdateCopiesStatus(item.grade, item.subject, 'aprobado')}
                 >
                   <i className="ph-bold ph-stamp"></i> Aprobado para Copias
                 </button>
                 <button
                   type="button"
                   className={`btn-status-choice ${item.copiesStatus === 'impreso' ? 'active impreso' : ''}`}
-                  onClick={() => onUpdateCopiesStatus(item.subject, 'impreso')}
+                  onClick={() => onUpdateCopiesStatus(item.grade, item.subject, 'impreso')}
                 >
                   <i className="ph-bold ph-printer-check"></i> Impreso / Listo en Mesa
                 </button>
@@ -1144,7 +1184,7 @@ function ViewExamModal({
               <button
                 type="button"
                 className="final-btn-danger"
-                onClick={() => onDelete(item.subject)}
+                onClick={() => onDelete(item.grade, item.subject)}
                 title="Eliminar este archivo de evaluación"
               >
                 <i className="ph-bold ph-trash"></i>
@@ -1157,7 +1197,7 @@ function ViewExamModal({
                 <button
                   type="button"
                   className="final-btn-secondary"
-                  onClick={() => onReplace(item.subject)}
+                  onClick={() => onReplace(item.grade, item.subject)}
                 >
                   <i className="ph-bold ph-arrow-clockwise"></i>
                   <span>Sustituir Archivo</span>

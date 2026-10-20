@@ -113,6 +113,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   'Transición': {
     'Lengua Castellana': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Matemáticas': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Inglés': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Educación Artística': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Ética & Valores': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
@@ -121,8 +122,8 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   '1° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Inglés': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
@@ -130,10 +131,11 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   },
   // 2° Primaria (Directora de Curso: Yuri)
   '2° Primaria': {
+    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
@@ -141,30 +143,35 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   // 3° Primaria (Directora de Curso: Profe 2)
   '3° Primaria': {
     'Lengua Castellana': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Inglés': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'profe2', teacherName: 'Profe 2' },
     'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Ética & Valores': { docente_id: 'profe2', teacherName: 'Profe 2' },
     'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
   // 4° Primaria (Directora de Curso: Elcy)
   '4° Primaria': {
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Lengua Castellana': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
   // 5° Primaria (Directora de Curso: Profe 3)
   '5° Primaria': {
     'Lengua Castellana': { docente_id: 'profe3', teacherName: 'Profe 3' },
-    'Inglés': { docente_id: 'profe3', teacherName: 'Profe 3' },
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Ética & Valores': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   }
 };
 

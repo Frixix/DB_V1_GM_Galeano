@@ -9,7 +9,7 @@ import {
 } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
 
-const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v1';
+const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v2';
 const DEADLINES_STORAGE_KEY = 'gmg_evaluaciones_deadlines_v1';
 
 export const DEFAULT_DEADLINES = {
@@ -44,13 +44,15 @@ export const DEFAULT_DEADLINES = {
 };
 
 /**
- * Genera registros de demostración iniciales con algunas evaluaciones ya subidas
- * y otras pendientes para dar dinamismo institucional inmediato.
+ * Genera el repositorio inicial de evaluaciones para impresión.
+ * Cada materia pertenece de forma única a su grado y a su docente oficial.
+ * Las materias inician como pendientes y solo unas pocas de demostración
+ * están subidas con radicados y nombres de archivo totalmente diferenciados.
  */
 const createInitialEvaluationsData = () => {
   const initialData = {};
 
-  ACADEMIC_PERIODS.forEach((period, pIdx) => {
+  ACADEMIC_PERIODS.forEach((period) => {
     initialData[period] = {};
 
     GRADES_LIST.forEach((grade) => {
@@ -58,48 +60,157 @@ const createInitialEvaluationsData = () => {
       const subjectsInGrade = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
       const studentCount = (STUDENTS_BY_GRADE[grade] || []).length;
 
-      Object.entries(subjectsInGrade).forEach(([subj, assign], idx) => {
-        // En el 1° periodo marcamos la mayoría como subidas y un par pendientes
-        const isUploaded = pIdx === 0 ? (idx % 3 !== 2) : false;
-
-        if (isUploaded) {
-          const cleanSubj = subj.toLowerCase().replace(/[\s&]+/g, '_');
-          const cleanGrade = grade.toLowerCase().replace(/[\s°]+/g, '');
-          initialData[period][grade][subj] = {
-            id: `EVAL-${pIdx + 1}-${idx + 101}`,
-            uploaded: true,
-            title: `Evaluación de ${subj} - ${grade}`,
-            fileName: `Evaluacion_${cleanSubj}_${cleanGrade}_P${pIdx + 1}.pdf`,
-            fileSize: `${(1.1 + (idx * 0.2)).toFixed(1)} MB`,
-            fileType: 'application/pdf',
-            uploadedAt: '2026-03-24 14:35',
-            uploadedBy: assign.teacherName,
-            teacherId: assign.docente_id,
-            copiesNeeded: studentCount,
-            copiesStatus: idx === 0 ? 'impreso' : 'aprobado',
-            notes: 'Impresión a doble cara, grapada en la esquina superior izquierda.',
-            downloadUrl: null
-          };
-        } else {
-          initialData[period][grade][subj] = {
-            id: null,
-            uploaded: false,
-            title: `Evaluación de ${subj} - ${grade}`,
-            fileName: null,
-            fileSize: null,
-            fileType: null,
-            uploadedAt: null,
-            uploadedBy: assign.teacherName,
-            teacherId: assign.docente_id,
-            copiesNeeded: studentCount,
-            copiesStatus: 'pendiente',
-            notes: '',
-            downloadUrl: null
-          };
-        }
+      Object.entries(subjectsInGrade).forEach(([subj, assign]) => {
+        initialData[period][grade][subj] = {
+          id: null,
+          uploaded: false,
+          grade,
+          subject: subj,
+          title: `Evaluación de ${subj} - ${grade}`,
+          fileName: null,
+          fileSize: null,
+          fileType: null,
+          uploadedAt: null,
+          uploadedBy: assign.teacherName,
+          teacherId: assign.docente_id,
+          copiesNeeded: studentCount,
+          copiesStatus: 'pendiente',
+          notes: '',
+          downloadUrl: null
+        };
       });
     });
   });
+
+  // Ejemplos institucionales diferenciados únicamente para el 1° Periodo:
+  const p1 = '1° Periodo (25%)';
+  if (initialData[p1]) {
+    // 1. Profe 1: Lengua Castellana en Transición
+    if (initialData[p1]['Transición']?.['Lengua Castellana']) {
+      initialData[p1]['Transición']['Lengua Castellana'] = {
+        id: 'EVAL-TRA-01',
+        uploaded: true,
+        grade: 'Transición',
+        subject: 'Lengua Castellana',
+        title: 'Evaluación de Lengua Castellana - Transición',
+        fileName: 'Evaluacion_Lengua_Transicion_Profe1.pdf',
+        fileSize: '1.2 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 10:15',
+        uploadedBy: 'Profe 1',
+        teacherId: 'profe1',
+        copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length,
+        copiesStatus: 'aprobado',
+        notes: 'Impresión a color en la primera página, dibujos para colorear y trazos.',
+        downloadUrl: null
+      };
+    }
+
+    // 2. Profe 1: Inglés en Transición
+    if (initialData[p1]['Transición']?.['Inglés']) {
+      initialData[p1]['Transición']['Inglés'] = {
+        id: 'EVAL-TRA-02',
+        uploaded: true,
+        grade: 'Transición',
+        subject: 'Inglés',
+        title: 'Evaluación de Inglés - Transición',
+        fileName: 'Evaluacion_Ingles_Transicion_Profe1.pdf',
+        fileSize: '1.4 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 11:30',
+        uploadedBy: 'Profe 1',
+        teacherId: 'profe1',
+        copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length,
+        copiesStatus: 'impreso',
+        notes: 'Vocabulario ilustrado de colores y números en inglés.',
+        downloadUrl: null
+      };
+    }
+
+    // 3. Jessica: Inglés en 1° Primaria
+    if (initialData[p1]['1° Primaria']?.['Inglés']) {
+      initialData[p1]['1° Primaria']['Inglés'] = {
+        id: 'EVAL-1PRI-01',
+        uploaded: true,
+        grade: '1° Primaria',
+        subject: 'Inglés',
+        title: 'Evaluación de Inglés - 1° Primaria',
+        fileName: 'Evaluacion_Ingles_1Primaria_Jessica.pdf',
+        fileSize: '1.5 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 14:20',
+        uploadedBy: 'Jessica',
+        teacherId: 'jessica',
+        copiesNeeded: (STUDENTS_BY_GRADE['1° Primaria'] || []).length,
+        copiesStatus: 'aprobado',
+        notes: 'Impresión en tamaño carta, doble cara, grapado en esquina superior.',
+        downloadUrl: null
+      };
+    }
+
+    // 4. Yuri: Matemáticas en 2° Primaria
+    if (initialData[p1]['2° Primaria']?.['Matemáticas']) {
+      initialData[p1]['2° Primaria']['Matemáticas'] = {
+        id: 'EVAL-2PRI-01',
+        uploaded: true,
+        grade: '2° Primaria',
+        subject: 'Matemáticas',
+        title: 'Evaluación de Matemáticas - 2° Primaria',
+        fileName: 'Evaluacion_Matematicas_2Primaria_Yuri.pdf',
+        fileSize: '1.3 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 16:10',
+        uploadedBy: 'Yuri',
+        teacherId: 'yuri',
+        copiesNeeded: (STUDENTS_BY_GRADE['2° Primaria'] || []).length,
+        copiesStatus: 'aprobado',
+        notes: 'Operaciones de adición y sustracción con espacio para resolución.',
+        downloadUrl: null
+      };
+    }
+
+    // 5. Elcy: Ciencias Sociales en 4° Primaria
+    if (initialData[p1]['4° Primaria']?.['Ciencias Sociales']) {
+      initialData[p1]['4° Primaria']['Ciencias Sociales'] = {
+        id: 'EVAL-4PRI-01',
+        uploaded: true,
+        grade: '4° Primaria',
+        subject: 'Ciencias Sociales',
+        title: 'Evaluación de Ciencias Sociales - 4° Primaria',
+        fileName: 'Evaluacion_Sociales_4Primaria_Elcy.pdf',
+        fileSize: '1.8 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 15:45',
+        uploadedBy: 'Elcy',
+        teacherId: 'elcy',
+        copiesNeeded: (STUDENTS_BY_GRADE['4° Primaria'] || []).length,
+        copiesStatus: 'impreso',
+        notes: 'Contiene mapa físico y político de Colombia para completar.',
+        downloadUrl: null
+      };
+    }
+
+    // 6. Profe 3: Inglés en 5° Primaria
+    if (initialData[p1]['5° Primaria']?.['Inglés']) {
+      initialData[p1]['5° Primaria']['Inglés'] = {
+        id: 'EVAL-5PRI-01',
+        uploaded: true,
+        grade: '5° Primaria',
+        subject: 'Inglés',
+        title: 'Evaluación de Inglés - 5° Primaria',
+        fileName: 'Evaluacion_Ingles_5Primaria_Profe3.pdf',
+        fileSize: '1.6 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 17:00',
+        uploadedBy: 'Profe 3',
+        teacherId: 'profe3',
+        copiesNeeded: (STUDENTS_BY_GRADE['5° Primaria'] || []).length,
+        copiesStatus: 'aprobado',
+        notes: 'Lectura comprensiva de texto corto y preguntas de opción múltiple.',
+        downloadUrl: null
+      };
+    }
+  }
 
   return initialData;
 };
@@ -191,17 +302,28 @@ class FinalExamsService {
     return (STUDENTS_BY_GRADE[grade] || []).length;
   }
 
+  /**
+   * Obtiene la lista de grados accesibles para el usuario
+   */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
     const role = user.role;
     if (['admin', 'rectora', 'induccion_rectora', 'coordinador', 'induccion'].includes(role)) {
       return GRADES_LIST;
     }
-    const directedGrade = Object.keys(GRADE_DIRECTORS).find(g => this.isGradeDirector(user, g));
-    if (directedGrade) return [directedGrade];
-    return ['1° Primaria'];
+    // Docente: todos los grados donde tenga asignaturas asignadas
+    const userKey = user.key || role;
+    const myGrades = GRADES_LIST.filter(g => {
+      const assignments = TEACHER_CURRICULUM_ASSIGNMENTS[g] || {};
+      return Object.values(assignments).some(a => a.docente_id === userKey || a.teacherName === user.name);
+    });
+
+    return myGrades.length > 0 ? myGrades : GRADES_LIST;
   }
 
+  /**
+   * Obtiene las materias disponibles para un grado y usuario
+   */
   getSubjectsForGradeAndUser(grade, user) {
     const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
     const allSubjects = Object.keys(defaultGradeAssignments);
@@ -237,7 +359,7 @@ class FinalExamsService {
   }
 
   /**
-   * Obtiene la lista consolidada de materias de un grado con su estado de evaluación para impresión
+   * Obtiene la lista de materias de un grado con su estado de evaluación para impresión
    */
   getPrintControlForGrade(period = '1° Periodo (25%)', grade = '1° Primaria') {
     if (!this.evaluations[period]) this.evaluations[period] = {};
@@ -252,6 +374,8 @@ class FinalExamsService {
         evalData = {
           id: null,
           uploaded: false,
+          grade,
+          subject: subj,
           title: `Evaluación de ${subj} - ${grade}`,
           fileName: null,
           fileSize: null,
@@ -268,6 +392,7 @@ class FinalExamsService {
       }
 
       return {
+        grade,
         subject: subj,
         teacher: teacher.teacherName,
         teacherId: teacher.docente_id,
@@ -281,7 +406,7 @@ class FinalExamsService {
     const uploadedCount = items.filter(i => i.uploaded).length;
     const pendingCount = totalSubjects - uploadedCount;
     const totalCopiesNeeded = studentCount * totalSubjects;
-    const readyCopies = studentCount * uploadedCount;
+    const readyCopies = items.filter(i => i.uploaded).reduce((sum, i) => sum + (i.copiesNeeded || studentCount), 0);
     const progressPercent = totalSubjects > 0 ? Math.round((uploadedCount / totalSubjects) * 100) : 0;
 
     const deadlineInfo = this.deadlines[period] || DEFAULT_DEADLINES[period] || {};
@@ -305,6 +430,76 @@ class FinalExamsService {
   }
 
   /**
+   * Obtiene la lista consolidada de TODOS los grados para el periodo dado
+   */
+  getPrintControlAll(period = '1° Periodo (25%)') {
+    let allItems = [];
+    GRADES_LIST.forEach((g) => {
+      const data = this.getPrintControlForGrade(period, g);
+      allItems = allItems.concat(data.items);
+    });
+
+    const totalSubjects = allItems.length;
+    const uploadedCount = allItems.filter(i => i.uploaded).length;
+    const pendingCount = totalSubjects - uploadedCount;
+    const totalCopiesNeeded = allItems.reduce((acc, i) => acc + (i.copiesNeeded || 0), 0);
+    const readyCopies = allItems.filter(i => i.uploaded).reduce((acc, i) => acc + (i.copiesNeeded || 0), 0);
+    const progressPercent = totalSubjects > 0 ? Math.round((uploadedCount / totalSubjects) * 100) : 0;
+    const deadlineInfo = this.deadlines[period] || DEFAULT_DEADLINES[period] || {};
+
+    return {
+      period,
+      grade: 'all',
+      items: allItems,
+      stats: {
+        totalSubjects,
+        uploadedCount,
+        pendingCount,
+        studentCount: allItems.reduce((acc, i) => acc + (i.studentCount || 0), 0),
+        totalCopiesNeeded,
+        readyCopies,
+        progressPercent,
+        deadlineInfo
+      }
+    };
+  }
+
+  /**
+   * Obtiene la lista de materias asignadas a un docente específico a través de todos los grados
+   */
+  getPrintControlForTeacher(period = '1° Periodo (25%)', teacherName) {
+    if (!teacherName || teacherName === 'all') {
+      return this.getPrintControlAll(period);
+    }
+    const allData = this.getPrintControlAll(period);
+    const items = allData.items.filter(i => i.teacher === teacherName);
+    const totalSubjects = items.length;
+    const uploadedCount = items.filter(i => i.uploaded).length;
+    const pendingCount = totalSubjects - uploadedCount;
+    const totalCopiesNeeded = items.reduce((acc, i) => acc + (i.copiesNeeded || 0), 0);
+    const readyCopies = items.filter(i => i.uploaded).reduce((acc, i) => acc + (i.copiesNeeded || 0), 0);
+    const progressPercent = totalSubjects > 0 ? Math.round((uploadedCount / totalSubjects) * 100) : 0;
+    const deadlineInfo = this.deadlines[period] || DEFAULT_DEADLINES[period] || {};
+
+    return {
+      period,
+      grade: 'all',
+      teacher: teacherName,
+      items,
+      stats: {
+        totalSubjects,
+        uploadedCount,
+        pendingCount,
+        studentCount: items.reduce((acc, i) => acc + (i.studentCount || 0), 0),
+        totalCopiesNeeded,
+        readyCopies,
+        progressPercent,
+        deadlineInfo
+      }
+    };
+  }
+
+  /**
    * Sube o actualiza la evaluación de una materia para impresión
    */
   uploadEvaluation({ period, grade, subject, file, notes, copiesStatus = 'aprobado', user }) {
@@ -313,10 +508,13 @@ class FinalExamsService {
 
     const assignment = this.getTeacherAssignment(grade, subject);
     const studentCount = this.getStudentCount(grade);
-    const radicado = `EVAL-${Date.now().toString().slice(-4)}`;
+    const cleanGrade = grade.replace(/[\s°]+/g, '').slice(0, 4).toUpperCase();
+    const radicado = `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
 
-    let fileName = file?.name || `Evaluacion_${subject.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}.pdf`;
-    let fileSize = file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : '1.2 MB';
+    const cleanSubj = subject.replace(/[\s&]+/g, '_');
+    const cleanGrd = grade.replace(/[\s°]+/g, '');
+    let fileName = file?.name || `Evaluacion_${cleanSubj}_${cleanGrd}_${assignment.teacherName}.pdf`;
+    let fileSize = file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : '1.4 MB';
     let fileType = file?.type || 'application/pdf';
 
     const now = new Date();
@@ -325,6 +523,8 @@ class FinalExamsService {
     this.evaluations[period][grade][subject] = {
       id: radicado,
       uploaded: true,
+      grade,
+      subject,
       title: `Evaluación de ${subject} - ${grade}`,
       fileName,
       fileSize,
@@ -354,6 +554,8 @@ class FinalExamsService {
       this.evaluations[period][grade][subject] = {
         id: null,
         uploaded: false,
+        grade,
+        subject,
         title: `Evaluación de ${subject} - ${grade}`,
         fileName: null,
         fileSize: null,

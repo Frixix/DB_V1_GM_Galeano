@@ -4,7 +4,7 @@ import finalExamsService from '../services/finalExamsService.js';
 
 export default function FinalExamsSidebar({
   currentUser,
-  selectedGrade,
+  selectedGrade = 'all',
   onSelectGrade,
   selectedPeriod,
   onSelectPeriod,
@@ -43,19 +43,13 @@ export default function FinalExamsSidebar({
     : teachersList.find((t) => t.grade === selectedGrade) || null;
 
   const handleSelectGradeTeacher = (t) => {
-    if (t.grade && onSelectGrade) {
-      onSelectGrade(t.grade);
-    }
     if (onSelectTeacher) {
       onSelectTeacher(t.name);
     }
   };
 
-  const handleResetAll = () => {
+  const handleResetTeacher = () => {
     if (onSelectTeacher) onSelectTeacher('all');
-    if (onSelectGrade && availableGrades.length > 0) {
-      onSelectGrade(availableGrades[0]);
-    }
   };
 
   const progressPercent = stats?.progressPercent || 0;
@@ -84,7 +78,7 @@ export default function FinalExamsSidebar({
           <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <i className="ph-bold ph-chalkboard-teacher"></i>
-              <span>Mi Grado & Rol</span>
+              <span>Mi Perfil Docente</span>
             </div>
             {onOpenProfile && (
               <span
@@ -124,11 +118,11 @@ export default function FinalExamsSidebar({
                   {currentUser.name}
                 </strong>
                 <span style={{ fontSize: '0.62rem', background: '#f5f3ff', color: '#6d28d9', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>
-                  Dir
+                  Docente
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '0.75rem', color: '#4338ca', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {selectedGrade} • {currentUser.label || 'Directora de Curso'}
+                {currentUser.label || 'Docente Titular'}
               </p>
             </div>
           </div>
@@ -157,7 +151,7 @@ export default function FinalExamsSidebar({
                   className="btn-teacher-reset-chip"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleResetAll();
+                    handleResetTeacher();
                   }}
                   title="Restablecer a todos los docentes"
                 >
@@ -186,7 +180,7 @@ export default function FinalExamsSidebar({
                   type="button"
                   className={`teacher-btn active ${selectedTeacherObj.isRectora ? 'teacher-rectora-btn' : ''}`}
                   onClick={() => setIsTeacherExpanded(true)}
-                  title="Clic para desplegar y ver todos los cursos"
+                  title="Clic para desplegar y ver todos los docentes"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
                     <div className="teacher-avatar-mini">
@@ -237,10 +231,6 @@ export default function FinalExamsSidebar({
                       <i className="ph-bold ph-sliders"></i>
                     </span>
                   )}
-
-                  <span className="teacher-fold-caret-btn" title="Desplegar docentes (bajar)">
-                    <i className="ph-bold ph-caret-down"></i>
-                  </span>
                 </button>
               ) : (
                 <button
@@ -255,9 +245,7 @@ export default function FinalExamsSidebar({
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span className="teacher-badge-count">{teachersList.length}</span>
-                    <span className="teacher-fold-caret-btn">
-                      <i className="ph-bold ph-caret-down"></i>
-                    </span>
+                    <i className="ph-bold ph-caret-down"></i>
                   </div>
                 </button>
               )}
@@ -267,8 +255,8 @@ export default function FinalExamsSidebar({
               <button
                 type="button"
                 className={`teacher-btn ${selectedTeacher === 'all' ? 'active' : ''}`}
-                onClick={handleResetAll}
-                title="Supervisión general de todos los docentes y cursos"
+                onClick={handleResetTeacher}
+                title="Supervisión general de todos los docentes"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                   <i className="ph-bold ph-users-three"></i>
@@ -282,7 +270,7 @@ export default function FinalExamsSidebar({
               {teachersList.map((t) => {
                 const avatarUrl = getUserAvatar(t.key);
                 const isOnline = onlineMap[t.key] || onlineMap[t.name];
-                const isSelected = (selectedTeacher === t.name) || (selectedTeacher === 'all' && t.grade === selectedGrade);
+                const isSelected = selectedTeacher === t.name;
 
                 return (
                   <button
@@ -292,7 +280,7 @@ export default function FinalExamsSidebar({
                       isSelected ? 'active' : ''
                     }`}
                     onClick={() => handleSelectGradeTeacher(t)}
-                    title={`Seleccionar ${t.name} (${t.label})`}
+                    title={`Ver exámenes a cargo de ${t.name}`}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
                       <div className="teacher-avatar-mini">
@@ -351,7 +339,45 @@ export default function FinalExamsSidebar({
         </div>
       )}
 
-      {/* SECCIÓN 2: Periodo Académico */}
+      {/* SECCIÓN 2: Grados Escolares */}
+      <div className="sidebar-section" id="finalGradesSection">
+        <div className="sidebar-header">
+          <i className="ph-bold ph-graduation-cap"></i>
+          <span>Grados Escolares</span>
+        </div>
+        <nav className="folder-list">
+          <button
+            type="button"
+            className={`folder-btn folder-all ${selectedGrade === 'all' ? 'active' : ''}`}
+            onClick={() => onSelectGrade('all')}
+            title="Ver materias de todos los grados escolares"
+          >
+            <i className="ph-bold ph-squares-four"></i>
+            <span>Todos los Grados</span>
+          </button>
+
+          {availableGrades.map((g) => {
+            const isGradeActive = selectedGrade === g;
+            return (
+              <button
+                key={g}
+                type="button"
+                className={`folder-btn folder-institucional ${isGradeActive ? 'active' : ''}`}
+                onClick={() => onSelectGrade(g)}
+                title={`Filtrar por ${g}`}
+              >
+                <i className="ph-bold ph-chalkboard"></i>
+                <span>{g}</span>
+                {isGradeActive && (
+                  <i className="ph-bold ph-check" style={{ marginLeft: 'auto', color: '#6366f1', fontSize: '0.85rem' }}></i>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* SECCIÓN 3: Periodo Académico */}
       <div className="sidebar-section" id="finalPeriodSection">
         <div className="sidebar-header">
           <i className="ph-bold ph-clock"></i>
@@ -377,7 +403,7 @@ export default function FinalExamsSidebar({
         </div>
       </div>
 
-      {/* SECCIÓN 3: Filtro de Estado de Impresión */}
+      {/* SECCIÓN 4: Filtro de Estado de Impresión */}
       <div className="sidebar-section" id="finalFilterStatusSection">
         <div className="sidebar-header">
           <i className="ph-bold ph-funnel"></i>
@@ -422,7 +448,7 @@ export default function FinalExamsSidebar({
         </nav>
       </div>
 
-      {/* SECCIÓN 4: Control de Impresión & Copias */}
+      {/* SECCIÓN 5: Control de Impresión & Copias */}
       <div className="db-summary-card" id="finalPrintSummaryCard" style={{ marginTop: 'auto' }}>
         <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
