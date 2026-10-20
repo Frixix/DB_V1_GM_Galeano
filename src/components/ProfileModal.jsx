@@ -647,7 +647,7 @@ export default function ProfileModal({
                         Última modificación: {new Date(lastPassUpdated).toLocaleDateString()} a las {new Date(lastPassUpdated).toLocaleTimeString()}
                       </small>
                     )}
-                    {/* Botón temporal de pruebas: Reestablecer contraseña por defecto */}
+                    {/* Botón temporal de pruebas: Reestablecer contraseña por defecto (Comentado temporalmente)
                     <div style={{ marginTop: '0.65rem' }}>
                       <button
                         type="button"
@@ -673,6 +673,7 @@ export default function ProfileModal({
                         <span>Reestablecer clave (por defecto)</span>
                       </button>
                     </div>
+                    */}
                   </div>
                 </div>
               ) : (

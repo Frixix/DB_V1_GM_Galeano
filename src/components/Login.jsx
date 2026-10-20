@@ -417,7 +417,7 @@ export default function Login({ onLogin }) {
                       </svg>
                       <span>Contraseña personalizada activa (clave inicial eliminada)</span>
                     </div>
-                    {/* Botón temporal rápido para restablecer clave del usuario seleccionado */}
+                    {/* Botón temporal rápido para restablecer clave del usuario seleccionado (Comentado temporalmente)
                     <button
                       type="button"
                       className="auth-btn-reset-single-inline"
@@ -427,6 +427,7 @@ export default function Login({ onLogin }) {
                     >
                       ↺ Reestablecer clave (por defecto)
                     </button>
+                    */}
                   </div>
                 )}
               </div>
@@ -463,7 +464,9 @@ export default function Login({ onLogin }) {
 
             {/* ========================================================
                 PANEL TEMPORAL DE PRUEBAS: REESTABLECER CLAVE (POR DEFECTO)
+                (Comentado temporalmente)
                 ======================================================== */}
+            {/*
             <div className="auth-dev-reset-panel">
               <div className="auth-dev-reset-header">
                 <div className="auth-dev-reset-title-group">
@@ -509,6 +512,7 @@ export default function Login({ onLogin }) {
                 })}
               </div>
             </div>
+            */}
           </div>
 
           {/* Bottom Center Text */}
