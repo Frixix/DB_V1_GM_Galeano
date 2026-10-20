@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import Login from './components/Login';
 import ModulesDashboard from './components/ModulesDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -66,7 +66,7 @@ export default function App() {
   const [selectedDocForView, setSelectedDocForView] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const handleOpenProfile = (targetUserKey = null, initialTab = null) => {
+  const handleOpenProfile = useCallback((targetUserKey = null, initialTab = null) => {
     const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
       ? targetUserKey.trim() 
       : (currentUser?.key || 'claudia');
@@ -74,7 +74,7 @@ export default function App() {
     setProfileTargetUserKey(validKey);
     setProfileInitialTab(validTab);
     setIsProfileModalOpen(true);
-  };
+  }, [currentUser?.key]);
 
   const { documents, addDocument, deleteDocument } = useDocuments();
   const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
@@ -92,9 +92,21 @@ export default function App() {
   } = useUserPresence(currentUser);
 
   // Solicitar cierre de sesión (abre el modal interactivo de confirmación)
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setIsLogoutModalOpen(true);
-  };
+  }, []);
+
+  const handleToggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
+  const handleCloseSidebar = useCallback(() => setIsSidebarOpen(false), []);
+  const handleTeacherSelect = useCallback((t) => {
+    setCurrentTeacher(t);
+    setIsSidebarOpen(false);
+  }, []);
+  const handleOpenConnectionsModal = useCallback(() => setIsConnectionsModalOpen(true), []);
+  const handleBackToModules = useCallback(() => setActiveModule(null), []);
+  const handleOpenCurrentUserProfile = useCallback(() => {
+    handleOpenProfile(currentUser?.key);
+  }, [handleOpenProfile, currentUser?.key]);
 
   // Ejecución definitiva del cierre de sesión tras confirmación del usuario
   const executeLogout = async () => {
@@ -223,13 +235,13 @@ export default function App() {
   const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
   // Identificar si un documento o circular está pendiente de revisión por el usuario actual
-  const isDocUnread = (doc) => {
+  const isDocUnread = useCallback((doc) => {
     if (!currentUser) return false;
     const isSharedOrPublic = Boolean(doc.isPublic) || doc.folder === 'institucional';
     const isFromOtherUser = doc.teacher !== currentUser.name;
     const isNotReadYet = !readCircularIds.includes(doc.id);
     return isSharedOrPublic && isFromOtherUser && isNotReadYet;
-  };
+  }, [currentUser, readCircularIds]);
 
   const unreadDocs = documents.filter(isDocUnread);
   const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
@@ -237,7 +249,7 @@ export default function App() {
   const totalUnreadCount = unreadDocs.length;
 
   // Manejador para abrir novedades desde la campanita unificada (en cualquier módulo)
-  const handleOpenCircularesBell = () => {
+  const handleOpenCircularesBell = useCallback(() => {
     setActiveModule('docs');
     if (unreadDocs.length > 0) {
       const target = unreadDocs[0];
@@ -252,15 +264,15 @@ export default function App() {
     } else {
       setCurrentFolder('institucional');
     }
-  };
+  }, [unreadDocs, markCircularAsRead]);
 
   // Manejador para abrir la guía interactiva desde la barra superior unificada
-  const handleOpenTour = () => {
+  const handleOpenTour = useCallback(() => {
     setActiveModule('docs');
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('gmg_open_tour'));
     }, 150);
-  };
+  }, []);
 
   // Segunda Capa: Panel Principal / Dashboard Estructural (Ideas y modulos)
   if (!activeModule || activeModule === 'reemplazos') {
@@ -604,13 +616,13 @@ export default function App() {
   }
 
   // Manejador del clic en carpetas de Gestión Documental
-  const handleFolderSelect = (folderKey) => {
+  const handleFolderSelect = useCallback((folderKey) => {
     setCurrentFolder(folderKey);
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
-  };
+  }, []);
 
   // Manejador para ver documento (al leer una circular o compartido se apaga la notificación y el puntito)
-  const handleViewDocument = (id) => {
+  const handleViewDocument = useCallback((id) => {
     const doc = documents.find(d => d.id === id);
     if (doc) {
       setSelectedDocForView(doc);
@@ -619,11 +631,11 @@ export default function App() {
         markCircularAsRead(doc.id);
       }
     }
-  };
+  }, [documents, markCircularAsRead]);
 
   // Manejador para descargar archivo (también apaga la notificación y el puntito rojo)
-  const handleDownloadDocument = async (docOrId) => {
-    const doc = typeof docOrId === 'object' ? docOrId : documents.find(d => d.id === docOrId);
+  const handleDownloadDocument = useCallback(async (docOrId) => {
+    const doc = typeof docOrId === 'object' && docOrId !== null ? docOrId : documents.find(d => d.id === docOrId);
     if (!doc) return;
 
     if (doc.isPublic || doc.folder === 'institucional') {
@@ -658,10 +670,10 @@ export default function App() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-  };
+  }, [documents, markCircularAsRead]);
 
   // Manejador para eliminar documento
-  const handleDeleteDocument = (id) => {
+  const handleDeleteDocument = useCallback((id) => {
     const target = documents.find(d => d.id === id);
     const confirmMessage = target 
       ? `¿Está seguro de eliminar el registro "${target.title}" (Radicado: ${id})?\nEsta acción no se puede deshacer.`
@@ -669,16 +681,20 @@ export default function App() {
 
     if (window.confirm(confirmMessage)) {
       deleteDocument(id);
-      if (selectedDocForView?.id === id) {
-        setIsViewModalOpen(false);
-      }
+      setSelectedDocForView(prev => {
+        if (prev?.id === id) {
+          setIsViewModalOpen(false);
+          return null;
+        }
+        return prev;
+      });
     }
-  };
+  }, [documents, deleteDocument]);
 
   // Manejador para registrar nuevo documento
-  const handleUploadSuccess = (newDoc) => {
+  const handleUploadSuccess = useCallback((newDoc) => {
     addDocument(newDoc);
-  };
+  }, [addDocument]);
 
   const isCoordinador = currentUser && currentUser.role === 'coordinador';
   const canAuditDocs = isPrivileged || isCoordinador;
@@ -970,13 +986,13 @@ export default function App() {
       <Navbar 
         currentUser={currentUser} 
         onLogout={handleLogout} 
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleSidebar={handleToggleSidebar}
         onOpenCirculares={handleOpenCircularesBell}
         circularesCount={totalUnreadCount}
-        onOpenProfile={() => handleOpenProfile(currentUser?.key)}
-        onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+        onOpenProfile={handleOpenCurrentUserProfile}
+        onOpenConnectionsModal={handleOpenConnectionsModal}
         onlineCount={onlineCount}
-        onBackToModules={() => setActiveModule(null)}
+        onBackToModules={handleBackToModules}
         onOpenTour={handleOpenTour}
       />
       
@@ -988,20 +1004,20 @@ export default function App() {
             currentFolder={currentFolder} 
             onFolderSelect={handleFolderSelect}
             currentTeacher={currentTeacher}
-            onTeacherSelect={(t) => { setCurrentTeacher(t); setIsSidebarOpen(false); }}
+            onTeacherSelect={handleTeacherSelect}
             documents={documents}
             circularesCount={unreadCirculares.length}
             unreadSharedCount={unreadSharedDocs.length}
             onOpenProfile={handleOpenProfile}
             onlineMap={onlineMap}
             onlineCount={onlineCount}
-            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
-            onBackToModules={() => setActiveModule(null)}
+            onOpenConnectionsModal={handleOpenConnectionsModal}
+            onBackToModules={handleBackToModules}
           />
         </div>
 
         {isSidebarOpen && (
-          <div className="mobile-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
+          <div className="mobile-backdrop" onClick={handleCloseSidebar}></div>
         )}
         
         <main className="main-content">

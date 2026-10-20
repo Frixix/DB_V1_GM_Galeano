@@ -1,4 +1,6 @@
-export default function DocumentTable({ documents, onView, onDownload, onDelete, canDelete, readCircularIds = [], currentUserName = '' }) {
+import { memo } from 'react';
+
+function DocumentTable({ documents, onView, onDownload, onDelete, canDelete, readCircularIds = [], currentUserName = '' }) {
   
   const formatFolderLabel = (key) => {
     const map = {
@@ -91,3 +93,5 @@ export default function DocumentTable({ documents, onView, onDownload, onDelete,
     </section>
   );
 }
+
+export default memo(DocumentTable);

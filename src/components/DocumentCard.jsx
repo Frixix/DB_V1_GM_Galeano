@@ -1,4 +1,6 @@
-export default function DocumentCard({ doc, onView, onDownload, onDelete, canDelete, isUnread = false }) {
+import { memo } from 'react';
+
+function DocumentCard({ doc, onView, onDownload, onDelete, canDelete, isUnread = false }) {
   
   // Mapeo de clases pastel según la carpeta
   const getFolderClass = (folder) => {
@@ -98,3 +100,5 @@ export default function DocumentCard({ doc, onView, onDownload, onDelete, canDel
     </article>
   );
 }
+
+export default memo(DocumentCard);

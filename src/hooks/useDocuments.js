@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { initialDocuments } from '../data/initialDocs';
 import { deleteDocumentFile } from '../services/storageService';
@@ -120,7 +120,7 @@ export function useDocuments() {
   }, []);
 
   // Agregar nuevo documento
-  const addDocument = async (newDoc) => {
+  const addDocument = useCallback(async (newDoc) => {
     // Actualización optimista local inmediata
     setDocuments(prev => [newDoc, ...prev]);
 
@@ -144,20 +144,26 @@ export function useDocuments() {
       console.error('Error guardando en Supabase:', err);
       setError(err.message);
     }
-  };
+  }, []);
 
   // Eliminar documento
-  const deleteDocument = async (id) => {
-    const targetDoc = documents.find(doc => doc.id === id);
+  const deleteDocument = useCallback(async (id) => {
+    let targetStorageKey = null;
 
-    // Actualización optimista local inmediata
-    setDocuments(prev => prev.filter(doc => doc.id !== id));
+    // Actualización optimista local inmediata y captura de storageKey sin depender de documents
+    setDocuments(prev => {
+      const targetDoc = prev.find(doc => doc.id === id);
+      if (targetDoc?.storageKey) {
+        targetStorageKey = targetDoc.storageKey;
+      }
+      return prev.filter(doc => doc.id !== id);
+    });
 
     if (!isSupabaseConfigured || !supabase) return;
 
     try {
-      if (targetDoc?.storageKey) {
-        await deleteDocumentFile(targetDoc.storageKey);
+      if (targetStorageKey) {
+        await deleteDocumentFile(targetStorageKey);
       }
 
       const { error: deleteErr } = await supabase
@@ -170,7 +176,7 @@ export function useDocuments() {
       console.error('Error eliminando de Supabase:', err);
       setError(err.message);
     }
-  };
+  }, []);
 
   return {
     documents,
