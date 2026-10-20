@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import Login from './components/Login';
 import ModulesDashboard from './components/ModulesDashboard';
-import GradesModule from './components/GradesModule';
-import BovedaModule from './components/BovedaModule';
-import ObservadorModule from './components/ObservadorModule';
-import FinalExamsModule from './components/FinalExamsModule';
-import GestionDocenteModule from './components/GestionDocenteModule';
+import LoadingSpinner from './components/LoadingSpinner';
+
+const GradesModule = lazy(() => import('./components/GradesModule'));
+const BovedaModule = lazy(() => import('./components/BovedaModule'));
+const ObservadorModule = lazy(() => import('./components/ObservadorModule'));
+const FinalExamsModule = lazy(() => import('./components/FinalExamsModule'));
+const GestionDocenteModule = lazy(() => import('./components/GestionDocenteModule'));
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -356,18 +358,20 @@ export default function App() {
   if (activeModule === 'docentes' || activeModule === 'gestion_docente') {
     return (
       <>
-        <GestionDocenteModule 
-          currentUser={currentUser}
-          onBackToModules={() => setActiveModule(null)}
-          onOpenProfile={handleOpenProfile}
-          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
-          onlineMap={onlineMap}
-          onlineCount={onlineCount}
-          circularesCount={totalUnreadCount}
-          onOpenCirculares={handleOpenCircularesBell}
-          onOpenTour={handleOpenTour}
-          onLogout={handleLogout}
-        />
+        <Suspense fallback={<LoadingSpinner message="Cargando Gestión Docente & Planta Curricular..." />}>
+          <GestionDocenteModule 
+            currentUser={currentUser}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineMap={onlineMap}
+            onlineCount={onlineCount}
+            circularesCount={totalUnreadCount}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+          />
+        </Suspense>
         <ProfileModal 
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
@@ -423,18 +427,20 @@ export default function App() {
   if (activeModule === 'grades') {
     return (
       <>
-        <GradesModule 
-          currentUser={currentUser}
-          onBackToModules={() => setActiveModule(null)}
-          onOpenProfile={handleOpenProfile}
-          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
-          onlineMap={onlineMap}
-          onlineCount={onlineCount}
-          circularesCount={totalUnreadCount}
-          onOpenCirculares={handleOpenCircularesBell}
-          onOpenTour={handleOpenTour}
-          onLogout={handleLogout}
-        />
+        <Suspense fallback={<LoadingSpinner message="Cargando Calificaciones & SIEE..." />}>
+          <GradesModule 
+            currentUser={currentUser}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineMap={onlineMap}
+            onlineCount={onlineCount}
+            circularesCount={totalUnreadCount}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+          />
+        </Suspense>
         <ProfileModal 
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
@@ -512,18 +518,20 @@ export default function App() {
   if (activeModule === 'evaluaciones') {
     return (
       <>
-        <FinalExamsModule 
-          currentUser={currentUser}
-          onBackToModules={() => setActiveModule(null)}
-          onOpenProfile={handleOpenProfile}
-          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
-          onlineMap={onlineMap}
-          onlineCount={onlineCount}
-          circularesCount={totalUnreadCount}
-          onOpenCirculares={handleOpenCircularesBell}
-          onOpenTour={handleOpenTour}
-          onLogout={handleLogout}
-        />
+        <Suspense fallback={<LoadingSpinner message="Cargando Evaluaciones & Exámenes Finales..." />}>
+          <FinalExamsModule 
+            currentUser={currentUser}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineMap={onlineMap}
+            onlineCount={onlineCount}
+            circularesCount={totalUnreadCount}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+          />
+        </Suspense>
         <ProfileModal 
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
@@ -733,29 +741,31 @@ export default function App() {
   if (activeModule === 'boveda') {
     return (
       <>
-        <BovedaModule 
-          currentUser={currentUser}
-          documents={documents}
-          onBackToModules={() => setActiveModule(null)}
-          onOpenProfile={handleOpenProfile}
-          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
-          onlineCount={onlineCount}
-          circularesCount={totalUnreadCount}
-          onOpenCirculares={handleOpenCircularesBell}
-          onOpenTour={handleOpenTour}
-          onLogout={handleLogout}
-          onViewDocument={handleViewDocument}
-          onDownloadDocument={handleDownloadDocument}
-          onDeleteDocument={handleDeleteDocument}
-          onOpenUploadModal={() => {
-            setCurrentFolder('boveda');
-            setIsUploadModalOpen(true);
-          }}
-          onOpenChangeBovedaModal={() => setIsChangeBovedaModalOpen(true)}
-          isBovedaUnlocked={isBovedaUnlocked}
-          setIsBovedaUnlocked={setIsBovedaUnlocked}
-          isPrivileged={isPrivileged}
-        />
+        <Suspense fallback={<LoadingSpinner message="Cargando Bóveda Directiva & Archivo Confidencial..." />}>
+          <BovedaModule 
+            currentUser={currentUser}
+            documents={documents}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineCount={onlineCount}
+            circularesCount={totalUnreadCount}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+            onViewDocument={handleViewDocument}
+            onDownloadDocument={handleDownloadDocument}
+            onDeleteDocument={handleDeleteDocument}
+            onOpenUploadModal={() => {
+              setCurrentFolder('boveda');
+              setIsUploadModalOpen(true);
+            }}
+            onOpenChangeBovedaModal={() => setIsChangeBovedaModalOpen(true)}
+            isBovedaUnlocked={isBovedaUnlocked}
+            setIsBovedaUnlocked={setIsBovedaUnlocked}
+            isPrivileged={isPrivileged}
+          />
+        </Suspense>
         {!hasBovedaCustomPassword(currentUser) && (
           <ForceBovedaPasswordModal
             currentUser={currentUser}
@@ -870,18 +880,20 @@ export default function App() {
   if (activeModule === 'observador') {
     return (
       <>
-        <ObservadorModule 
-          currentUser={currentUser}
-          onBackToModules={() => setActiveModule(null)}
-          onOpenProfile={handleOpenProfile}
-          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
-          onlineCount={onlineCount}
-          onlineMap={onlineMap}
-          circularesCount={totalUnreadCount}
-          onOpenCirculares={handleOpenCircularesBell}
-          onOpenTour={handleOpenTour}
-          onLogout={handleLogout}
-        />
+        <Suspense fallback={<LoadingSpinner message="Cargando Observador & Comités..." />}>
+          <ObservadorModule 
+            currentUser={currentUser}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineCount={onlineCount}
+            onlineMap={onlineMap}
+            circularesCount={totalUnreadCount}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+          />
+        </Suspense>
         <ProfileModal 
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
