@@ -1,0 +1,10 @@
+{
+  "antigravity.terminal.autoApprove": true,
+  "antigravity.permissions.runCommand": "alwaysAllow",
+  "antigravity.commands.allowedPrefixes": [
+    "node",
+    "npm",
+    "git",
+    "npx"
+  ]
+}
