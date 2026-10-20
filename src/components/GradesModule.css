@@ -911,7 +911,15 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.85rem;
-  width: 100%;
+  flex: 1;
+  min-width: 280px;
+}
+
+.grades-table-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .grades-table-main-title {
@@ -2058,4 +2066,44 @@
   .grades-sidebar .folder-btn.folder-subject-religion i {
     color: #0f766e !important;
   }
+}
+
+/* ==========================================================================
+   BOTÓN FLOTANTE Y CONTROL DE FECHAS EN ENCABEZADO
+   ========================================================================== */
+.btn-header-calendar-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  background-color: #eef2ff;
+  border: 1.5px solid #c7d2fe;
+  color: #4338ca;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.btn-header-calendar-control:hover {
+  background-color: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #3730a3;
+  transform: translateY(-1px);
+}
+
+.grades-floating-save-btn {
+  z-index: 95;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.01em;
+}
+
+.grades-floating-save-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+}
+
+.grades-floating-save-btn:active {
+  transform: translateY(-1px) scale(0.99);
 }

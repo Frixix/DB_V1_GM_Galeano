@@ -436,120 +436,20 @@ export default function GradesModule({
               </span>
             </div>
           </div>
-        </section>
 
-        {/* Barra de Filtros Rápidos, Modo de Sábana y Acciones */}
-        <section className="grades-filter-bar">
-          <div className="grades-filter-group">
-
-            {/* Selector Rápido de Periodo */}
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-clock"></i> Periodo Académico</label>
-              <div className="grades-period-pills-wrap">
-                {availablePeriods.map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`grades-period-pill ${selectedPeriod === p ? 'active' : ''}`}
-                    onClick={() => setSelectedPeriod(p)}
-                    title={`Cambiar a ${p}`}
-                  >
-                    <i className="ph-bold ph-calendar-blank"></i>
-                    <span>{p.split(' ')[0]}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Toggle Rápido de Tipo de Sábana */}
-            <div className="grades-select-item">
-              <label><i className="ph-bold ph-files"></i> Modo de Planilla</label>
-              <div className="grades-period-pills-wrap">
-                <button
-                  type="button"
-                  className={`grades-period-pill ${activeSheetType === 'consolidated' ? 'active' : ''}`}
-                  onClick={() => setActiveSheetType('consolidated')}
-                  title={`Ver Sábana General Consolidada de ${selectedGrade}`}
-                >
-                  <i className="ph-bold ph-chart-bar"></i>
-                  <span>Sábana General</span>
-                </button>
-                <button
-                  type="button"
-                  className={`grades-period-pill ${activeSheetType === 'subject' ? 'active' : ''}`}
-                  onClick={() => setActiveSheetType('subject')}
-                  title={`Ver Planilla de ${selectedSubject}`}
-                >
-                  <i className={`ph-bold ${getSubjectIcon(selectedSubject)}`}></i>
-                  <span>{selectedSubject}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Búsqueda rápida de estudiante */}
-            <div className="grades-select-item grades-search-item">
-              <label><i className="ph-bold ph-magnifying-glass"></i> Filtrar Alumno</label>
-              <input 
-                type="text" 
-                placeholder="Buscar alumno por nombre o código..." 
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                className="grades-search-input"
-              />
-            </div>
-          </div>
-
-          <div className="grades-filter-actions">
-            {canManageCalendar && (
+          {canManageCalendar && (
+            <div className="grades-table-header-right">
               <button 
                 type="button" 
-                className="grades-btn-primary" 
+                className="btn-header-calendar-control" 
                 onClick={() => setIsCalendarModalOpen(true)}
                 title="Gestión de Fechas, Cierres SIEE y Habilitación de Prórrogas Extemporáneas (Control de Coordinación)"
-                style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe', color: '#4338ca' }}
               >
                 <i className="ph-bold ph-calendar-check"></i>
                 <span>Fechas & Prórrogas</span>
               </button>
-            )}
-
-            {activeSheetType === 'subject' && (
-              <button 
-                type="button" 
-                className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
-                onClick={handleSaveAction}
-                title={
-                  canEditScores 
-                    ? "Guardar notas y observaciones docentes" 
-                    : isViewingAsGradeDirector 
-                    ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
-                    : canEditCoordinacion
-                    ? "Guardar observaciones de Coordinación Académica"
-                    : "Guardar observaciones de auditoría directiva"
-                }
-              >
-                <i className={`ph-bold ${
-                  canEditScores 
-                    ? 'ph-floppy-disk' 
-                    : isViewingAsGradeDirector 
-                    ? 'ph-eye' 
-                    : canEditCoordinacion
-                    ? 'ph-clipboard-text'
-                    : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
-                }`}></i>
-                <span>
-                  {canEditScores 
-                    ? 'Guardar Planilla' 
-                    : isViewingAsGradeDirector 
-                    ? 'Modo Director de Curso' 
-                    : canEditCoordinacion
-                    ? 'Guardar Observaciones'
-                    : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
-                  }
-                </span>
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {/* =====================================================================
@@ -1114,37 +1014,69 @@ export default function GradesModule({
                   <i className="ph-bold ph-file-xls"></i>
                   <span>Consolidado Excel</span>
                 </button>
-                <button 
-                  type="button" 
-                  className={`grades-btn-primary ${isViewingAsGradeDirector ? 'btn-view-only' : ''}`} 
-                  onClick={handleSaveAction}
-                >
-                  <i className={`ph-bold ${
-                    canEditScores 
-                      ? 'ph-floppy-disk' 
-                      : isViewingAsGradeDirector 
-                      ? 'ph-eye' 
-                      : canEditCoordinacion
-                      ? 'ph-clipboard-text'
-                      : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
-                  }`}></i>
-                  <span>
-                    {canEditScores 
-                      ? 'Confirmar y Guardar' 
-                      : isViewingAsGradeDirector 
-                      ? 'Modo Director de Curso' 
-                      : canEditCoordinacion
-                      ? 'Guardar Observaciones'
-                      : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
-                    }
-                  </span>
-                </button>
               </div>
             </div>
           </section>
         )}
       </main>
       </div>
+
+      {/* Botón Flotante para Guardar Planilla / Auditoría / Observaciones (Reuso de botón flotante del módulo anterior) */}
+      {activeSheetType === 'subject' && (
+        <button
+          type="button"
+          className="btn-floating-upload grades-floating-save-btn"
+          onClick={handleSaveAction}
+          title={
+            canEditScores 
+              ? "Guardar notas y observaciones docentes" 
+              : isViewingAsGradeDirector 
+              ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
+              : canEditCoordinacion
+              ? "Guardar observaciones de Coordinación Académica"
+              : (canEditDirective ? "Guardar sugerencias de auditoría directiva" : "Guardar auditoría técnica")
+          }
+          style={{
+            background: canEditScores
+              ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+              : canEditCoordinacion
+              ? 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)'
+              : canEditDirective
+              ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
+              : isViewingAsGradeDirector
+              ? 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)'
+              : 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
+            boxShadow: canEditScores
+              ? '0 10px 25px -5px rgba(5, 150, 105, 0.45), 0 8px 10px -6px rgba(5, 150, 105, 0.25)'
+              : canEditCoordinacion
+              ? '0 10px 25px -5px rgba(79, 70, 229, 0.45), 0 8px 10px -6px rgba(79, 70, 229, 0.25)'
+              : canEditDirective
+              ? '0 10px 25px -5px rgba(217, 119, 6, 0.45), 0 8px 10px -6px rgba(217, 119, 6, 0.25)'
+              : '0 10px 25px -5px rgba(30, 41, 59, 0.45), 0 8px 10px -6px rgba(30, 41, 59, 0.25)',
+            cursor: isViewingAsGradeDirector ? 'default' : 'pointer'
+          }}
+        >
+          <i className={`ph-bold ${
+            canEditScores 
+              ? 'ph-floppy-disk' 
+              : isViewingAsGradeDirector 
+              ? 'ph-eye' 
+              : canEditCoordinacion
+              ? 'ph-clipboard-text'
+              : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
+          }`}></i>
+          <span>
+            {canEditScores 
+              ? 'Guardar Planilla' 
+              : isViewingAsGradeDirector 
+              ? 'Modo Director de Curso' 
+              : canEditCoordinacion
+              ? 'Guardar Observaciones'
+              : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
+            }
+          </span>
+        </button>
+      )}
 
       {/* Modal de Control de Fechas, Cierres SIEE y Prórrogas (Coordinación / Admin) */}
       <EvaluationCalendarModal 
