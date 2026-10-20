@@ -27,11 +27,11 @@ export default function Sidebar({
 
   const teachersList = [
     { key: 'profe1', name: 'Profe 1', label: 'Dir. Transición', icon: 'ph-user' },
-    { key: 'jessica', name: 'Jessica', label: 'Dir. 1° Primaria', icon: 'ph-user' },
-    { key: 'yuri', name: 'Yuri', label: 'Dir. 2° Primaria', icon: 'ph-user' },
-    { key: 'profe2', name: 'Profe 2', label: 'Dir. 3° Primaria', icon: 'ph-user' },
-    { key: 'elcy', name: 'Elcy', label: 'Dir. 4° Primaria', icon: 'ph-user' },
-    { key: 'profe3', name: 'Profe 3', label: 'Dir. 5° Primaria', icon: 'ph-user' },
+    { key: 'jessica', name: 'Jessica', label: 'Español • Dir. 1° Primaria', icon: 'ph-user' },
+    { key: 'yuri', name: 'Yuri', label: 'Ciencias Sociales • Dir. 2° Primaria', icon: 'ph-user' },
+    { key: 'profe2', name: 'Profe 2', label: 'Matemáticas • Dir. 3° Primaria', icon: 'ph-user' },
+    { key: 'elcy', name: 'Elcy', label: 'Inglés • Dir. 4° Primaria', icon: 'ph-user' },
+    { key: 'profe3', name: 'Profe 3', label: 'Ciencias Naturales • Dir. 5° Primaria', icon: 'ph-user' },
     { key: 'claudia', name: 'Claudia (Rectora)', label: 'Rectoría', isRectora: true }
   ];
 

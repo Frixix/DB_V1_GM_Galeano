@@ -13,14 +13,14 @@ import { syncAvatarsFromCloud, getUserAvatar } from '../services/avatarService';
 import './Login.css';
 
 const STAFF_MEMBERS = [
-  { key: 'claudia', name: 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría' },
+  { key: 'claudia', name: 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría Institucional' },
   { key: 'coordinacion', name: 'Coordinación Académica', roleTitle: 'Coordinación', grade: 'Supervisión Institucional' },
-  { key: 'profe1', name: 'Profe 1', roleTitle: 'Docente', grade: 'Transición' },
-  { key: 'jessica', name: 'Jessica', roleTitle: 'Docente', grade: '1° Primaria' },
-  { key: 'yuri', name: 'Yuri', roleTitle: 'Docente', grade: '2° Primaria' },
-  { key: 'profe2', name: 'Profe 2', roleTitle: 'Docente', grade: '3° Primaria' },
-  { key: 'elcy', name: 'Elcy', roleTitle: 'Docente', grade: '4° Primaria' },
-  { key: 'profe3', name: 'Profe 3', roleTitle: 'Docente', grade: '5° Primaria' },
+  { key: 'profe1', name: 'Profe 1', roleTitle: 'Docente', grade: 'Dir. Transición' },
+  { key: 'jessica', name: 'Jessica', roleTitle: 'Docente Español', grade: 'Dir. 1° Primaria' },
+  { key: 'yuri', name: 'Yuri', roleTitle: 'Docente C. Sociales', grade: 'Dir. 2° Primaria' },
+  { key: 'profe2', name: 'Profe 2', roleTitle: 'Docente Matemáticas', grade: 'Dir. 3° Primaria' },
+  { key: 'elcy', name: 'Elcy', roleTitle: 'Docente Inglés', grade: 'Dir. 4° Primaria' },
+  { key: 'profe3', name: 'Profe 3', roleTitle: 'Docente C. Naturales', grade: 'Dir. 5° Primaria' },
 ];
 
 export default function Login({ onLogin }) {
@@ -324,17 +324,17 @@ export default function Login({ onLogin }) {
                     required
                   >
                     <option value="" disabled>-- Seleccione su cuenta --</option>
-                    <option value="induccion_rectora"> Inducción Rectora</option>
-                    <option value="induccion"> Inducción Profesoras</option>
-                    <option value="claudia">Claudia (Rectora)</option>
+                    <option value="induccion_rectora">👑 Inducción Rectora</option>
+                    <option value="induccion">✨ Inducción Profesoras</option>
+                    <option value="claudia">Claudia (Rectora Institucional)</option>
                     <option value="coordinacion">Coordinación Académica</option>
-                    <option value="profe1">Profe 1 </option>
-                    <option value="jessica">Jessica </option>
-                    <option value="yuri">Yuri </option>
-                    <option value="profe2">Profe 2 </option>
-                    <option value="elcy">Elcy </option>
-                    <option value="profe3">Profe 3 </option>
-                    <option value="admin">Administrador</option>
+                    <option value="profe1">Profe 1 (Dir. Transición)</option>
+                    <option value="jessica">Jessica (Español • Dir. 1° Primaria)</option>
+                    <option value="yuri">Yuri (Ciencias Sociales • Dir. 2° Primaria)</option>
+                    <option value="profe2">Profe 2 (Matemáticas • Dir. 3° Primaria)</option>
+                    <option value="elcy">Elcy (Inglés • Dir. 4° Primaria)</option>
+                    <option value="profe3">Profe 3 (Ciencias Naturales • Dir. 5° Primaria)</option>
+                    <option value="admin">Administrador General</option>
                   </select>
                   <span className="auth-select-chevron">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

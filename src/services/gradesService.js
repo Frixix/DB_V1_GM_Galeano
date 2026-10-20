@@ -16,6 +16,7 @@ const DIRECTORS_CUSTOM_KEY = 'gmg_grade_directors_custom';
 const REPLACEMENTS_LOG_KEY = 'gmg_curriculum_reemplazos_history';
 const CALENDAR_STORAGE_KEY = 'gmg_evaluation_calendar_v1';
 const EXTENSIONS_STORAGE_KEY = 'gmg_extemporary_extensions_v1';
+const CURRICULUM_ROLES_VERSION = 'v2_roles_elcy_jessica_yuri_2026';
 
 const DEFAULT_EVALUATION_CALENDAR = {
   '1° Periodo (25%)': {
@@ -59,12 +60,29 @@ const DEFAULT_EVALUATION_CALENDAR = {
 
 class GradesService {
   constructor() {
+    this.checkVersionAndMigrate();
     this.tree = this.loadTreeFromStorage();
     this.customAssignments = this.loadFromStorage(ASSIGNMENTS_CUSTOM_KEY, {});
     this.customDirectors = this.loadFromStorage(DIRECTORS_CUSTOM_KEY, {});
     this.replacementLogs = this.loadFromStorage(REPLACEMENTS_LOG_KEY, []);
     this.evaluationCalendar = this.loadFromStorage(CALENDAR_STORAGE_KEY, DEFAULT_EVALUATION_CALENDAR);
     this.extemporaryExtensions = this.loadFromStorage(EXTENSIONS_STORAGE_KEY, []);
+  }
+
+  checkVersionAndMigrate() {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedVer = localStorage.getItem('gmg_curriculum_roles_version');
+        if (storedVer !== CURRICULUM_ROLES_VERSION) {
+          // Limpiar sobreescrituras personalizadas anteriores para aplicar la nueva asignación oficial
+          localStorage.removeItem(ASSIGNMENTS_CUSTOM_KEY);
+          localStorage.removeItem(DIRECTORS_CUSTOM_KEY);
+          localStorage.setItem('gmg_curriculum_roles_version', CURRICULUM_ROLES_VERSION);
+        }
+      } catch (e) {
+        console.warn('Error al verificar versión de currículo:', e);
+      }
+    }
   }
 
   loadTreeFromStorage() {
@@ -143,11 +161,26 @@ class GradesService {
   }
 
   /**
+   * Determina si una materia corresponde por mandato institucional a la Directora de Curso del grado:
+   * Educación Artística (Artes), Religión y Educación Física
+   */
+  isDirectorCourseSubject(subject) {
+    if (!subject) return false;
+    const s = subject.toLowerCase();
+    return s.includes('art') || s.includes('relig') || s.includes('física') || s.includes('fisica');
+  }
+
+  /**
    * Obtiene la asignación docente de una materia específica en un grado
    */
   getTeacherAssignment(grade, subject) {
     if (this.customAssignments[grade] && this.customAssignments[grade][subject]) {
       return this.customAssignments[grade][subject];
+    }
+    // Si la materia es del bloque institucional de dirección de curso (Artes, Religión, Educación Física),
+    // siempre corresponde dinámicamente a la Directora de Curso oficial actual de ese grado
+    if (this.isDirectorCourseSubject(subject)) {
+      return this.getGradeDirector(grade);
     }
     if (TEACHER_CURRICULUM_ASSIGNMENTS[grade] && TEACHER_CURRICULUM_ASSIGNMENTS[grade][subject]) {
       return TEACHER_CURRICULUM_ASSIGNMENTS[grade][subject];
@@ -166,7 +199,7 @@ class GradesService {
   /**
    * Devuelve los Grados a los que tiene acceso el usuario según su rol RBAC
    * - Rectora / Admin: Todos los grados
-   * - Docente: Únicamente su grado a cargo (Dirección de Curso)
+   * - Docente: Su grado de dirección de curso y todos los grados donde dicta materias oficiales
    */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
@@ -178,50 +211,43 @@ class GradesService {
       return GRADES_LIST;
     }
 
-    // Para docente: solo su grado a cargo (la dirección de curso que tiene asignada)
-    const directedGrade = Object.keys(GRADE_DIRECTORS).find(grade => this.isGradeDirector(user, grade));
-    if (directedGrade) {
-      return [directedGrade];
-    }
-
-    // Fallback: grados donde es titular de materia
+    // Para docente: su grado de dirección de curso Y todos los grados donde dicta materias
     const accessibleGrades = GRADES_LIST.filter(grade => {
-      const gradeSubjects = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
-      const customSubjects = this.customAssignments[grade] || {};
-      const allSubjKeys = Array.from(new Set([...Object.keys(gradeSubjects), ...Object.keys(customSubjects)]));
-
-      return allSubjKeys.some(subj => {
+      if (this.isGradeDirector(user, grade)) return true;
+      const subjectsInGrade = this.getSubjectsForGrade(grade);
+      return subjectsInGrade.some(subj => {
         const assignment = this.getTeacherAssignment(grade, subj);
         return assignment.docente_id === userKey || assignment.teacherName === user.name;
       });
     });
 
-    return accessibleGrades.length > 0 ? [accessibleGrades[0]] : ['1° Primaria'];
+    return accessibleGrades.length > 0 ? accessibleGrades : ['1° Primaria'];
   }
 
   /**
    * Devuelve las Materias disponibles para un Grado específico según el rol del usuario
    * - Rectora / Admin: Todas las materias del grado
-   * - Docente: Únicamente las materias que tiene a su cargo
+   * - Directora de Curso del grado: Todas las materias del grado (propias editables, ajenas en acompañamiento)
+   * - Docente visitante: Únicamente las materias que tiene a su cargo en este grado
    */
   getSubjectsForGradeAndUser(grade, user) {
-    const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
-    const customGradeAssignments = this.customAssignments[grade] || {};
-    const allSubjectsInGrade = Array.from(new Set([
-      ...Object.keys(defaultGradeAssignments),
-      ...Object.keys(customGradeAssignments)
-    ]));
+    const allSubjectsInGrade = this.getSubjectsForGrade(grade);
 
-    if (!user) return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
+    if (!user) return allSubjectsInGrade;
     const role = user.role;
     const userKey = user.key || role;
 
     // Directivos, Administradores, Coordinador y Modo Inducción ven todas las materias
     if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion' || role === 'coordinador') {
-      return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
+      return allSubjectsInGrade;
     }
 
-    // Para docentes: solo ven las materias que tienen a cargo
+    // Si es Directora de Curso del grado, puede ver todas las materias del grado para acompañamiento pedagógico
+    if (this.isGradeDirector(user, grade)) {
+      return allSubjectsInGrade;
+    }
+
+    // Para docentes no directoras del grado: solo ven las materias que tienen a cargo
     const teacherSubjects = allSubjectsInGrade.filter(subj => {
       const assignment = this.getTeacherAssignment(grade, subj);
       return assignment.docente_id === userKey || assignment.teacherName === user.name;
@@ -597,6 +623,25 @@ class GradesService {
         replacedAt: now
       };
       directorReplaced = true;
+
+      // Transferir automáticamente las asignaturas de dirección de curso
+      // (Artes, Religión, Educación Física) al nuevo docente en el árbol
+      const gradeSubjects = this.getSubjectsForGrade(grade);
+      gradeSubjects.forEach(subj => {
+        if (this.isDirectorCourseSubject(subj)) {
+          if (!replacedSubjectsList.includes(subj)) replacedSubjectsList.push(subj);
+          ACADEMIC_YEARS.forEach(y => {
+            ACADEMIC_PERIODS.forEach(p => {
+              if (this.tree[y]?.[p]?.[grade]?.[subj]) {
+                this.tree[y][p][grade][subj].docente_id = newDocenteKey;
+                this.tree[y][p][grade][subj].teacherName = newTeacherObj.name;
+                this.tree[y][p][grade][subj].lastUpdated = now;
+                this.tree[y][p][grade][subj].lastUpdatedBy = `Reemplazo Directora: ${newTeacherObj.name}`;
+              }
+            });
+          });
+        }
+      });
     }
 
     // 2. Reemplazo de Materias y transferencia de contenido

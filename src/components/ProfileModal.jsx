@@ -430,11 +430,11 @@ export default function ProfileModal({
                   >
                     <option value="claudia">Claudia (Rectora Institucional)</option>
                     <option value="profe1">Profe 1 (Dir. Transición)</option>
-                    <option value="jessica">Jessica (Dir. 1° Primaria)</option>
-                    <option value="yuri">Yuri (Dir. 2° Primaria)</option>
-                    <option value="profe2">Profe 2 (Dir. 3° Primaria)</option>
-                    <option value="elcy">Elcy (Dir. 4° Primaria)</option>
-                    <option value="profe3">Profe 3 (Dir. 5° Primaria)</option>
+                    <option value="jessica">Jessica (Español • Dir. 1° Primaria)</option>
+                    <option value="yuri">Yuri (Ciencias Sociales • Dir. 2° Primaria)</option>
+                    <option value="profe2">Profe 2 (Matemáticas • Dir. 3° Primaria)</option>
+                    <option value="elcy">Elcy (Inglés • Dir. 4° Primaria)</option>
+                    <option value="profe3">Profe 3 (Ciencias Naturales • Dir. 5° Primaria)</option>
                     <option value="admin">Administrador General</option>
                     <option value="induccion_rectora">Claudia (Inducción Rectora)</option>
                     <option value="induccion">Inducción Profesoras</option>

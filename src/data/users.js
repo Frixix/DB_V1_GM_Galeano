@@ -65,7 +65,7 @@ export const USERS = {
   jessica: {
     name: 'Jessica',
     role: 'docente',
-    label: 'Docente • Dir. 1° Primaria',
+    label: 'Docente de Español • Dir. 1° Primaria',
     initial: 'J',
     avatar: null,
     pass: 'jessica2026',
@@ -75,7 +75,7 @@ export const USERS = {
   yuri: {
     name: 'Yuri',
     role: 'docente',
-    label: 'Docente • Dir. 2° Primaria',
+    label: 'Docente de Ciencias Sociales • Dir. 2° Primaria',
     initial: 'Y',
     avatar: null,
     pass: 'yuri2026',
@@ -85,7 +85,7 @@ export const USERS = {
   profe2: {
     name: 'Profe 2',
     role: 'docente',
-    label: 'Docente • Dir. 3° Primaria',
+    label: 'Docente de Matemáticas • Dir. 3° Primaria',
     initial: 'P2',
     avatar: null,
     pass: 'profe22026',
@@ -95,7 +95,7 @@ export const USERS = {
   elcy: {
     name: 'Elcy',
     role: 'docente',
-    label: 'Docente • Dir. 4° Primaria',
+    label: 'Docente de Inglés • Dir. 4° Primaria',
     initial: 'E',
     avatar: null,
     pass: 'elcy2026',
@@ -105,7 +105,7 @@ export const USERS = {
   profe3: {
     name: 'Profe 3',
     role: 'docente',
-    label: 'Docente • Dir. 5° Primaria',
+    label: 'Docente de Ciencias Naturales • Dir. 5° Primaria',
     initial: 'P3',
     avatar: null,
     pass: 'profe32026',

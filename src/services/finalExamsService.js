@@ -8,8 +8,9 @@ import {
   TEACHER_CURRICULUM_ASSIGNMENTS 
 } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
+import gradesService from './gradesService';
 
-const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v2';
+const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v3';
 const DEADLINES_STORAGE_KEY = 'gmg_evaluaciones_deadlines_v1';
 
 export const DEFAULT_DEADLINES = {
@@ -83,17 +84,24 @@ const createInitialEvaluationsData = () => {
   });
 
   // Ejemplos institucionales diferenciados únicamente para el 1° Periodo:
+  // Reflejan la nueva distribución oficial:
+  // - Jessica: Lengua Castellana (Español)
+  // - Yuri: Ciencias Sociales
+  // - Elcy: Inglés
+  // - Profe 2: Matemáticas
+  // - Profe 3: Ciencias Naturales
+  // - Directora de Curso: Educación Artística, Religión, Educación Física
   const p1 = '1° Periodo (25%)';
   if (initialData[p1]) {
-    // 1. Profe 1: Lengua Castellana en Transición
-    if (initialData[p1]['Transición']?.['Lengua Castellana']) {
-      initialData[p1]['Transición']['Lengua Castellana'] = {
+    // 1. Profe 1: Educación Artística en Transición (Directora de Curso)
+    if (initialData[p1]['Transición']?.['Educación Artística']) {
+      initialData[p1]['Transición']['Educación Artística'] = {
         id: 'EVAL-TRA-01',
         uploaded: true,
         grade: 'Transición',
-        subject: 'Lengua Castellana',
-        title: 'Evaluación de Lengua Castellana - Transición',
-        fileName: 'Evaluacion_Lengua_Transicion_Profe1.pdf',
+        subject: 'Educación Artística',
+        title: 'Evaluación de Educación Artística - Transición',
+        fileName: 'Evaluacion_Arte_Transicion_Profe1.pdf',
         fileSize: '1.2 MB',
         fileType: 'application/pdf',
         uploadedAt: '2026-03-24 10:15',
@@ -101,83 +109,83 @@ const createInitialEvaluationsData = () => {
         teacherId: 'profe1',
         copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length,
         copiesStatus: 'aprobado',
-        notes: 'Impresión a color en la primera página, dibujos para colorear y trazos.',
+        notes: 'Impresión a color de guía de trazos, motricidad fina y dactilopintura.',
         downloadUrl: null
       };
     }
 
-    // 2. Profe 1: Inglés en Transición
-    if (initialData[p1]['Transición']?.['Inglés']) {
-      initialData[p1]['Transición']['Inglés'] = {
-        id: 'EVAL-TRA-02',
-        uploaded: true,
-        grade: 'Transición',
-        subject: 'Inglés',
-        title: 'Evaluación de Inglés - Transición',
-        fileName: 'Evaluacion_Ingles_Transicion_Profe1.pdf',
-        fileSize: '1.4 MB',
-        fileType: 'application/pdf',
-        uploadedAt: '2026-03-24 11:30',
-        uploadedBy: 'Profe 1',
-        teacherId: 'profe1',
-        copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length,
-        copiesStatus: 'impreso',
-        notes: 'Vocabulario ilustrado de colores y números en inglés.',
-        downloadUrl: null
-      };
-    }
-
-    // 3. Jessica: Inglés en 1° Primaria
-    if (initialData[p1]['1° Primaria']?.['Inglés']) {
-      initialData[p1]['1° Primaria']['Inglés'] = {
+    // 2. Jessica: Lengua Castellana (Español) en 1° Primaria
+    if (initialData[p1]['1° Primaria']?.['Lengua Castellana']) {
+      initialData[p1]['1° Primaria']['Lengua Castellana'] = {
         id: 'EVAL-1PRI-01',
         uploaded: true,
         grade: '1° Primaria',
-        subject: 'Inglés',
-        title: 'Evaluación de Inglés - 1° Primaria',
-        fileName: 'Evaluacion_Ingles_1Primaria_Jessica.pdf',
+        subject: 'Lengua Castellana',
+        title: 'Evaluación de Lengua Castellana - 1° Primaria',
+        fileName: 'Evaluacion_Lengua_1Primaria_Jessica.pdf',
         fileSize: '1.5 MB',
         fileType: 'application/pdf',
-        uploadedAt: '2026-03-24 14:20',
+        uploadedAt: '2026-03-24 11:30',
         uploadedBy: 'Jessica',
         teacherId: 'jessica',
         copiesNeeded: (STUDENTS_BY_GRADE['1° Primaria'] || []).length,
-        copiesStatus: 'aprobado',
-        notes: 'Impresión en tamaño carta, doble cara, grapado en esquina superior.',
+        copiesStatus: 'impreso',
+        notes: 'Evaluación de lectoescritura inicial, comprensión silábica y fonemas básicos.',
         downloadUrl: null
       };
     }
 
-    // 4. Yuri: Matemáticas en 2° Primaria
-    if (initialData[p1]['2° Primaria']?.['Matemáticas']) {
-      initialData[p1]['2° Primaria']['Matemáticas'] = {
+    // 3. Yuri: Ciencias Sociales en 2° Primaria
+    if (initialData[p1]['2° Primaria']?.['Ciencias Sociales']) {
+      initialData[p1]['2° Primaria']['Ciencias Sociales'] = {
         id: 'EVAL-2PRI-01',
         uploaded: true,
         grade: '2° Primaria',
-        subject: 'Matemáticas',
-        title: 'Evaluación de Matemáticas - 2° Primaria',
-        fileName: 'Evaluacion_Matematicas_2Primaria_Yuri.pdf',
+        subject: 'Ciencias Sociales',
+        title: 'Evaluación de Ciencias Sociales - 2° Primaria',
+        fileName: 'Evaluacion_Sociales_2Primaria_Yuri.pdf',
         fileSize: '1.3 MB',
         fileType: 'application/pdf',
-        uploadedAt: '2026-03-24 16:10',
+        uploadedAt: '2026-03-24 14:20',
         uploadedBy: 'Yuri',
         teacherId: 'yuri',
         copiesNeeded: (STUDENTS_BY_GRADE['2° Primaria'] || []).length,
         copiesStatus: 'aprobado',
-        notes: 'Operaciones de adición y sustracción con espacio para resolución.',
+        notes: 'Espacios geográficos cercanos, noción de comunidad y deberes ciudadanos.',
         downloadUrl: null
       };
     }
 
-    // 5. Elcy: Ciencias Sociales en 4° Primaria
-    if (initialData[p1]['4° Primaria']?.['Ciencias Sociales']) {
-      initialData[p1]['4° Primaria']['Ciencias Sociales'] = {
+    // 4. Profe 2: Matemáticas en 3° Primaria
+    if (initialData[p1]['3° Primaria']?.['Matemáticas']) {
+      initialData[p1]['3° Primaria']['Matemáticas'] = {
+        id: 'EVAL-3PRI-01',
+        uploaded: true,
+        grade: '3° Primaria',
+        subject: 'Matemáticas',
+        title: 'Evaluación de Matemáticas - 3° Primaria',
+        fileName: 'Evaluacion_Matematicas_3Primaria_Profe2.pdf',
+        fileSize: '1.4 MB',
+        fileType: 'application/pdf',
+        uploadedAt: '2026-03-24 16:10',
+        uploadedBy: 'Profe 2',
+        teacherId: 'profe2',
+        copiesNeeded: (STUDENTS_BY_GRADE['3° Primaria'] || []).length,
+        copiesStatus: 'aprobado',
+        notes: 'Resolución de problemas con operaciones multiplicativas y tablas de datos.',
+        downloadUrl: null
+      };
+    }
+
+    // 5. Elcy: Inglés en 4° Primaria
+    if (initialData[p1]['4° Primaria']?.['Inglés']) {
+      initialData[p1]['4° Primaria']['Inglés'] = {
         id: 'EVAL-4PRI-01',
         uploaded: true,
         grade: '4° Primaria',
-        subject: 'Ciencias Sociales',
-        title: 'Evaluación de Ciencias Sociales - 4° Primaria',
-        fileName: 'Evaluacion_Sociales_4Primaria_Elcy.pdf',
+        subject: 'Inglés',
+        title: 'Evaluación de Inglés - 4° Primaria',
+        fileName: 'Evaluacion_Ingles_4Primaria_Elcy.pdf',
         fileSize: '1.8 MB',
         fileType: 'application/pdf',
         uploadedAt: '2026-03-24 15:45',
@@ -185,20 +193,20 @@ const createInitialEvaluationsData = () => {
         teacherId: 'elcy',
         copiesNeeded: (STUDENTS_BY_GRADE['4° Primaria'] || []).length,
         copiesStatus: 'impreso',
-        notes: 'Contiene mapa físico y político de Colombia para completar.',
+        notes: 'Vocabulario temático en inglés, comprensión lectora y estructuras de preguntas.',
         downloadUrl: null
       };
     }
 
-    // 6. Profe 3: Inglés en 5° Primaria
-    if (initialData[p1]['5° Primaria']?.['Inglés']) {
-      initialData[p1]['5° Primaria']['Inglés'] = {
+    // 6. Profe 3: Ciencias Naturales en 5° Primaria
+    if (initialData[p1]['5° Primaria']?.['Ciencias Naturales']) {
+      initialData[p1]['5° Primaria']['Ciencias Naturales'] = {
         id: 'EVAL-5PRI-01',
         uploaded: true,
         grade: '5° Primaria',
-        subject: 'Inglés',
-        title: 'Evaluación de Inglés - 5° Primaria',
-        fileName: 'Evaluacion_Ingles_5Primaria_Profe3.pdf',
+        subject: 'Ciencias Naturales',
+        title: 'Evaluación de Ciencias Naturales - 5° Primaria',
+        fileName: 'Evaluacion_Naturales_5Primaria_Profe3.pdf',
         fileSize: '1.6 MB',
         fileType: 'application/pdf',
         uploadedAt: '2026-03-24 17:00',
@@ -206,7 +214,7 @@ const createInitialEvaluationsData = () => {
         teacherId: 'profe3',
         copiesNeeded: (STUDENTS_BY_GRADE['5° Primaria'] || []).length,
         copiesStatus: 'aprobado',
-        notes: 'Lectura comprensiva de texto corto y preguntas de opción múltiple.',
+        notes: 'Sistemas biológicos humanos, nutrición y ecosistemas de Colombia.',
         downloadUrl: null
       };
     }
@@ -280,7 +288,16 @@ class FinalExamsService {
     return GRADES_LIST;
   }
 
+  isDirectorCourseSubject(subject) {
+    if (!subject) return false;
+    const s = subject.toLowerCase();
+    return s.includes('art') || s.includes('relig') || s.includes('física') || s.includes('fisica');
+  }
+
   getGradeDirector(grade) {
+    if (gradesService && gradesService.getGradeDirector) {
+      return gradesService.getGradeDirector(grade);
+    }
     return GRADE_DIRECTORS[grade] || { docente_id: 'jessica', teacherName: 'Jessica' };
   }
 
@@ -292,10 +309,25 @@ class FinalExamsService {
   }
 
   getTeacherAssignment(grade, subject) {
+    if (gradesService && gradesService.getTeacherAssignment) {
+      return gradesService.getTeacherAssignment(grade, subject);
+    }
+    if (this.isDirectorCourseSubject(subject)) {
+      return this.getGradeDirector(grade);
+    }
     if (TEACHER_CURRICULUM_ASSIGNMENTS[grade] && TEACHER_CURRICULUM_ASSIGNMENTS[grade][subject]) {
       return TEACHER_CURRICULUM_ASSIGNMENTS[grade][subject];
     }
     return { docente_id: 'jessica', teacherName: 'Jessica' };
+  }
+
+  getSubjectsForGrade(grade) {
+    if (gradesService && gradesService.getSubjectsForGrade) {
+      return gradesService.getSubjectsForGrade(grade);
+    }
+    const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+    const all = Object.keys(defaultGradeAssignments);
+    return all.length > 0 ? all : ALL_SUBJECTS;
   }
 
   getStudentCount(grade) {
@@ -311,11 +343,15 @@ class FinalExamsService {
     if (['admin', 'rectora', 'induccion_rectora', 'coordinador', 'induccion'].includes(role)) {
       return GRADES_LIST;
     }
-    // Docente: todos los grados donde tenga asignaturas asignadas
+    // Docente: todos los grados donde tenga asignaturas asignadas o sea directora de curso
     const userKey = user.key || role;
     const myGrades = GRADES_LIST.filter(g => {
-      const assignments = TEACHER_CURRICULUM_ASSIGNMENTS[g] || {};
-      return Object.values(assignments).some(a => a.docente_id === userKey || a.teacherName === user.name);
+      if (this.isGradeDirector(user, g)) return true;
+      const subjectsInGrade = this.getSubjectsForGrade(g);
+      return subjectsInGrade.some(subj => {
+        const assign = this.getTeacherAssignment(g, subj);
+        return assign.docente_id === userKey || assign.teacherName === user.name;
+      });
     });
 
     return myGrades.length > 0 ? myGrades : GRADES_LIST;
@@ -325,15 +361,17 @@ class FinalExamsService {
    * Obtiene las materias disponibles para un grado y usuario
    */
   getSubjectsForGradeAndUser(grade, user) {
-    const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
-    const allSubjects = Object.keys(defaultGradeAssignments);
-    const validAll = allSubjects.length > 0 ? allSubjects : ALL_SUBJECTS;
+    const validAll = this.getSubjectsForGrade(grade);
 
     if (!user) return validAll;
     const role = user.role;
     const userKey = user.key || role;
 
     if (['admin', 'rectora', 'induccion_rectora', 'coordinador', 'induccion'].includes(role)) {
+      return validAll;
+    }
+
+    if (this.isGradeDirector(user, grade)) {
       return validAll;
     }
 
@@ -365,10 +403,11 @@ class FinalExamsService {
     if (!this.evaluations[period]) this.evaluations[period] = {};
     if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
 
-    const assignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+    const subjects = this.getSubjectsForGrade(grade);
     const studentCount = this.getStudentCount(grade);
 
-    const items = Object.entries(assignments).map(([subj, teacher]) => {
+    const items = subjects.map((subj) => {
+      const teacher = this.getTeacherAssignment(grade, subj);
       let evalData = this.evaluations[period][grade][subj];
       if (!evalData) {
         evalData = {
@@ -389,6 +428,11 @@ class FinalExamsService {
           downloadUrl: null
         };
         this.evaluations[period][grade][subj] = evalData;
+      } else {
+        if (!evalData.uploaded) {
+          evalData.teacherId = teacher.docente_id;
+          evalData.uploadedBy = teacher.teacherName;
+        }
       }
 
       return {

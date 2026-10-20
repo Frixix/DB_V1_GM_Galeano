@@ -46,6 +46,7 @@ export const ALL_SUBJECTS = [
   'Inglés',
   'Educación Artística',
   'Educación Física',
+  'Religión',
   'Ética & Valores'
 ];
 
@@ -108,70 +109,84 @@ export const STUDENTS_BY_GRADE = {
 };
 
 // Matriz de Asignación Docente Oficial por (Grado, Materia)
+// Reglas Oficiales:
+// - Elcy: Especialista institucional en Inglés
+// - Jessica: Especialista institucional en Lengua Castellana (Español)
+// - Yuri: Especialista institucional en Ciencias Sociales
+// - Artes (Educación Artística), Religión y Educación Física: Asignadas a la misma docente Directora de Curso del grado
+// - Profe 2: Docente de Matemáticas (3° Primaria y distribución básica)
+// - Profe 3: Docente de Ciencias Naturales (5° Primaria y distribución básica)
+// - Ética & Valores: Dirección de curso y formación integral por grado
 export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   // Transición (Directora de Curso: Profe 1)
   'Transición': {
-    'Lengua Castellana': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'profe1', teacherName: 'Profe 1' },
-    'Inglés': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Religión': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Educación Física': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Ética & Valores': { docente_id: 'profe1', teacherName: 'Profe 1' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
   // 1° Primaria (Directora de Curso: Jessica)
   '1° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Matemáticas': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Inglés': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Educación Artística': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Religión': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Educación Física': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
   // 2° Primaria (Directora de Curso: Yuri)
   '2° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Inglés': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Religión': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Educación Física': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Ética & Valores': { docente_id: 'yuri', teacherName: 'Yuri' },
   },
   // 3° Primaria (Directora de Curso: Profe 2)
   '3° Primaria': {
-    'Lengua Castellana': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Inglés': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Educación Artística': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Religión': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Educación Física': { docente_id: 'profe2', teacherName: 'Profe 2' },
     'Ética & Valores': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
   // 4° Primaria (Directora de Curso: Elcy)
   '4° Primaria': {
-    'Lengua Castellana': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Inglés': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ética & Valores': { docente_id: 'jessica', teacherName: 'Jessica' },
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Educación Artística': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Religión': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Ética & Valores': { docente_id: 'elcy', teacherName: 'Elcy' },
   },
   // 5° Primaria (Directora de Curso: Profe 3)
   '5° Primaria': {
-    'Lengua Castellana': { docente_id: 'profe3', teacherName: 'Profe 3' },
-    'Matemáticas': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
-    'Inglés': { docente_id: 'profe3', teacherName: 'Profe 3' },
-    'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
+    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
+    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Educación Artística': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Religión': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Educación Física': { docente_id: 'profe3', teacherName: 'Profe 3' },
     'Ética & Valores': { docente_id: 'profe3', teacherName: 'Profe 3' },
-    'Ciencias Sociales': { docente_id: 'elcy', teacherName: 'Elcy' },
-    'Educación Física': { docente_id: 'elcy', teacherName: 'Elcy' },
   }
 };
 

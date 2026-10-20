@@ -297,6 +297,8 @@ export default function UploadModal({
                     <option value="Ciencias Sociales">Ciencias Sociales</option>
                     <option value="Inglés">Inglés</option>
                     <option value="Educación Artística">Educación Artística</option>
+                    <option value="Educación Física">Educación Física</option>
+                    <option value="Religión">Religión</option>
                     <option value="Ética y Valores">Ética y Valores</option>
                     <option value="Tecnología e Informática">Tecnología e Informática</option>
                     <option value="Institucional">Institucional</option>

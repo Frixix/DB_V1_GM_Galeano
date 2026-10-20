@@ -117,8 +117,8 @@ export const COMMITTEE_MEMBERS = {
     convoker: 'Claudia (Rectora)',
     convokerKey: 'claudia',
     legalBasis: 'Ley 115 de 1994 (Art. 145)',
-    membersKeys: ['claudia', 'jessica', 'yuri', 'elcy'],
-    memberNames: ['Claudia (Rectora)', 'Jessica (Lengua & Matemáticas)', 'Yuri (Ciencias Naturales)', 'Elcy (Ciencias Sociales)'],
+    membersKeys: ['claudia', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'],
+    memberNames: ['Claudia (Rectora)', 'Jessica (Español)', 'Yuri (Ciencias Sociales)', 'Profe 2 (Matemáticas)', 'Elcy (Inglés)', 'Profe 3 (Ciencias Naturales)'],
     description: 'Alineación de mallas curriculares, Derechos Básicos de Aprendizaje (DBA) y proyectos pedagógicos'
   },
   reuniones_docentes: {
@@ -198,11 +198,11 @@ export const SEMAFORO_CONFIG = {
  */
 export const AVAILABLE_TEACHERS = [
   { key: 'profe1', name: 'Profe 1', label: 'Docente • Dir. Transición' },
-  { key: 'jessica', name: 'Jessica', label: 'Docente • Dir. 1° Primaria' },
-  { key: 'yuri', name: 'Yuri', label: 'Docente • Dir. 2° Primaria' },
-  { key: 'profe2', name: 'Profe 2', label: 'Docente • Dir. 3° Primaria' },
-  { key: 'elcy', name: 'Elcy', label: 'Docente • Dir. 4° Primaria' },
-  { key: 'profe3', name: 'Profe 3', label: 'Docente • Dir. 5° Primaria' },
+  { key: 'jessica', name: 'Jessica', label: 'Docente Español • Dir. 1° Primaria' },
+  { key: 'yuri', name: 'Yuri', label: 'Docente C. Sociales • Dir. 2° Primaria' },
+  { key: 'profe2', name: 'Profe 2', label: 'Docente Matemáticas • Dir. 3° Primaria' },
+  { key: 'elcy', name: 'Elcy', label: 'Docente Inglés • Dir. 4° Primaria' },
+  { key: 'profe3', name: 'Profe 3', label: 'Docente C. Naturales • Dir. 5° Primaria' },
   { key: 'claudia', name: 'Claudia (Rectora)', label: 'Rectoría Institucional' }
 ];
 
