@@ -112,10 +112,11 @@ export const STUDENTS_BY_GRADE = {
 // Reglas Oficiales:
 // - Elcy: Especialista institucional en Inglés
 // - Jessica: Especialista institucional en Lengua Castellana (Español)
-// - Yuri: Especialista institucional en Ciencias Sociales
+// - Yuri: Especialista institucional en Ciencias Naturales y Ciencias Sociales
 // - Artes (Educación Artística), Religión y Educación Física: Asignadas a la misma docente Directora de Curso del grado
-// - Profe 2: Docente de Matemáticas (3° Primaria y distribución básica)
-// - Profe 3: Docente de Ciencias Naturales (5° Primaria y distribución básica)
+// - Profe 2: Docente de Matemáticas (1° a 5°)
+// - Profe 1: Docente titular y Directora de Transición
+// - Profe 3: Docente titular y Directora de 5° Primaria
 // - Ética & Valores: Dirección de curso y formación integral por grado
 export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   // Transición (Directora de Curso: Profe 1)
@@ -132,7 +133,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   '1° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'jessica', teacherName: 'Jessica' },
@@ -144,7 +145,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   '2° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'yuri', teacherName: 'Yuri' },
@@ -156,7 +157,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   '3° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'profe2', teacherName: 'Profe 2' },
@@ -168,7 +169,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   '4° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'elcy', teacherName: 'Elcy' },
@@ -180,7 +181,7 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
   '5° Primaria': {
     'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
     'Matemáticas': { docente_id: 'profe2', teacherName: 'Profe 2' },
-    'Ciencias Naturales': { docente_id: 'profe3', teacherName: 'Profe 3' },
+    'Ciencias Naturales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Ciencias Sociales': { docente_id: 'yuri', teacherName: 'Yuri' },
     'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
     'Educación Artística': { docente_id: 'profe3', teacherName: 'Profe 3' },

@@ -16,7 +16,7 @@ const DIRECTORS_CUSTOM_KEY = 'gmg_grade_directors_custom';
 const REPLACEMENTS_LOG_KEY = 'gmg_curriculum_reemplazos_history';
 const CALENDAR_STORAGE_KEY = 'gmg_evaluation_calendar_v1';
 const EXTENSIONS_STORAGE_KEY = 'gmg_extemporary_extensions_v1';
-const CURRICULUM_ROLES_VERSION = 'v2_roles_elcy_jessica_yuri_2026';
+const CURRICULUM_ROLES_VERSION = 'v3_yuri_ciencias_naturales_sociales_2026';
 
 const DEFAULT_EVALUATION_CALENDAR = {
   '1° Periodo (25%)': {

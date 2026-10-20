@@ -75,7 +75,7 @@ export const USERS = {
   yuri: {
     name: 'Yuri',
     role: 'docente',
-    label: 'Docente de Ciencias Sociales • Dir. 2° Primaria',
+    label: 'Docente de Ciencias (Naturales & Sociales) • Dir. 2° Primaria',
     initial: 'Y',
     avatar: null,
     pass: 'yuri2026',
@@ -105,7 +105,7 @@ export const USERS = {
   profe3: {
     name: 'Profe 3',
     role: 'docente',
-    label: 'Docente de Ciencias Naturales • Dir. 5° Primaria',
+    label: 'Docente • Dir. 5° Primaria',
     initial: 'P3',
     avatar: null,
     pass: 'profe32026',
@@ -116,3 +116,52 @@ export const USERS = {
 
 export const BOVEDA_PASSWORD = 'boveda2026'
 export const SYSTEM_STORAGE_CAPACITY_BYTES = 2 * GB
+
+export const USERS_OVERRIDES_STORAGE_KEY = 'gmg_custom_users_overrides_v1';
+
+export function loadUserOverrides() {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(USERS_OVERRIDES_STORAGE_KEY);
+    if (raw) {
+      const overrides = JSON.parse(raw);
+      Object.entries(overrides).forEach(([key, val]) => {
+        if (USERS[key]) {
+          Object.assign(USERS[key], val);
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Error al cargar overrides de usuarios:', e);
+  }
+}
+
+export function saveUserOverride(userKey, updates) {
+  if (!userKey || !USERS[userKey]) return;
+  Object.assign(USERS[userKey], updates);
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(USERS_OVERRIDES_STORAGE_KEY);
+    const overrides = raw ? JSON.parse(raw) : {};
+    overrides[userKey] = {
+      ...(overrides[userKey] || {}),
+      ...updates
+    };
+    localStorage.setItem(USERS_OVERRIDES_STORAGE_KEY, JSON.stringify(overrides));
+  } catch (e) {
+    console.error('Error al guardar override de usuario:', e);
+  }
+}
+
+export function resetAllUserOverrides() {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(USERS_OVERRIDES_STORAGE_KEY);
+    } catch (e) {}
+  }
+}
+
+// Carga automática inicial en el entorno del navegador
+if (typeof window !== 'undefined') {
+  loadUserOverrides();
+}

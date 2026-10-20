@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getUserAvatar } from '../services/avatarService.js';
+import teacherService from '../services/teacherService.js';
 import gradesService from '../services/gradesService.js';
 
 // Helper para iconos temáticos de materias
@@ -59,15 +60,16 @@ export default function GradesSidebar({
 }) {
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
 
-  const teachersList = [
-    { key: 'profe1', name: 'Profe 1', label: 'Dir. Transición', grade: 'Transición', icon: 'ph-user' },
-    { key: 'jessica', name: 'Jessica', label: 'Español • Dir. 1° Primaria', grade: '1° Primaria', icon: 'ph-user' },
-    { key: 'yuri', name: 'Yuri', label: 'Ciencias Sociales • Dir. 2° Primaria', grade: '2° Primaria', icon: 'ph-user' },
-    { key: 'profe2', name: 'Profe 2', label: 'Matemáticas • Dir. 3° Primaria', grade: '3° Primaria', icon: 'ph-user' },
-    { key: 'elcy', name: 'Elcy', label: 'Inglés • Dir. 4° Primaria', grade: '4° Primaria', icon: 'ph-user' },
-    { key: 'profe3', name: 'Profe 3', label: 'Ciencias Naturales • Dir. 5° Primaria', grade: '5° Primaria', icon: 'ph-user' },
-    { key: 'claudia', name: 'Claudia (Rectora)', label: 'Rectoría', isRectora: true }
-  ];
+  const [teachersList, setTeachersList] = useState(() => teacherService.getSidebarTeachers());
+
+  useEffect(() => {
+    const unsubscribe = teacherService.subscribe(() => {
+      setTeachersList(teacherService.getSidebarTeachers());
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   const currentUserKey = currentUser?.key || currentUser?.role || (currentUser?.name ? currentUser.name.toLowerCase().replace(/\s+/g, '') : null);
   const currentUserAvatar = (currentUserKey ? getUserAvatar(currentUserKey) : null) || currentUser?.avatar || null;

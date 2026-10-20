@@ -5,6 +5,7 @@ import GradesModule from './components/GradesModule';
 import BovedaModule from './components/BovedaModule';
 import ObservadorModule from './components/ObservadorModule';
 import FinalExamsModule from './components/FinalExamsModule';
+import GestionDocenteModule from './components/GestionDocenteModule';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -137,10 +138,14 @@ export default function App() {
   }, [refreshPresence]);
 
   // Restricción de seguridad: durante la fase de desarrollo y pruebas en la nube,
-  // solo el Administrador y Coordinación pueden interactuar con Notas & Calificaciones
+  // Verificación estricta de permisos para módulos directivos
   useEffect(() => {
     const canAccessGrades = currentUser && (currentUser.role === 'admin' || currentUser.role === 'coordinador');
     if (!canAccessGrades && activeModule === 'grades') {
+      setActiveModule(null);
+    }
+    const canAccessDocentes = currentUser && ['admin', 'coordinador', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+    if (!canAccessDocentes && (activeModule === 'docentes' || activeModule === 'gestion_docente')) {
       setActiveModule(null);
     }
     if (activeModule === 'reemplazos') {
@@ -322,6 +327,45 @@ export default function App() {
           onClose={() => setIsLogoutModalOpen(false)}
           onConfirm={executeLogout}
           currentUser={currentUser}
+        />
+      </>
+    );
+  }
+
+  // Módulo de Gestión Docente & Planta Curricular (Coordinación, Rectoría y Administración)
+  if (activeModule === 'docentes' || activeModule === 'gestion_docente') {
+    return (
+      <>
+        <GestionDocenteModule 
+          currentUser={currentUser}
+          onBackToModules={() => setActiveModule(null)}
+          onOpenProfile={handleOpenProfile}
+        />
+        <ProfileModal 
+          isOpen={isProfileModalOpen}
+          currentUser={currentUser}
+          targetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
+          onClose={() => setIsProfileModalOpen(false)}
+          onProfileUpdated={(updatedUser) => {
+            if (updatedUser?.key === currentUser?.key) {
+              setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+            }
+          }}
+          onAvatarChangeToast={(msg) => setAvatarToast(msg)}
+        />
+        <ConnectionsModal 
+          isOpen={isConnectionsModalOpen}
+          onClose={() => setIsConnectionsModalOpen(false)}
+          presenceData={presenceData}
+          onlineMap={onlineMap}
+          currentUser={currentUser}
+        />
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          currentUser={currentUser}
+          onConfirm={executeLogout}
+          onCancel={() => setIsLogoutModalOpen(false)}
         />
       </>
     );

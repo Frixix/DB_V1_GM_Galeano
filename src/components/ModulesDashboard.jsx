@@ -25,6 +25,7 @@ export default function ModulesDashboard({
   const isAdmin = currentUser?.role === 'admin';
   const isCoordinador = currentUser?.role === 'coordinador';
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const canManageDocentes = isPrivileged || isCoordinador;
   const isDocente = !isPrivileged && !isCoordinador;
 
   // Cerrar modal con tecla Escape
@@ -40,6 +41,17 @@ export default function ModulesDashboard({
 
   // Manejo de clic en módulos con control de fase de desarrollo
   const handleModuleClick = (moduleId) => {
+    if (moduleId === 'docentes' && !canManageDocentes) {
+      setDevModalInfo({
+        moduleId,
+        moduleName: 'Gestión Docente & Malla Curricular',
+        icon: 'ph-bold ph-chalkboard-teacher',
+        canEnter: false,
+        customMessage: 'El módulo de Gestión Docente está reservado exclusivamente para Coordinación, Rectoría y Administración Institucional.'
+      });
+      return;
+    }
+
     if (moduleId === 'reemplazos') {
       return; // Módulo clausurado por directiva
     }
@@ -186,8 +198,21 @@ export default function ModulesDashboard({
               >
                 <i className="ph-bold ph-graduation-cap"></i>
                 <span className="portal-nav-text">Evaluaciones Finales</span>
-                <span className="portal-sidebar-active-tag" style={{ background: '#ede9fe', color: '#6d28d9', borderColor: '#ddd6fe' }}>Activo</span>
+
               </button>
+              {canManageDocentes && (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-docentes ${selectedNavModule === 'docentes' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('docentes')}
+                  title="Gestión de Planta Docente, Directores de Curso y Malla Curricular"
+                  style={{ marginTop: '0.25rem' }}
+                >
+                  <i className="ph-bold ph-chalkboard-teacher"></i>
+                  <span className="portal-nav-text">Gestión Docente</span>
+                  <span className="portal-sidebar-active-tag" style={{ background: '#e0e7ff', color: '#4338ca', borderColor: '#c7d2fe' }}>Directivo</span>
+                </button>
+              )}
             </nav>
           </div>
 

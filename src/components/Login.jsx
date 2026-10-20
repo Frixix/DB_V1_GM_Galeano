@@ -10,6 +10,7 @@ import {
   DEFAULT_PASSWORDS
 } from '../services/authService';
 import { syncAvatarsFromCloud, getUserAvatar } from '../services/avatarService';
+import teacherService from '../services/teacherService.js';
 import './Login.css';
 
 const STAFF_MEMBERS = [
@@ -31,6 +32,8 @@ export default function Login({ onLogin }) {
   const [, setVaultTick] = useState(0);
   const [resetToast, setResetToast] = useState(null);
   const [isResetting, setIsResetting] = useState(false);
+  const [loginOptions, setLoginOptions] = useState(() => teacherService.getLoginSelectOptions());
+  const [staffMembers, setStaffMembers] = useState(() => teacherService.getStaffMembersForLogin());
 
   useEffect(() => {
     // Sincronizar credenciales ofuscadas y avatares desde la nube al cargar
@@ -44,8 +47,15 @@ export default function Login({ onLogin }) {
       setVaultTick((prev) => prev + 1);
     });
 
+    // Escuchar actualizaciones dinámicas de docentes y asignaciones en Gestión Docente
+    const unsubscribeTeachers = teacherService.subscribe(() => {
+      setLoginOptions(teacherService.getLoginSelectOptions());
+      setStaffMembers(teacherService.getStaffMembersForLogin());
+    });
+
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe();
+      if (typeof unsubscribeTeachers === 'function') unsubscribeTeachers();
     };
   }, []);
 
@@ -324,17 +334,11 @@ export default function Login({ onLogin }) {
                     required
                   >
                     <option value="" disabled>-- Seleccione su cuenta --</option>
-                    <option value="induccion_rectora">👑 Inducción Rectora</option>
-                    <option value="induccion">✨ Inducción Profesoras</option>
-                    <option value="claudia">Claudia (Rectora Institucional)</option>
-                    <option value="coordinacion">Coordinación Académica</option>
-                    <option value="profe1">Profe 1 (Dir. Transición)</option>
-                    <option value="jessica">Jessica (Español • Dir. 1° Primaria)</option>
-                    <option value="yuri">Yuri (Ciencias Sociales • Dir. 2° Primaria)</option>
-                    <option value="profe2">Profe 2 (Matemáticas • Dir. 3° Primaria)</option>
-                    <option value="elcy">Elcy (Inglés • Dir. 4° Primaria)</option>
-                    <option value="profe3">Profe 3 (Ciencias Naturales • Dir. 5° Primaria)</option>
-                    <option value="admin">Administrador General</option>
+                    {loginOptions.map((opt) => (
+                      <option key={opt.key} value={opt.key}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                   <span className="auth-select-chevron">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -493,7 +497,7 @@ export default function Login({ onLogin }) {
               </p>
 
               <div className="auth-dev-reset-grid">
-                {STAFF_MEMBERS.map((staff) => {
+                {staffMembers.map((staff) => {
                   const isCustom = hasCustomPassword(staff.key);
                   return (
                     <button
