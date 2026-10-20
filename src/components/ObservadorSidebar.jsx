@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getUserAvatar } from '../services/avatarService.js';
 import { COMMITTEE_MEMBERS, isUserCommitteeMember } from '../data/initialObservador.js';
 
@@ -43,6 +44,12 @@ export default function ObservadorSidebar({
   const currentUserKey = currentUser?.key || currentUser?.role || (currentUser?.name ? currentUser.name.toLowerCase().replace(/\s+/g, '') : null);
   const currentUserAvatar = (currentUserKey ? getUserAvatar(currentUserKey) : null) || currentUser?.avatar || null;
 
+  // Estado del acordeón para desplegar / ocultar docentes (flechita subir/bajar)
+  const [isTeacherExpanded, setIsTeacherExpanded] = useState(false);
+  const selectedTeacher = currentTeacher !== 'all'
+    ? teachersList.find((t) => t.name === currentTeacher || t.key === currentTeacher)
+    : null;
+
   return (
     <aside className="sidebar obs-sidebar" id="observadorSidebar">
       {/* Botón para retornar al área de módulos */}
@@ -64,52 +71,64 @@ export default function ObservadorSidebar({
       {isPrivileged ? (
         <div className="sidebar-section" id="obsTeacherSection">
           <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="ph-bold ph-users"></i>
-              <span>Ver por Docente</span>
-            </div>
-            {onOpenConnectionsModal && (
-              <button
-                type="button"
-                className="btn-header-presence-pill"
-                onClick={onOpenConnectionsModal}
-                title="Abrir panel de horarios y conexiones"
-              >
-                <span className="live-status-pulse"></span>
-                <span>{onlineCount} en línea</span>
-              </button>
-            )}
-          </div>
-
-          <nav className="teacher-list">
             <button
               type="button"
-              className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
-              onClick={() => onTeacherSelect('all')}
+              className="btn-header-teacher-accordion"
+              onClick={() => setIsTeacherExpanded((prev) => !prev)}
+              title={isTeacherExpanded ? "Ocultar docentes (subir)" : "Desplegar docentes (bajar)"}
             >
-              <i className="ph-bold ph-users-three"></i>
-              <span>Todos los docentes</span>
+              <i className="ph-bold ph-users"></i>
+              <span>Ver por Docente</span>
+              <i className={`ph-bold ${isTeacherExpanded ? 'ph-caret-up' : 'ph-caret-down'} teacher-accordion-caret`}></i>
             </button>
 
-            {teachersList.map((t) => {
-              const avatarUrl = getUserAvatar(t.key);
-              const isOnline = onlineMap[t.key] || onlineMap[t.name];
-
-              return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {currentTeacher !== 'all' && (
                 <button
-                  key={t.key}
                   type="button"
-                  className={`teacher-btn ${t.isRectora ? 'teacher-rectora-btn' : ''} ${
-                    currentTeacher === t.name ? 'active' : ''
-                  }`}
-                  onClick={() => onTeacherSelect(t.name)}
+                  className="btn-teacher-reset-chip"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTeacherSelect('all');
+                    setIsTeacherExpanded(false);
+                  }}
+                  title="Restablecer a todos los docentes"
+                >
+                  <i className="ph-bold ph-x"></i>
+                  <span>Todos</span>
+                </button>
+              )}
+              {onOpenConnectionsModal && (
+                <button
+                  type="button"
+                  className="btn-header-presence-pill"
+                  onClick={onOpenConnectionsModal}
+                  title="Abrir panel de horarios y conexiones"
+                >
+                  <span className="live-status-pulse"></span>
+                  <span>{onlineCount} en línea</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Si está contraído: mostramos solo el estado compacto o la docente seleccionada */}
+          {!isTeacherExpanded ? (
+            <nav className="teacher-list">
+              {selectedTeacher ? (
+                /* Cuando hay una docente seleccionada: SOLO se muestra ella */
+                <button
+                  type="button"
+                  className={`teacher-btn active ${selectedTeacher.isRectora ? 'teacher-rectora-btn' : ''}`}
+                  onClick={() => setIsTeacherExpanded(true)}
+                  title="Clic para cambiar de docente o ver todas"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
                     <div className="teacher-avatar-mini">
-                      {avatarUrl ? (
+                      {getUserAvatar(selectedTeacher.key) ? (
                         <img
-                          src={avatarUrl}
-                          alt={t.name}
+                          src={getUserAvatar(selectedTeacher.key)}
+                          alt={selectedTeacher.name}
                           className="teacher-avatar-img"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
@@ -119,33 +138,33 @@ export default function ObservadorSidebar({
                         />
                       ) : null}
                       <i
-                        className={`ph-bold ${t.isRectora ? 'ph-crown' : 'ph-user'}`}
+                        className={`ph-bold ${selectedTeacher.isRectora ? 'ph-crown' : 'ph-user'}`}
                         style={{
-                          display: avatarUrl ? 'none' : 'inline-block',
-                          color: t.isRectora ? '#d97706' : 'inherit'
+                          display: getUserAvatar(selectedTeacher.key) ? 'none' : 'inline-block',
+                          color: selectedTeacher.isRectora ? '#d97706' : 'inherit'
                         }}
                       ></i>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {t.name}
+                        {selectedTeacher.name}
                       </span>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t.label}</span>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{selectedTeacher.label}</span>
                     </div>
                   </div>
 
                   <span
-                    className={`teacher-status-indicator ${isOnline ? 'online' : 'offline'}`}
-                    title={isOnline ? 'En línea ahora' : 'Desconectado'}
+                    className={`teacher-status-indicator ${onlineMap[selectedTeacher.key] || onlineMap[selectedTeacher.name] ? 'online' : 'offline'}`}
+                    title={onlineMap[selectedTeacher.key] || onlineMap[selectedTeacher.name] ? 'En línea ahora' : 'Desconectado'}
                   ></span>
 
                   {onOpenProfile && (
                     <span
                       className="sidebar-profile-badge"
-                      title={`Personalizar perfil de ${t.name}`}
+                      title={`Personalizar perfil de ${selectedTeacher.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenProfile(t.key);
+                        onOpenProfile(selectedTeacher.key);
                       }}
                       role="button"
                       tabIndex={0}
@@ -153,10 +172,123 @@ export default function ObservadorSidebar({
                       <i className="ph-bold ph-sliders"></i>
                     </span>
                   )}
+
+                  <span className="teacher-fold-caret-btn" title="Desplegar docentes (bajar)">
+                    <i className="ph-bold ph-caret-down"></i>
+                  </span>
                 </button>
-              );
-            })}
-          </nav>
+              ) : (
+                /* Vista general: Todos los docentes con botón desplegable */
+                <button 
+                  type="button"
+                  className="teacher-btn active"
+                  onClick={() => setIsTeacherExpanded(true)}
+                  title="Clic para desplegar y filtrar por docente (bajar)"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                    <i className="ph-bold ph-users-three"></i>
+                    <span>Todos los docentes</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="teacher-badge-count">{teachersList.length}</span>
+                    <span className="teacher-fold-caret-btn">
+                      <i className="ph-bold ph-caret-down"></i>
+                    </span>
+                  </div>
+                </button>
+              )}
+            </nav>
+          ) : (
+            /* Lista desplegada completa (bajar) */
+            <nav className="teacher-list teacher-list-dropdown">
+              <button 
+                type="button"
+                className={`teacher-btn ${currentTeacher === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  onTeacherSelect('all');
+                  setIsTeacherExpanded(false);
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                  <i className="ph-bold ph-users-three"></i>
+                  <span>Todos los docentes</span>
+                </div>
+                {currentTeacher === 'all' && (
+                  <i className="ph-bold ph-check" style={{ color: '#059669', fontSize: '0.9rem' }}></i>
+                )}
+              </button>
+
+              {teachersList.map((t) => {
+                const avatarUrl = getUserAvatar(t.key);
+                const isOnline = onlineMap[t.key] || onlineMap[t.name];
+                const isSelected = currentTeacher === t.name;
+
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    className={`teacher-btn ${t.isRectora ? 'teacher-rectora-btn' : ''} ${
+                      isSelected ? 'active' : ''
+                    }`}
+                    onClick={() => {
+                      onTeacherSelect(t.name);
+                      setIsTeacherExpanded(false);
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
+                      <div className="teacher-avatar-mini">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={t.name}
+                            className="teacher-avatar-img"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const f = e.currentTarget.nextSibling;
+                              if (f) f.style.display = 'inline-block';
+                            }}
+                          />
+                        ) : null}
+                        <i
+                          className={`ph-bold ${t.isRectora ? 'ph-crown' : 'ph-user'}`}
+                          style={{
+                            display: avatarUrl ? 'none' : 'inline-block',
+                            color: t.isRectora ? '#d97706' : 'inherit'
+                          }}
+                        ></i>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {t.name}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t.label}</span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`teacher-status-indicator ${isOnline ? 'online' : 'offline'}`}
+                      title={isOnline ? 'En línea ahora' : 'Desconectado'}
+                    ></span>
+
+                    {onOpenProfile && (
+                      <span
+                        className="sidebar-profile-badge"
+                        title={`Personalizar perfil de ${t.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenProfile(t.key);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <i className="ph-bold ph-sliders"></i>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
         </div>
       ) : (
         /* Para la docente conectada: vista de su propia dirección de curso y acceso a su perfil */

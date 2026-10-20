@@ -28,7 +28,7 @@ export default function LogoutConfirmModal({ isOpen, onClose, onConfirm, current
     : 'Docente Titular';
 
   return (
-    <div className="modal-backdrop show" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="modal-backdrop modal-logout-backdrop show" onClick={onClose} role="dialog" aria-modal="true">
       <div className="modal modal-logout-confirm" onClick={(e) => e.stopPropagation()}>
         {/* Cabecera del modal */}
         <div className="logout-modal-header">

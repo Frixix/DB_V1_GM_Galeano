@@ -157,6 +157,20 @@ export default function App() {
   // Verificación obligatoria de primer ingreso institucional (no se puede saltar)
   const currentAccountKey = currentUser.key || currentUser.role;
   if (!hasCustomPassword(currentAccountKey)) {
+    const handleCancelFirstLogin = async () => {
+      setIsLogoutModalOpen(false);
+      try {
+        if (typeof presenceLogout === 'function') {
+          await presenceLogout();
+        }
+      } catch (err) {
+        console.warn('Error during presence logout:', err);
+      }
+      setCurrentUser(null);
+      setIsBovedaUnlocked(false);
+      setActiveModule(null);
+    };
+
     return (
       <>
         <ForcePasswordChangeModal
@@ -164,7 +178,7 @@ export default function App() {
           onPasswordChanged={() => {
             setAuthVaultTick((prev) => prev + 1);
           }}
-          onLogout={handleLogout}
+          onLogout={handleCancelFirstLogin}
         />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}

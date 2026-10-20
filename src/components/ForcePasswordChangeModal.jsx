@@ -34,17 +34,20 @@ export default function ForcePasswordChangeModal({ currentUser, onPasswordChange
   const doPasswordsMatch = cleanNew.length > 0 && isConfirmStarted && cleanNew === cleanConfirm;
   const isFormValid = hasMinLength && isDifferentFromInitial && doPasswordsMatch && cleanCurrent.length > 0;
 
-  // Bloquear la tecla Escape para impedir saltarse el modal
+  // Tecla Escape para devolverse / salir a la pantalla de login
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
+        if (typeof onLogout === 'function' && !isSubmitting) {
+          onLogout();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, []);
+  }, [onLogout, isSubmitting]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
