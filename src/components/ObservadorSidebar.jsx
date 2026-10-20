@@ -15,7 +15,7 @@ export default function ObservadorSidebar({
   onOpenConnectionsModal,
   onBackToModules
 }) {
-  const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
 
   // Contadores por ruta para mostrar badges informativos
   const counts = {

@@ -14,6 +14,7 @@ import './Login.css';
 
 const STAFF_MEMBERS = [
   { key: 'claudia', name: 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría' },
+  { key: 'coordinacion', name: 'Coordinación Académica', roleTitle: 'Coordinación', grade: 'Supervisión Institucional' },
   { key: 'profe1', name: 'Profe 1', roleTitle: 'Docente', grade: 'Transición' },
   { key: 'jessica', name: 'Jessica', roleTitle: 'Docente', grade: '1° Primaria' },
   { key: 'yuri', name: 'Yuri', roleTitle: 'Docente', grade: '2° Primaria' },
@@ -131,6 +132,7 @@ export default function Login({ onLogin }) {
       } else if (passKey === 'induccionrectora2026') setUserKey('induccion_rectora');
       else if (passKey === 'induccion2026') setUserKey('induccion');
       else if (passKey === 'rectora2026') setUserKey('claudia');
+      else if (passKey === 'coordinacion2026') setUserKey('coordinacion');
       else if (passKey === 'jessica2026') setUserKey('jessica');
       else if (passKey === 'yuri2026') setUserKey('yuri');
       else if (passKey === 'elcy2026') setUserKey('elcy');
@@ -145,6 +147,7 @@ export default function Login({ onLogin }) {
     { userKey: 'induccion_rectora', key: 'induccionrectora2026', label: 'induccionrectora2026' },
     { userKey: 'induccion', key: 'induccion2026', label: 'induccion2026' },
     { userKey: 'claudia', key: 'rectora2026', label: 'rectora2026' },
+    { userKey: 'coordinacion', key: 'coordinacion2026', label: 'coordinacion2026' },
     { userKey: 'jessica', key: 'jessica2026', label: 'jessica2026' },
     { userKey: 'admin', key: 'admin2026', label: 'admin2026' },
   ];
@@ -324,6 +327,7 @@ export default function Login({ onLogin }) {
                     <option value="induccion_rectora"> Inducción Rectora</option>
                     <option value="induccion"> Inducción Profesoras</option>
                     <option value="claudia">Claudia (Rectora)</option>
+                    <option value="coordinacion">Coordinación Académica</option>
                     <option value="profe1">Profe 1 </option>
                     <option value="jessica">Jessica </option>
                     <option value="yuri">Yuri </option>

@@ -17,7 +17,7 @@ export default function Sidebar({
   onOpenConnectionsModal,
   onBackToModules
 }) {
-  const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
+  const isPrivileged = ["admin", "rectora", "induccion_rectora", "coordinador"].includes(currentUser.role);
   const SYSTEM_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 2 GB
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);

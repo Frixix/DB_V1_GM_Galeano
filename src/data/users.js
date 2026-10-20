@@ -42,6 +42,16 @@ export const USERS = {
     maxUploadBytes: 2 * GB,
     maxUploadLabel: '2 GB',
   },
+  coordinacion: {
+    name: 'Coordinación Académica',
+    role: 'coordinador',
+    label: 'Coordinador(a) Académico(a) & Convivencial',
+    initial: '📋',
+    avatar: null,
+    pass: 'coordinacion2026',
+    maxUploadBytes: 1 * GB,
+    maxUploadLabel: '1 GB',
+  },
   profe1: {
     name: 'Profe 1',
     role: 'docente',

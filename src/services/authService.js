@@ -2,6 +2,122 @@ import { USERS, BOVEDA_PASSWORD } from '../data/users.js';
 import { obfuscatePassword, deobfuscatePassword } from '../utils/security.js';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 
+// =====================================================================
+// DEFINICIÓN OFICIAL DE ROLES Y MATRIZ DE PERMISOS (RBAC INSTITUCIONAL)
+// =====================================================================
+
+export const ROLES = {
+  ADMIN: 'admin',
+  RECTORA: 'rectora',
+  INDUCCION_RECTORA: 'induccion_rectora',
+  COORDINADOR: 'coordinador',
+  DOCENTE: 'docente',
+  INDUCCION: 'induccion'
+};
+
+export const PERMISSIONS = {
+  // SIEE & Calificaciones
+  SIEE_SCORES_READ: 'siee:scores:read',
+  SIEE_SCORES_WRITE: 'siee:scores:write',
+  SIEE_SABANAS_GLOBAL_READ: 'siee:sabanas:global_read',
+  SIEE_RANKINGS_GLOBAL_READ: 'siee:rankings:global_read',
+  SIEE_OBSERVACION_COORDINACION_WRITE: 'siee:observacion_coordinacion:write',
+  SIEE_DIRECTIVE_SUGGESTION_WRITE: 'siee:directive_suggestion:write',
+  SIEE_CALENDAR_MANAGE: 'siee:calendar:manage',
+  SIEE_EXTEMPORARY_EXTENSIONS_MANAGE: 'siee:extensions:manage',
+
+  // Bóveda & Archivo Confidencial
+  BOVEDA_ACCESS: 'boveda:access',
+
+  // Auditoría Institucional & Comités
+  DOCUMENTS_AUDIT_ALL: 'documents:audit_all',
+  OBSERVADOR_MANAGE: 'observador:manage',
+  COMMITTEES_ACTAS_MANAGE: 'committees:actas:manage',
+};
+
+/**
+ * Matriz oficial de permisos institucionales del Gimnasio Martin Galeano
+ */
+export const ROLE_PERMISSIONS_MATRIX = {
+  [ROLES.ADMIN]: [
+    PERMISSIONS.SIEE_SCORES_READ,
+    PERMISSIONS.SIEE_SABANAS_GLOBAL_READ,
+    PERMISSIONS.SIEE_RANKINGS_GLOBAL_READ,
+    PERMISSIONS.SIEE_OBSERVACION_COORDINACION_WRITE,
+    PERMISSIONS.SIEE_DIRECTIVE_SUGGESTION_WRITE,
+    PERMISSIONS.SIEE_CALENDAR_MANAGE,
+    PERMISSIONS.SIEE_EXTEMPORARY_EXTENSIONS_MANAGE,
+    PERMISSIONS.BOVEDA_ACCESS,
+    PERMISSIONS.DOCUMENTS_AUDIT_ALL,
+    PERMISSIONS.OBSERVADOR_MANAGE,
+    PERMISSIONS.COMMITTEES_ACTAS_MANAGE,
+  ],
+  [ROLES.RECTORA]: [
+    PERMISSIONS.SIEE_SCORES_READ,
+    PERMISSIONS.SIEE_SABANAS_GLOBAL_READ,
+    PERMISSIONS.SIEE_RANKINGS_GLOBAL_READ,
+    PERMISSIONS.SIEE_DIRECTIVE_SUGGESTION_WRITE,
+    PERMISSIONS.BOVEDA_ACCESS,
+    PERMISSIONS.DOCUMENTS_AUDIT_ALL,
+    PERMISSIONS.OBSERVADOR_MANAGE,
+    PERMISSIONS.COMMITTEES_ACTAS_MANAGE,
+  ],
+  [ROLES.INDUCCION_RECTORA]: [
+    PERMISSIONS.SIEE_SCORES_READ,
+    PERMISSIONS.SIEE_SABANAS_GLOBAL_READ,
+    PERMISSIONS.SIEE_RANKINGS_GLOBAL_READ,
+    PERMISSIONS.SIEE_DIRECTIVE_SUGGESTION_WRITE,
+    PERMISSIONS.BOVEDA_ACCESS,
+    PERMISSIONS.DOCUMENTS_AUDIT_ALL,
+    PERMISSIONS.OBSERVADOR_MANAGE,
+  ],
+  [ROLES.COORDINADOR]: [
+    // 1. Notas numéricas SIEE (C1, C2, C3): Solo Lectura (blindaje estricto; no edita notas numéricas)
+    PERMISSIONS.SIEE_SCORES_READ,
+    // 2. Sábanas y Rankings: Acceso global de lectura a todos los grados (Transición a 5° Primaria)
+    PERMISSIONS.SIEE_SABANAS_GLOBAL_READ,
+    PERMISSIONS.SIEE_RANKINGS_GLOBAL_READ,
+    // 3. Observaciones: Permiso de edición en campo exclusivo observacion_coordinacion
+    PERMISSIONS.SIEE_OBSERVACION_COORDINACION_WRITE,
+    // 4. Gestión de Fechas y Cierres: Control total sobre calendario y prórrogas extemporáneas
+    PERMISSIONS.SIEE_CALENDAR_MANAGE,
+    PERMISSIONS.SIEE_EXTEMPORARY_EXTENSIONS_MANAGE,
+    // 5. Auditoría intermedia (Bóveda restringida salvo autorización de Rectoría)
+    PERMISSIONS.DOCUMENTS_AUDIT_ALL,
+    PERMISSIONS.OBSERVADOR_MANAGE,
+    PERMISSIONS.COMMITTEES_ACTAS_MANAGE,
+  ],
+  [ROLES.DOCENTE]: [
+    PERMISSIONS.SIEE_SCORES_READ,
+    PERMISSIONS.SIEE_SCORES_WRITE, // Solo sus asignaturas asignadas
+    PERMISSIONS.OBSERVADOR_MANAGE,
+  ],
+  [ROLES.INDUCCION]: [
+    PERMISSIONS.SIEE_SCORES_READ,
+    PERMISSIONS.SIEE_SCORES_WRITE,
+    PERMISSIONS.OBSERVADOR_MANAGE,
+  ],
+};
+
+/**
+ * Valida si un usuario o rol tiene asignado un permiso específico
+ */
+export function hasPermission(userOrRole, permission) {
+  if (!userOrRole || !permission) return false;
+  const role = typeof userOrRole === 'string' ? userOrRole : (userOrRole.role || userOrRole.key);
+  const permissions = ROLE_PERMISSIONS_MATRIX[role] || [];
+  return permissions.includes(permission);
+}
+
+/**
+ * Determina si el usuario o rol corresponde a Coordinación
+ */
+export function isCoordinador(userOrRole) {
+  if (!userOrRole) return false;
+  const role = typeof userOrRole === 'string' ? userOrRole : (userOrRole.role || userOrRole.key);
+  return role === ROLES.COORDINADOR;
+}
+
 const STORAGE_VAULT_KEY = 'gm_galeano_auth_sec_vault';
 
 /**
@@ -350,6 +466,7 @@ export const DEFAULT_PASSWORDS = {
   induccion: 'induccion2026',
   admin: 'admin2026',
   claudia: 'rectora2026',
+  coordinacion: 'coordinacion2026',
   profe1: 'profe12026',
   jessica: 'jessica2026',
   yuri: 'yuri2026',

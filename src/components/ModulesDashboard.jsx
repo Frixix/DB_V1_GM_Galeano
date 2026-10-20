@@ -23,8 +23,9 @@ export default function ModulesDashboard({
   const [devModalInfo, setDevModalInfo] = useState(null);
 
   const isAdmin = currentUser?.role === 'admin';
+  const isCoordinador = currentUser?.role === 'coordinador';
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
-  const isDocente = !isPrivileged;
+  const isDocente = !isPrivileged && !isCoordinador;
 
   // Cerrar modal con tecla Escape
   useEffect(() => {
@@ -43,12 +44,24 @@ export default function ModulesDashboard({
       return; // Módulo clausurado por directiva
     }
 
-    if (moduleId === 'grades' && !isAdmin) {
+    if (moduleId === 'grades' && !isAdmin && !isCoordinador) {
       setDevModalInfo({
         moduleId,
         moduleName: 'Notas & Calificaciones',
         icon: 'ph-bold ph-chart-line-up',
         canEnter: false
+      });
+      return;
+    }
+
+    if (moduleId === 'boveda' && isCoordinador) {
+      setDevModalInfo({
+        moduleId: 'boveda',
+        moduleName: 'Bóveda Directiva & Resguardo',
+        icon: 'ph-bold ph-vault',
+        canEnter: false,
+        isBovedaRestricted: true,
+        customMessage: 'El acceso a la Bóveda Directiva está reservado para Rectoría y Administración. Como Coordinador(a), requiere autorización y clave oficial suministrada directamente por la Rectora.'
       });
       return;
     }
@@ -93,19 +106,32 @@ export default function ModulesDashboard({
           <div className="portal-sidebar-section">
             <p className="portal-sidebar-label">MÓDULOS DEL SISTEMA</p>
             <nav className="portal-sidebar-nav">
-              {/* Módulo 1 (Destacado SIEE): Notas & Calificaciones */}
-              <button 
-                type="button"
-                className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
-                onClick={() => handleModuleClick('grades')}
-                title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
-              >
-                <i className="ph-bold ph-chart-line-up"></i>
-                <span className="portal-nav-text">Notas & Calificaciones</span>
-                {!isAdmin && (
-                  <span className="portal-sidebar-dev-tag">En desarrollo</span>
-                )}
-              </button>
+              {/* Módulo 1 (Destacado SIEE): Control Académico para Coordinador o Notas para Admin/Docente */}
+              {isCoordinador ? (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-coordinacion ${selectedNavModule === 'grades' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('grades')}
+                  title="Consola de Control Académico y Evaluaciones (SIEE)"
+                >
+                  <i className="ph-bold ph-clipboard-text"></i>
+                  <span className="portal-nav-text">Control Académico y Evaluaciones</span>
+                  <span className="portal-sidebar-active-tag">Activo</span>
+                </button>
+              ) : (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('grades')}
+                  title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
+                >
+                  <i className="ph-bold ph-chart-line-up"></i>
+                  <span className="portal-nav-text">Notas & Calificaciones</span>
+                  {!isAdmin && (
+                    <span className="portal-sidebar-dev-tag">En desarrollo</span>
+                  )}
+                </button>
+              )}
 
               {/* Módulo 2 Activo: Recursos Pedagógicos & Circulares */}
               <button 
@@ -181,46 +207,80 @@ export default function ModulesDashboard({
 
           {/* Cuadrícula de Tarjetas de Módulos */}
           <section className="portal-modules-grid">
-            {/* MÓDULO 1 (DESTACADO SIEE - PRIMERA POSICIÓN): NOTAS & CALIFICACIONES */}
-            <article 
-              className="portal-module-card portal-module-card-amber"
-              onClick={() => handleModuleClick('grades')}
-              role="button"
-              tabIndex={0}
-              title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('grades');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container">
-                  <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
+            {/* MÓDULO 1: CONTROL ACADÉMICO Y EVALUACIONES (COORDINACIÓN) O NOTAS & CALIFICACIONES (ADMIN / DOCENTES) */}
+            {isCoordinador ? (
+              <article 
+                className="portal-module-card portal-module-card-indigo"
+                onClick={() => handleModuleClick('grades')}
+                role="button"
+                tabIndex={0}
+                title="Acceder a Control Académico y Evaluaciones (SIEE)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('grades');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container portal-indigo-icon">
+                    <i className="ph-bold ph-clipboard-text" style={{ fontSize: '1.75rem', color: '#4338ca' }}></i>
+                  </div>
+                  <span className="portal-badge-indigo">Activo · Coordinación</span>
                 </div>
-                {isAdmin ? (
-                  <span className="portal-badge-amber">Activo Institucional</span>
-                ) : (
-                  <span className="portal-badge-amber">En desarrollo · Fase N° 1</span>
-                )}
-              </div>
 
-              <div className="portal-card-body">
-                <h3 style={{ color: '#0f172a' }}>Notas & Calificaciones</h3>
-                <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (40%, 40%, 20%), sábanas consolidadas y cálculo automático de promedios.</p>
-              </div>
+                <div className="portal-card-body">
+                  <h3 style={{ color: '#0f172a' }}>Control Académico y Evaluaciones</h3>
+                  <p>
+                    Consola de supervisión curricular: consulta global de sábanas consolidadas y rankings de Transición a 5°, radicación de observaciones de coordinación, control del calendario de evaluaciones y habilitación de prórrogas extemporáneas.
+                  </p>
+                </div>
 
-              <div className="portal-card-footer">
-                {isAdmin ? (
-                  <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
-                ) : (
-                  <span className="portal-link-label-dev">
-                    <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
-                  </span>
-                )}
-              </div>
-            </article>
+                <div className="portal-card-footer">
+                  <span className="portal-link-label-indigo">Gestionar Control Académico &rarr;</span>
+                </div>
+              </article>
+            ) : (
+              <article 
+                className="portal-module-card portal-module-card-amber"
+                onClick={() => handleModuleClick('grades')}
+                role="button"
+                tabIndex={0}
+                title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('grades');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container">
+                    <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
+                  </div>
+                  {isAdmin ? (
+                    <span className="portal-badge-amber">Activo Institucional</span>
+                  ) : (
+                    <span className="portal-badge-amber">En desarrollo · Fase N° 1</span>
+                  )}
+                </div>
+
+                <div className="portal-card-body">
+                  <h3 style={{ color: '#0f172a' }}>Notas & Calificaciones</h3>
+                  <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (40%, 40%, 20%), sábanas consolidadas y cálculo automático de promedios.</p>
+                </div>
+
+                <div className="portal-card-footer">
+                  {isAdmin ? (
+                    <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
+                  ) : (
+                    <span className="portal-link-label-dev">
+                      <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
+                    </span>
+                  )}
+                </div>
+              </article>
+            )}
 
             {/* MÓDULO 2: RECURSOS PEDAGÓGICOS & CIRCULARES */}
             <article 
@@ -284,6 +344,38 @@ export default function ModulesDashboard({
 
                 <div className="portal-card-footer">
                   <span className="portal-link-label-slate">Acceder a la Bóveda &rarr;</span>
+                </div>
+              </article>
+            ) : isCoordinador ? (
+              <article 
+                className="portal-module-card portal-module-card-disabled"
+                onClick={() => handleModuleClick('boveda')}
+                role="button"
+                tabIndex={0}
+                title="Módulo con acceso restringido para Coordinación (Requiere autorización de Rectoría)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('boveda');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container portal-gray-icon">
+                    <i className="ph-bold ph-vault" style={{ fontSize: '1.75rem' }}></i>
+                  </div>
+                  <span className="portal-badge-gray">Acceso con Permiso de Rectoría</span>
+                </div>
+                <div className="portal-card-body">
+                  <h3 className="portal-text-gray-title">Bóveda Directiva & Resguardo</h3>
+                  <p className="portal-text-gray-desc">
+                    Custodia confidencial reservada. La Coordinación solo puede acceder previa autorización y suministro de clave por parte de Rectoría.
+                  </p>
+                </div>
+                <div className="portal-card-footer portal-footer-disabled">
+                  <span className="portal-label-muted">
+                    <i className="ph-bold ph-lock-key"></i> Solo con Permiso de la Rectora
+                  </span>
                 </div>
               </article>
             ) : (
@@ -404,7 +496,7 @@ export default function ModulesDashboard({
                 <i className="ph-bold ph-sparkle"></i> Fase N° 1 Culminada
               </span>
               <h3>
-                {devModalInfo.moduleId === 'observador'
+                {devModalInfo.customMessage ? devModalInfo.moduleName : devModalInfo.moduleId === 'observador'
                   ? 'Observador & Actas • En Desarrollo'
                   : 'Módulo en Desarrollo'}
               </h3>
@@ -412,7 +504,9 @@ export default function ModulesDashboard({
                 Estimada <strong>{currentUser?.name || 'Docente'}</strong> y comunidad educativa:
               </p>
               <p className="dev-modal-thankyou">
-                {devModalInfo.moduleId === 'observador' ? (
+                {devModalInfo.customMessage ? (
+                  <span>{devModalInfo.customMessage}</span>
+                ) : devModalInfo.moduleId === 'observador' ? (
                   <>
                     ¡Queremos darle las <strong>gracias por validar la Fase N° 1</strong> de este módulo! Su acompañamiento y aportes son fundamentales para consolidar el sistema institucional de seguimiento convivencial, citaciones y actas de comités.
                   </>
@@ -425,10 +519,17 @@ export default function ModulesDashboard({
 
               <div className="dev-modal-highlight-box">
                 <div className="dev-modal-highlight-icon">
-                  <i className={`ph-bold ${devModalInfo.moduleId === 'observador' ? 'ph-user-list' : 'ph-cloud-check'}`}></i>
+                  <i className={`ph-bold ${devModalInfo.icon || (devModalInfo.moduleId === 'observador' ? 'ph-user-list' : 'ph-cloud-check')}`}></i>
                 </div>
                 <div className="dev-modal-highlight-text">
-                  {devModalInfo.moduleId === 'observador' ? (
+                  {devModalInfo.customMessage ? (
+                    <>
+                      <strong>Protocolo de Seguridad & Autorización Directiva</strong>
+                      <p>
+                        Los documentos en Bóveda incluyen reservas legales y contables. La Coordinación Académica puede auditar los archivos pedagógicos y actas de comités directamente en sus respectivos módulos autorizados.
+                      </p>
+                    </>
+                  ) : devModalInfo.moduleId === 'observador' ? (
                     <>
                       <strong>Validación Pedagógica & Seguimiento Activo</strong>
                       <p>
@@ -447,7 +548,9 @@ export default function ModulesDashboard({
               </div>
 
               <p className="dev-modal-footer-note">
-                {devModalInfo.canEnter
+                {devModalInfo.customMessage ? (
+                  'Para acceder a actas o contratos confidenciales, solicite la autorización correspondiente directamente en el despacho de Rectoría.'
+                ) : devModalInfo.canEnter
                   ? 'Haz clic en "Echar un vistazo y entrar" para acceder y explorar todas las secciones del módulo.'
                   : 'Durante esta fase en la nube, el módulo permanecerá bajo auditoría técnica exclusiva del Administrador. Muy pronto estará habilitado en producción para toda la institución.'}
               </p>

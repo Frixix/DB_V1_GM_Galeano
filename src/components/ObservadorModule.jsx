@@ -40,6 +40,8 @@ export default function ObservadorModule({
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isCoordinador = currentUser?.role === 'coordinador';
+  const canAuditAll = isPrivileged || isCoordinador;
 
   // Estadísticas globales de alertas de plazos (Vencidos, Vence hoy, Próximos)
   const alertStats = useMemo(() => {
@@ -51,7 +53,7 @@ export default function ObservadorModule({
 
     records.forEach((rec) => {
       // Filtrar si el docente solo tiene acceso a sus casos
-      if (!isPrivileged) {
+      if (!canAuditAll) {
         const isOwn = rec.teacher === currentUser?.name;
         const isGeneral = ['comite_convivencia', 'comision_evaluacion', 'consejo_academico', 'reuniones_docentes'].includes(rec.route);
         if (!isOwn && !isGeneral) return;
@@ -68,7 +70,7 @@ export default function ObservadorModule({
     });
 
     return { overdue, todayCount, urgent, inProgress, resolved };
-  }, [records, isPrivileged, currentUser]);
+  }, [records, canAuditAll, currentUser]);
 
   // Filtrado y ordenamiento reactivo de registros por Semáforo y Alertas
   const filteredRecords = useMemo(() => {
@@ -79,7 +81,7 @@ export default function ObservadorModule({
       }
 
       // 2. Control de Acceso / Privacidad si es Docente
-      if (!isPrivileged) {
+      if (!canAuditAll) {
         const isOwn = rec.teacher === currentUser?.name;
         const isGeneralCommittee = ['comite_convivencia', 'comision_evaluacion', 'consejo_academico', 'reuniones_docentes'].includes(rec.route);
         if (!isOwn && !isGeneralCommittee) {
@@ -87,8 +89,8 @@ export default function ObservadorModule({
         }
       }
 
-      // 3. Auditoría por Docente (Rectora / Admin)
-      if (isPrivileged && currentTeacher !== 'all') {
+      // 3. Auditoría por Docente (Rectora / Admin / Coordinación)
+      if (canAuditAll && currentTeacher !== 'all') {
         if (rec.teacher !== currentTeacher) {
           return false;
         }

@@ -1800,10 +1800,22 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
+.obs-coordinacion-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
 .obs-directiva-indicator {
   position: absolute;
   right: 10px;
   color: #065f46;
+  font-size: 0.9rem;
+}
+
+.obs-coordinacion-indicator {
+  position: absolute;
+  right: 10px;
+  color: #4338ca;
   font-size: 0.9rem;
 }
 
@@ -1826,6 +1838,35 @@
 .obs-docente-readonly i {
   color: #10b981;
   margin-top: 1px;
+}
+
+.obs-coordinacion-readonly {
+  background-color: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #312e81;
+}
+
+.obs-coordinacion-badge {
+  font-weight: 800;
+  color: #4338ca;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.th-badge-coordinador {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  margin-left: 0.35rem;
+}
+
+.th-pastel-coordinacion-col {
+  background-color: #f8fafc;
 }
 
 .obs-rectora-readonly {

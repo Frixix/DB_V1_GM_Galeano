@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import PortalNavbar from './PortalNavbar';
 import GradesSidebar from './GradesSidebar';
+import EvaluationCalendarModal from './EvaluationCalendarModal';
 import './GradesModule.css';
 import gradesService from '../services/gradesService';
 
@@ -48,11 +49,13 @@ export default function GradesModule({
   const isDocente = currentUser?.role === 'docente' || currentUser?.role === 'induccion';
   const isRectora = currentUser?.role === 'rectora' || currentUser?.role === 'induccion_rectora';
   const isAdmin = currentUser?.role === 'admin';
-  const isPrivileged = isRectora || isAdmin;
+  const isCoordinador = currentUser?.role === 'coordinador';
+  const isPrivileged = isRectora || isAdmin || isCoordinador;
 
   // Estados de control lateral (Sidebar) y docente activa
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState('all');
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   // Sincronización en tiempo real de novedades y reemplazos
   const [curriculumTick, setCurriculumTick] = useState(0);
@@ -169,6 +172,14 @@ export default function GradesModule({
     return gradesService.canEditDirectiveSuggestion(currentUser);
   }, [currentUser]);
 
+  const canEditCoordinacion = useMemo(() => {
+    return gradesService.canEditCoordinacionObservation(currentUser);
+  }, [currentUser]);
+
+  const canManageCalendar = useMemo(() => {
+    return gradesService.canManageCalendarAndDeadlines(currentUser);
+  }, [currentUser]);
+
   // Manejo de cambio en notas numéricas (Exclusivo Docente Titular de la materia)
   const handleScoreChange = (id, field, value) => {
     if (!canEditScores) return;
@@ -203,6 +214,21 @@ export default function GradesModule({
     setStudents(prev => prev.map(student => {
       if (student.id === id) {
         return { ...student, sugerenciaDirectiva: value };
+      }
+      return student;
+    }));
+  };
+
+  // Manejo de observaciones exclusivas de Coordinación
+  const handleCoordinacionObservationChange = (id, value) => {
+    if (!canEditCoordinacion) return;
+    setStudents(prev => prev.map(student => {
+      if (student.id === id) {
+        return { 
+          ...student, 
+          observacion_coordinacion: value, 
+          observacionCoordinacion: value 
+        };
       }
       return student;
     }));
@@ -283,6 +309,8 @@ export default function GradesModule({
       setToastMessage(`¡Planilla guardada! Notas y retroalimentación de ${selectedSubject} registradas por ${currentUser?.name || 'la docente'}.`);
     } else if (canEditDirective) {
       setToastMessage(`¡Sugerencias registradas! Auditoría directiva de Rectoría guardada exitosamente.`);
+    } else if (canEditCoordinacion) {
+      setToastMessage(`¡Observaciones registradas! Observaciones de Coordinación Académica guardadas exitosamente.`);
     } else {
       setToastMessage(`¡Registro de auditoría técnica guardado exitosamente!`);
     }
@@ -472,6 +500,19 @@ export default function GradesModule({
           </div>
 
           <div className="grades-filter-actions">
+            {canManageCalendar && (
+              <button 
+                type="button" 
+                className="grades-btn-primary" 
+                onClick={() => setIsCalendarModalOpen(true)}
+                title="Gestión de Fechas, Cierres SIEE y Habilitación de Prórrogas Extemporáneas (Control de Coordinación)"
+                style={{ backgroundColor: '#eef2ff', borderColor: '#c7d2fe', color: '#4338ca' }}
+              >
+                <i className="ph-bold ph-calendar-check"></i>
+                <span>Fechas & Prórrogas</span>
+              </button>
+            )}
+
             {activeSheetType === 'subject' && (
               <button 
                 type="button" 
@@ -482,6 +523,8 @@ export default function GradesModule({
                     ? "Guardar notas y observaciones docentes" 
                     : isViewingAsGradeDirector 
                     ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
+                    : canEditCoordinacion
+                    ? "Guardar observaciones de Coordinación Académica"
                     : "Guardar observaciones de auditoría directiva"
                 }
               >
@@ -490,6 +533,8 @@ export default function GradesModule({
                     ? 'ph-floppy-disk' 
                     : isViewingAsGradeDirector 
                     ? 'ph-eye' 
+                    : canEditCoordinacion
+                    ? 'ph-clipboard-text'
                     : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
                 }`}></i>
                 <span>
@@ -497,6 +542,8 @@ export default function GradesModule({
                     ? 'Guardar Planilla' 
                     : isViewingAsGradeDirector 
                     ? 'Modo Director de Curso' 
+                    : canEditCoordinacion
+                    ? 'Guardar Observaciones'
                     : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
                   }
                 </span>
@@ -793,6 +840,15 @@ export default function GradesModule({
                       </div>
                     </th>
 
+                    {/* Rama Árbol: Observación de Coordinación (Exclusivo Coordinación y Admin) */}
+                    <th className="th-pastel-coordinacion-col" style={{ minWidth: '220px' }}>
+                      <div className="th-component-header">
+                        <i className="ph-bold ph-clipboard-text"></i>
+                        <span>Observación de Coordinación</span>
+                        {canEditCoordinacion && <span className="th-badge-coordinador">Coordinación</span>}
+                      </div>
+                    </th>
+
                     {/* Rama Árbol: Sugerencia Directiva (Rectoría) */}
                     <th className="th-pastel-directiva-col" style={{ minWidth: '220px' }}>
                       <div className="th-component-header">
@@ -806,7 +862,7 @@ export default function GradesModule({
                 <tbody>
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                      <td colSpan={10} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                         No se encontraron estudiantes para los filtros seleccionados.
                       </td>
                     </tr>
@@ -966,6 +1022,33 @@ export default function GradesModule({
                             )}
                           </td>
 
+                          {/* Rama: Observación de Coordinación */}
+                          <td>
+                            {canEditCoordinacion ? (
+                              <div className="obs-input-wrap">
+                                <input 
+                                  type="text"
+                                  value={student.observacion_coordinacion || student.observacionCoordinacion || ''}
+                                  onChange={(e) => handleCoordinacionObservationChange(student.id, e.target.value)}
+                                  placeholder="Observación de Coordinación..."
+                                  className="grades-input-obs obs-coordinacion-input"
+                                />
+                                <span className="obs-coordinacion-indicator" title="Observación registrada por Coordinación">
+                                  <i className="ph-bold ph-clipboard-text"></i>
+                                </span>
+                              </div>
+                            ) : (
+                              (student.observacion_coordinacion || student.observacionCoordinacion) ? (
+                                <div className="obs-readonly-box obs-coordinacion-readonly" title="Observación oficial de Coordinación">
+                                  <span className="obs-coordinacion-badge">📋 Coordinación:</span>
+                                  <span>{student.observacion_coordinacion || student.observacionCoordinacion}</span>
+                                </div>
+                              ) : (
+                                <span className="obs-empty-dash" title="Sin observaciones de coordinación">—</span>
+                              )
+                            )}
+                          </td>
+
                           {/* Rama: Sugerencia Directiva (Rectoría) */}
                           <td>
                             {canEditDirective ? (
@@ -1041,6 +1124,8 @@ export default function GradesModule({
                       ? 'ph-floppy-disk' 
                       : isViewingAsGradeDirector 
                       ? 'ph-eye' 
+                      : canEditCoordinacion
+                      ? 'ph-clipboard-text'
                       : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
                   }`}></i>
                   <span>
@@ -1048,6 +1133,8 @@ export default function GradesModule({
                       ? 'Confirmar y Guardar' 
                       : isViewingAsGradeDirector 
                       ? 'Modo Director de Curso' 
+                      : canEditCoordinacion
+                      ? 'Guardar Observaciones'
                       : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
                     }
                   </span>
@@ -1058,6 +1145,14 @@ export default function GradesModule({
         )}
       </main>
       </div>
+
+      {/* Modal de Control de Fechas, Cierres SIEE y Prórrogas (Coordinación / Admin) */}
+      <EvaluationCalendarModal 
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        currentUser={currentUser}
+        onCalendarUpdated={() => setCurriculumTick(t => t + 1)}
+      />
 
       {/* Notificación Toast Flotante */}
       {toastMessage && (

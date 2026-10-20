@@ -14,13 +14,46 @@ const GRADES_STORAGE_KEY = 'gmg_grades_tree_v1';
 const ASSIGNMENTS_CUSTOM_KEY = 'gmg_curriculum_assignments_custom';
 const DIRECTORS_CUSTOM_KEY = 'gmg_grade_directors_custom';
 const REPLACEMENTS_LOG_KEY = 'gmg_curriculum_reemplazos_history';
+const CALENDAR_STORAGE_KEY = 'gmg_evaluation_calendar_v1';
+const EXTENSIONS_STORAGE_KEY = 'gmg_extemporary_extensions_v1';
+
+const DEFAULT_EVALUATION_CALENDAR = {
+  '1° Periodo (25%)': {
+    startDate: '2026-02-02',
+    endDate: '2026-04-10',
+    closureDate: '2026-04-17',
+    status: 'abierto',
+    description: 'Evaluaciones ordinarias Primer Periodo Lectivo'
+  },
+  '2° Periodo (25%)': {
+    startDate: '2026-04-13',
+    endDate: '2026-06-19',
+    closureDate: '2026-06-26',
+    status: 'programado',
+    description: 'Evaluaciones ordinarias Segundo Periodo Lectivo'
+  },
+  '3° Periodo (25%)': {
+    startDate: '2026-07-13',
+    endDate: '2026-09-18',
+    closureDate: '2026-09-25',
+    status: 'programado',
+    description: 'Evaluaciones ordinarias Tercer Periodo Lectivo'
+  },
+  '4° Periodo (25%)': {
+    startDate: '2026-09-21',
+    endDate: '2026-11-20',
+    closureDate: '2026-11-27',
+    status: 'programado',
+    description: 'Evaluaciones finales y comisiones de promoción'
+  }
+};
 
 /**
  * Servicio Centralizado para la Jerarquía de Datos Relacional (RBAC) de Calificaciones
  * Incluye:
  * - Directores de curso oficiales por grado.
  * - Solo lectura para directores en materias ajenas.
- * - Gestión Administrativa de Novedades y Reemplazos Docentes (incapacidades, permisos).
+ * - Soporte para rol Coordinación (auditoría global, observacion_coordinacion, fechas y prórrogas).
  * - Transferencia inmediata de planillas de estudiantes al nuevo docente nombrado.
  */
 
@@ -30,6 +63,8 @@ class GradesService {
     this.customAssignments = this.loadFromStorage(ASSIGNMENTS_CUSTOM_KEY, {});
     this.customDirectors = this.loadFromStorage(DIRECTORS_CUSTOM_KEY, {});
     this.replacementLogs = this.loadFromStorage(REPLACEMENTS_LOG_KEY, []);
+    this.evaluationCalendar = this.loadFromStorage(CALENDAR_STORAGE_KEY, DEFAULT_EVALUATION_CALENDAR);
+    this.extemporaryExtensions = this.loadFromStorage(EXTENSIONS_STORAGE_KEY, []);
   }
 
   loadTreeFromStorage() {
@@ -69,8 +104,10 @@ class GradesService {
       localStorage.setItem(ASSIGNMENTS_CUSTOM_KEY, JSON.stringify(this.customAssignments));
       localStorage.setItem(DIRECTORS_CUSTOM_KEY, JSON.stringify(this.customDirectors));
       localStorage.setItem(REPLACEMENTS_LOG_KEY, JSON.stringify(this.replacementLogs));
+      localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(this.evaluationCalendar));
+      localStorage.setItem(EXTENSIONS_STORAGE_KEY, JSON.stringify(this.extemporaryExtensions));
     } catch (e) {
-      console.error('Error al persistir novedades y asignaciones:', e);
+      console.error('Error al persistir novedades, calendario y asignaciones:', e);
     }
   }
 
@@ -136,8 +173,8 @@ class GradesService {
     const role = user.role;
     const userKey = user.key || role;
 
-    // Directivos, Administradores y Modo Inducción ven todos los grados
-    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion') {
+    // Directivos, Administradores, Coordinador y Modo Inducción ven todos los grados
+    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion' || role === 'coordinador') {
       return GRADES_LIST;
     }
 
@@ -179,8 +216,8 @@ class GradesService {
     const role = user.role;
     const userKey = user.key || role;
 
-    // Directivos, Administradores y Modo Inducción ven todas las materias
-    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion') {
+    // Directivos, Administradores, Coordinador y Modo Inducción ven todas las materias
+    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion' || role === 'coordinador') {
       return allSubjectsInGrade.length > 0 ? allSubjectsInGrade : ALL_SUBJECTS;
     }
 
@@ -318,7 +355,7 @@ class GradesService {
 
   isViewingAsGradeDirector(user, grade, subject) {
     if (!user) return false;
-    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin' || user.role === 'induccion') {
+    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin' || user.role === 'induccion' || user.role === 'coordinador') {
       return false;
     }
     const isDirector = this.isGradeDirector(user, grade);
@@ -331,7 +368,8 @@ class GradesService {
 
   canEditScores(user, grade, subject) {
     if (!user) return false;
-    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin') {
+    // Blindaje estricto: Rectoría, Admin y Coordinación NO pueden editar notas numéricas de docentes
+    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin' || user.role === 'coordinador') {
       return false;
     }
     if (user.role === 'induccion') {
@@ -356,9 +394,112 @@ class GradesService {
     return user.role === 'admin';
   }
 
+  /**
+   * Permiso de edición en campo exclusivo: observacion_coordinacion
+   * Exclusivo para Coordinación y Administrador General
+   */
+  canEditCoordinacionObservation(user) {
+    if (!user) return false;
+    return user.role === 'coordinador' || user.role === 'admin';
+  }
+
+  /**
+   * Permiso para gestión del calendario de evaluaciones y habilitación de prórrogas extemporáneas
+   */
+  canManageCalendarAndDeadlines(user) {
+    if (!user) return false;
+    return user.role === 'coordinador' || user.role === 'admin';
+  }
+
+  // =====================================================================
+  // GESTIÓN DE FECHAS, CIERRES Y PRÓRROGAS EXTEMPORÁNEAS (COORDINACIÓN)
+  // =====================================================================
+
+  getEvaluationCalendar() {
+    return this.evaluationCalendar;
+  }
+
+  updateEvaluationPeriod(period, updateData, user) {
+    if (!this.canManageCalendarAndDeadlines(user)) {
+      throw new Error('No tiene autorización para modificar el calendario de evaluaciones.');
+    }
+    if (!this.evaluationCalendar[period]) {
+      this.evaluationCalendar[period] = {};
+    }
+    this.evaluationCalendar[period] = {
+      ...this.evaluationCalendar[period],
+      ...updateData,
+      lastModifiedBy: user?.name || 'Coordinación',
+      lastModifiedAt: new Date().toISOString()
+    };
+    this.persistCustomState();
+    this.notifyCurriculumUpdate();
+    return this.evaluationCalendar[period];
+  }
+
+  getExtemporaryExtensions() {
+    return this.extemporaryExtensions;
+  }
+
+  grantExtemporaryExtension({ period, grade, subject, teacherKey, hours = 48, reason, grantedBy }) {
+    if (!this.canManageCalendarAndDeadlines(grantedBy)) {
+      throw new Error('Solo Coordinación y Administrador pueden habilitar prórrogas extemporáneas.');
+    }
+
+    const expiresAt = new Date(Date.now() + Number(hours) * 60 * 60 * 1000).toISOString();
+    const extension = {
+      id: `EXT-${Date.now()}`,
+      period,
+      grade,
+      subject,
+      teacherKey,
+      grantedAt: new Date().toISOString(),
+      expiresAt,
+      hours,
+      reason: reason || 'Prórroga formal autorizada por Coordinación Académica',
+      grantedByName: grantedBy?.name || 'Coordinación',
+      status: 'activa'
+    };
+
+    this.extemporaryExtensions.unshift(extension);
+    this.persistCustomState();
+    this.notifyCurriculumUpdate();
+    return extension;
+  }
+
+  revokeExtemporaryExtension(extensionId, user) {
+    if (!this.canManageCalendarAndDeadlines(user)) {
+      throw new Error('No tiene permisos para revocar prórrogas.');
+    }
+    const ext = this.extemporaryExtensions.find(e => e.id === extensionId);
+    if (ext) {
+      ext.status = 'revocada';
+      ext.revokedAt = new Date().toISOString();
+      ext.revokedBy = user?.name || 'Coordinación';
+      this.persistCustomState();
+      this.notifyCurriculumUpdate();
+    }
+    return ext;
+  }
+
+  isSubjectOpenForExtemporary(period, grade, subject) {
+    const now = new Date();
+    return this.extemporaryExtensions.some(ext => 
+      ext.period === period &&
+      ext.grade === grade &&
+      ext.subject === subject &&
+      ext.status === 'activa' &&
+      new Date(ext.expiresAt) > now
+    );
+  }
+
   saveBranchStudents(year, period, grade, subject, students, user) {
     const branch = this.getBranch(year, period, grade, subject);
-    branch.students = students;
+    branch.students = students.map(student => ({
+      ...student,
+      observacion_coordinacion: student.observacion_coordinacion || student.observacionCoordinacion || null,
+      observacionCoordinacion: student.observacion_coordinacion || student.observacionCoordinacion || null,
+    }));
     branch.lastUpdated = new Date().toISOString();
     branch.lastUpdatedBy = user?.name || 'Sistema';
     this.persistTree();

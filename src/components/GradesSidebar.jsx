@@ -57,7 +57,7 @@ export default function GradesSidebar({
   onOpenProfile,
   onBackToModules
 }) {
-  const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
 
   const teachersList = [
     { key: 'profe1', name: 'Profe 1', label: 'Dir. Transición', grade: 'Transición', icon: 'ph-user' },

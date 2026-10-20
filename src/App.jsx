@@ -136,10 +136,10 @@ export default function App() {
   }, [refreshPresence]);
 
   // Restricción de seguridad: durante la fase de desarrollo y pruebas en la nube,
-  // solo el Administrador puede interactuar con Notas & Calificaciones
+  // solo el Administrador y Coordinación pueden interactuar con Notas & Calificaciones
   useEffect(() => {
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    if (!isAdmin && activeModule === 'grades') {
+    const canAccessGrades = currentUser && (currentUser.role === 'admin' || currentUser.role === 'coordinador');
+    if (!canAccessGrades && activeModule === 'grades') {
       setActiveModule(null);
     }
     if (activeModule === 'reemplazos') {
@@ -492,22 +492,25 @@ export default function App() {
     addDocument(newDoc);
   };
 
+  const isCoordinador = currentUser && currentUser.role === 'coordinador';
+  const canAuditDocs = isPrivileged || isCoordinador;
+
   const filteredDocs = documents.filter(doc => {
     // 1. Bóveda: solo si el usuario es privilegiado y está desbloqueada
     if (doc.folder === 'boveda' && (!isPrivileged || !isBovedaUnlocked)) return false;
 
     // 2. Privacidad estricta para docentes:
-    // Si NO es admin/rectora, solo puede ver:
+    // Si NO es admin/rectora/coordinador, solo puede ver:
     // - Documentos propios (doc.teacher === currentUser.name)
     // - Documentos públicos o institucionales (doc.isPublic || doc.folder === 'institucional')
-    if (!isPrivileged) {
+    if (!canAuditDocs) {
       const isOwner = doc.teacher === currentUser.name;
       const isShared = Boolean(doc.isPublic) || doc.folder === 'institucional';
       if (!isOwner && !isShared) return false;
     }
 
-    // 3. Auditoría por docente (Rectoría / Admin)
-    if (isPrivileged && currentTeacher !== 'all') {
+    // 3. Auditoría por docente (Rectoría / Admin / Coordinación)
+    if (canAuditDocs && currentTeacher !== 'all') {
       if (doc.teacher !== currentTeacher) return false;
     }
 
