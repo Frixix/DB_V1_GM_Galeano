@@ -38,11 +38,11 @@ export default function ModulesDashboard({
 
   // Manejo de clic en módulos con control de fase de desarrollo
   const handleModuleClick = (moduleId) => {
-    if (moduleId === 'reemplazos' && !isAdmin) {
+    if ((moduleId === 'grades' || moduleId === 'reemplazos') && !isAdmin) {
       setDevModalInfo({
         moduleId,
-        moduleName: 'Novedades & Reemplazos Docentes',
-        icon: 'ph-bold ph-arrows-clockwise'
+        moduleName: moduleId === 'grades' ? 'Notas y Calificaciones' : 'Novedades & Reemplazos Docentes',
+        icon: moduleId === 'grades' ? 'ph-bold ph-chart-line-up' : 'ph-bold ph-arrows-clockwise'
       });
       return;
     }
@@ -93,11 +93,14 @@ export default function ModulesDashboard({
                 type="button"
                 className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('grades')}
-                title="Acceder a Notas y Calificaciones (SIEE)"
+                title={isAdmin ? "Acceder a Notas y Calificaciones (Pruebas Admin)" : "Módulo en desarrollo · Fase N° 1"}
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-chart-line-up"></i>
                 <span className="portal-nav-text">Notas y Calificaciones</span>
+                {!isAdmin && (
+                  <span className="portal-sidebar-dev-tag">En desarrollo</span>
+                )}
               </button>
 
               {/* Módulo 3: Novedades & Reemplazos Docentes */}
@@ -210,7 +213,7 @@ export default function ModulesDashboard({
               onClick={() => handleModuleClick('grades')}
               role="button"
               tabIndex={0}
-              title="Acceder a Notas y Calificaciones (SIEE)"
+              title={isAdmin ? "Acceder a Notas y Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -222,7 +225,11 @@ export default function ModulesDashboard({
                 <div className="portal-card-icon-container">
                   <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
                 </div>
-                <span className="portal-badge-amber">Activo Institucional</span>
+                {isAdmin ? (
+                  <span className="portal-badge-amber">Activo Institucional</span>
+                ) : (
+                  <span className="portal-badge-amber">En desarrollo · Fase N° 1</span>
+                )}
               </div>
 
               <div className="portal-card-body">
@@ -231,7 +238,13 @@ export default function ModulesDashboard({
               </div>
 
               <div className="portal-card-footer">
-                <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
+                {isAdmin ? (
+                  <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
+                ) : (
+                  <span className="portal-link-label-dev">
+                    <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
+                  </span>
+                )}
               </div>
             </article>
 
@@ -437,7 +450,7 @@ export default function ModulesDashboard({
               </span>
               <h3>Módulo en Desarrollo</h3>
               <p className="dev-modal-intro">
-                Estimada <strong>{currentUser?.name || 'Rectora'}</strong> y comunidad educativa:
+                Estimada <strong>{currentUser?.name || 'Jessica'}</strong> y comunidad educativa:
               </p>
               <p className="dev-modal-thankyou">
                 ¡Queremos darle las <strong>gracias por probar la Fase N° 1</strong> de este módulo! Su acompañamiento y validación durante este período han sido fundamentales para consolidar la arquitectura de notas y reemplazos de la institución.

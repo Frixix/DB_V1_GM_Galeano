@@ -140,7 +140,7 @@ export default function App() {
   // solo el Administrador puede interactuar con Notas y Calificaciones y Novedades & Reemplazos
   useEffect(() => {
     const isAdmin = currentUser && currentUser.role === 'admin';
-    if (!isAdmin && activeModule === 'reemplazos') {
+    if (!isAdmin && (activeModule === 'grades' || activeModule === 'reemplazos')) {
       setActiveModule(null);
     }
   }, [currentUser, activeModule]);
