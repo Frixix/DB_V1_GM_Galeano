@@ -525,7 +525,7 @@ export default function Login({ onLogin }) {
             ======================================================== */}
         <div className="auth-floating-trial-pill">
           <span className="auth-trial-pulse-dot"></span>
-          <span>FASE DE PRUEBA · 2 GB</span>
+          <span>VERSIÓN INSTITUCIONAL · 2026</span>
         </div>
       </section>
     </div>

@@ -77,30 +77,30 @@ export default function ModulesDashboard({
           <div className="portal-sidebar-section">
             <p className="portal-sidebar-label">MÓDULOS DEL SISTEMA</p>
             <nav className="portal-sidebar-nav">
-              {/* Módulo 1 Activo: Gestión Documental */}
-              <button 
-                type="button"
-                className={`portal-nav-item portal-nav-item-docs ${selectedNavModule === 'docs' ? 'active' : ''}`}
-                onClick={() => handleModuleClick('docs')}
-                title="Acceder a Gestión Documental y Archivo Central"
-              >
-                <i className="ph-bold ph-folder-notch-open"></i>
-                <span className="portal-nav-text">Gestión Documental</span>
-              </button>
-
-              {/* Módulo 2: Notas y Calificaciones */}
+              {/* Módulo 1 (Destacado SIEE): Notas y Calificaciones */}
               <button 
                 type="button"
                 className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('grades')}
-                title={isAdmin ? "Acceder a Notas y Calificaciones (Pruebas Admin)" : "Módulo en desarrollo · Fase N° 1"}
-                style={{ marginTop: '0.25rem' }}
+                title={isAdmin ? "Acceder a Notas y Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
               >
                 <i className="ph-bold ph-chart-line-up"></i>
                 <span className="portal-nav-text">Notas y Calificaciones</span>
                 {!isAdmin && (
                   <span className="portal-sidebar-dev-tag">En desarrollo</span>
                 )}
+              </button>
+
+              {/* Módulo 2 Activo: Gestión Documental */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-docs ${selectedNavModule === 'docs' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('docs')}
+                title="Acceder a Gestión Documental y Archivo Central"
+                style={{ marginTop: '0.25rem' }}
+              >
+                <i className="ph-bold ph-folder-notch-open"></i>
+                <span className="portal-nav-text">Gestión Documental</span>
               </button>
 
               {/* Módulo 3: Novedades & Reemplazos Docentes */}
@@ -177,37 +177,7 @@ export default function ModulesDashboard({
 
           {/* Cuadrícula de Tarjetas de Módulos */}
           <section className="portal-modules-grid">
-            {/* MÓDULO 1: ACTIVO PARA TODOS (Gestión Documental y Archivo Central) */}
-            <article 
-              className="portal-module-card portal-module-card-active"
-              onClick={() => handleModuleClick('docs')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('docs');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container">
-                  <i className="ph-bold ph-folder-notch-open" style={{ fontSize: '1.75rem', color: '#064e3b' }}></i>
-                </div>
-                <span className="portal-badge-active">Activo</span>
-              </div>
-
-              <div className="portal-card-body">
-                <h3>Gestión Documental y Archivo Central</h3>
-                <p>Módulo central para radicación, resguardo, consulta y auditoría de circulares, planillas, planeaciones y archivos institucionales.</p>
-              </div>
-
-              <div className="portal-card-footer">
-                <span className="portal-link-label">Acceder al módulo &rarr;</span>
-              </div>
-            </article>
-
-            {/* MÓDULO 2: NOTAS Y CALIFICACIONES */}
+            {/* MÓDULO 1 (DESTACADO SIEE - PRIMERA POSICIÓN): NOTAS Y CALIFICACIONES */}
             <article 
               className="portal-module-card portal-module-card-amber"
               onClick={() => handleModuleClick('grades')}
@@ -245,6 +215,36 @@ export default function ModulesDashboard({
                     <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
                   </span>
                 )}
+              </div>
+            </article>
+
+            {/* MÓDULO 2: GESTIÓN DOCUMENTAL Y ARCHIVO CENTRAL */}
+            <article 
+              className="portal-module-card portal-module-card-active"
+              onClick={() => handleModuleClick('docs')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('docs');
+                }
+              }}
+            >
+              <div className="portal-card-header-bar">
+                <div className="portal-card-icon-container">
+                  <i className="ph-bold ph-folder-notch-open" style={{ fontSize: '1.75rem', color: '#064e3b' }}></i>
+                </div>
+                <span className="portal-badge-active">Activo</span>
+              </div>
+
+              <div className="portal-card-body">
+                <h3>Gestión Documental y Archivo Central</h3>
+                <p>Módulo central para radicación, resguardo, consulta y auditoría de circulares, planeaciones curriculares, guías y archivos institucionales.</p>
+              </div>
+
+              <div className="portal-card-footer">
+                <span className="portal-link-label">Acceder al módulo &rarr;</span>
               </div>
             </article>
 

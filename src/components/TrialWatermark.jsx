@@ -32,8 +32,8 @@ export default function TrialWatermark({ documents = [] }) {
         <div className="trial-watermark-popover">
           <div className="popover-header">
             <div className="popover-title">
-              <i className="ph-bold ph-flask"></i>
-              <span>Fase de Prueba</span>
+              <i className="ph-bold ph-shield-check"></i>
+              <span>Versión Institucional</span>
             </div>
             <button 
               type="button" 
@@ -65,11 +65,11 @@ export default function TrialWatermark({ documents = [] }) {
           <p className="popover-desc">
             {isFull ? (
               <span style={{ color: '#b91c1c', fontWeight: 600 }}>
-                ⚠️ Se ha alcanzado el límite de 3 GB asignado para la fase de prueba. Contacte al administrador del sistema.
+                ⚠️ Se ha alcanzado la cuota de 3 GB asignada para esta instalación institucional. Contacte a la administración del sistema.
               </span>
             ) : (
               <span>
-                Esta instalación opera actualmente en <strong>fase de prueba</strong> con una cuota asignada de hasta <strong>3 GB</strong> de almacenamiento institucional.
+                Esta instalación opera bajo <strong>Versión Institucional</strong> con una cuota asignada de hasta <strong>3 GB</strong> de almacenamiento en la nube.
               </span>
             )}
           </p>
@@ -80,7 +80,7 @@ export default function TrialWatermark({ documents = [] }) {
       <div 
         className={`trial-watermark-pill ${isFull ? 'watermark-full' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
-        title="Fase de Prueba Activa · Límite de 3 GB (Clic para ver estado)"
+        title="Versión Institucional Activa · 3 GB Asignados (Clic para ver estado)"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -91,7 +91,7 @@ export default function TrialWatermark({ documents = [] }) {
         }}
       >
         <span className={`watermark-dot ${isFull ? 'dot-full' : ''}`}></span>
-        <span className="watermark-text">Fase de prueba</span>
+        <span className="watermark-text">Versión Institucional</span>
       </div>
     </div>
   );

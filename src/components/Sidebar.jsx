@@ -398,7 +398,7 @@ export default function Sidebar({
             <span>Almacenamiento</span>
           </div>
           <span className={`storage-plan-pill ${isStorageFull ? 'full' : (isStorageNearFull ? 'warning' : '')}`}>
-            {isStorageFull ? '3 GB Lleno' : 'Fase de Prueba'}
+            {isStorageFull ? '3 GB Lleno' : 'Versión Institucional'}
           </span>
         </div>
 
@@ -421,15 +421,15 @@ export default function Sidebar({
               <strong>Capacidad Agotada (3 GB)</strong>
             </div>
             <p>
-              Has alcanzado el límite de 3 GB de la <strong>fase de prueba</strong>. Para continuar almacenando documentos, contacte al administrador.
+              Has alcanzado el límite de 3 GB de la <strong>cuota institucional</strong>. Para continuar almacenando documentos, contacte al administrador.
             </p>
           </div>
         ) : (
           <p className="summary-reminder">
             {isStorageNearFull ? (
-              <>⚠️ <strong>Cerca del límite:</strong> 85%+ de capacidad utilizada de los 3 GB de prueba.</>
+              <>⚠️ <strong>Cerca del límite:</strong> 85%+ de capacidad utilizada de los 3 GB institucionales.</>
             ) : (
-              <>Fase de prueba: <strong>3 GB asignados</strong> para evaluación institucional.</>
+              <>Plan Institucional: <strong>3 GB asignados</strong> para gestión académica.</>
             )}
           </p>
         )}
