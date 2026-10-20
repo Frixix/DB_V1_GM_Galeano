@@ -276,44 +276,80 @@ export default function Login({ onLogin }) {
             </p>
           </div>
 
-          {/* Bottom Footer: Social proof / Connected staff */}
-          <div className="auth-social-proof">
+          {/* Bottom Footer: Social proof / Connected staff (Tarjeta Glassmorphism Premium) */}
+          <div className="auth-social-card auth-social-proof">
             <div className="auth-avatar-stack">
-              <div className="auth-stack-avatar" title="Jessica • Docente Lengua Castellana" style={{ backgroundColor: '#7c3aed' }}>
-                <img 
-                  src="/images/avatars/jessica.svg" 
-                  alt="Jessica" 
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>J</span>
+              <div className="auth-stack-avatar" style={{ backgroundColor: '#7c3aed' }}>
+                <div className="auth-stack-avatar-inner">
+                  <img 
+                    src="/images/avatars/jessica.svg" 
+                    alt="Jessica" 
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <span className="auth-avatar-initial">J</span>
+                </div>
+                <span className="auth-avatar-tooltip">Jessica • Español</span>
               </div>
-              <div className="auth-stack-avatar" title="Claudia • Rectora Institucional" style={{ backgroundColor: '#047857' }}>
-                <img 
-                  src="/images/avatars/rectora.svg" 
-                  alt="Rectora" 
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-                <span style={{ fontSize: '0.75rem' }}>👑</span>
+
+              <div className="auth-stack-avatar" style={{ backgroundColor: '#047857' }}>
+                <div className="auth-stack-avatar-inner">
+                  <img 
+                    src="/images/avatars/rectora.svg" 
+                    alt="Claudia (Rectora)" 
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <span className="auth-avatar-initial">👑</span>
+                </div>
+                <span className="auth-avatar-tooltip">Claudia • Rectora</span>
               </div>
-              <div className="auth-stack-avatar" title="Yuri • Docente Ciencias Naturales y Sociales" style={{ backgroundColor: '#059669' }}>
-                <img 
-                  src="/images/avatars/yuri.svg" 
-                  alt="Yuri" 
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>Y</span>
+
+              <div className="auth-stack-avatar" style={{ backgroundColor: '#059669' }}>
+                <div className="auth-stack-avatar-inner">
+                  <img 
+                    src="/images/avatars/yuri.svg" 
+                    alt="Yuri" 
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <span className="auth-avatar-initial">Y</span>
+                </div>
+                <span className="auth-avatar-tooltip">Yuri • Ciencias</span>
               </div>
-              <div className="auth-stack-avatar" title="Elcy • Docente Inglés" style={{ backgroundColor: '#1d4ed8' }}>
-                <img 
-                  src="/images/avatars/elcy.svg" 
-                  alt="Elcy" 
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>E</span>
+
+              <div className="auth-stack-avatar" style={{ backgroundColor: '#1d4ed8' }}>
+                <div className="auth-stack-avatar-inner">
+                  <img 
+                    src="/images/avatars/elcy.svg" 
+                    alt="Elcy" 
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <span className="auth-avatar-initial">E</span>
+                </div>
+                <span className="auth-avatar-tooltip">Elcy • Inglés</span>
               </div>
-              <div className="auth-stack-avatar auth-stack-more">+12</div>
+
+              <div className="auth-stack-avatar auth-stack-more">
+                <div className="auth-stack-avatar-inner">
+                  <span>+12</span>
+                </div>
+                <span className="auth-avatar-tooltip">Planta docente activa</span>
+              </div>
             </div>
-            <span className="auth-social-label">Personal conectado en la plataforma</span>
+
+            <div className="auth-social-divider" aria-hidden="true"></div>
+
+            <div className="auth-social-text">
+              <div className="auth-social-title-row">
+                <span className="auth-live-pulse-wrapper" title="Conexión en tiempo real activa">
+                  <span className="auth-live-pulse-ring"></span>
+                  <span className="auth-live-pulse-core"></span>
+                </span>
+                <span className="auth-social-title">Personal activo en la plataforma</span>
+                <span className="auth-social-badge">En vivo</span>
+              </div>
+              <span className="auth-social-subtitle">
+                Equipo docente y directivo sincronizado
+              </span>
+            </div>
           </div>
         </div>
       </section>
