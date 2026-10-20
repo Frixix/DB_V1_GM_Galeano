@@ -165,23 +165,23 @@
 .grades-sidebar-period-btn:hover {
   background-color: #f8fafc;
   border-color: #cbd5e1;
-  color: #064e3b;
+  color: #78350f;
 }
 
 .grades-sidebar-period-btn:hover i {
-  color: #10b981;
+  color: #b45309;
   transform: scale(1.15);
 }
 
 .grades-sidebar-period-btn.active {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #064e3b !important;
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
   font-weight: 700 !important;
 }
 
 .grades-sidebar-period-btn.active i {
-  color: #059669 !important;
+  color: #b45309 !important;
 }
 
 /* Base de Botones de Sábanas y Carpetas en Sidebar */
@@ -213,18 +213,18 @@
   transition: color 0.18s ease, transform 0.18s ease;
 }
 
-/* 1. Sábana General Consolidada (Pastel Esmeralda SIEE) */
+/* 1. Sábana General Consolidada (Pastel Ámbar SIEE representativo de Notas y Calificaciones) */
 .grades-sidebar .folder-btn.folder-consolidada:hover i,
 .grades-sidebar .folder-btn.folder-consolidada:active i,
 .grades-sidebar .folder-btn.folder-consolidada.active i {
-  color: #059669 !important;
+  color: #b45309 !important;
   transform: scale(1.15);
 }
 .grades-sidebar .folder-btn.folder-consolidada:active,
 .grades-sidebar .folder-btn.folder-consolidada.active {
-  background-color: #ecfdf5 !important;
-  color: #064e3b !important;
-  border-color: #a7f3d0 !important;
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fde68a !important;
   font-weight: 700 !important;
 }
 
@@ -422,7 +422,7 @@
   overflow: hidden;
 }
 
-/* Borde superior de estrictamente 2px en verde esmeralda institucional */
+/* Borde superior de estrictamente 2px en ámbar institucional SIEE */
 .grades-banner-card::before {
   content: "";
   position: absolute;
@@ -430,7 +430,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #10b981;
+  background-color: #b45309;
 }
 
 .grades-banner-info {
@@ -450,7 +450,7 @@
 .grades-banner-info h2 {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #064e3b;
+  color: #78350f;
   margin: 0;
   display: flex;
   align-items: center;
@@ -459,7 +459,7 @@
 }
 
 .grades-banner-info h2 i {
-  color: #10b981;
+  color: #b45309;
   font-size: 1.45rem;
 }
 
@@ -479,9 +479,9 @@
 }
 
 .grades-role-mode-pill.mode-consolidada {
-  background-color: #ecfdf5;
-  color: #064e3b;
-  border-color: #6ee7b7;
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
   font-weight: 800;
 }
 
@@ -675,20 +675,21 @@
 }
 
 .grades-period-pill:hover i {
-  color: #10b981;
+  color: #b45309;
+  transform: scale(1.15);
 }
 
 .grades-period-pill.active,
 .grades-period-pill:active {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #064e3b !important;
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
   font-weight: 700;
 }
 
 .grades-period-pill.active i,
 .grades-period-pill:active i {
-  color: #059669 !important;
+  color: #b45309 !important;
 }
 
 /* ==========================================================================
@@ -1210,21 +1211,21 @@
   font-weight: 700;
   border-radius: 8px;
   border: none;
-  background-color: #064e3b;
+  background-color: #b45309;
   color: #ffffff;
   cursor: pointer;
   transition: all 0.18s ease;
-  box-shadow: 0 2px 5px rgba(6, 78, 59, 0.2);
+  box-shadow: 0 2px 5px rgba(180, 83, 9, 0.2);
 }
 
 .grades-btn-primary:hover {
-  background-color: #022c22;
+  background-color: #92400e;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(6, 78, 59, 0.3);
+  box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);
 }
 
 .grades-btn-primary.btn-view-only {
-  background-color: #047857;
+  background-color: #d97706;
   cursor: default;
 }
 
@@ -1966,13 +1967,13 @@
     color: #10b981 !important;
   }
   .grades-btn-secondary i {
-    color: #10b981 !important;
+    color: #b45309 !important;
   }
   .grades-period-pill i {
-    color: #10b981 !important;
+    color: #b45309 !important;
   }
   .btn-header-subject-jump i {
-    color: #10b981 !important;
+    color: #b45309 !important;
   }
   .grades-sidebar .teacher-btn i {
     color: #10b981 !important;
@@ -1981,10 +1982,10 @@
     color: #d97706 !important;
   }
   .grades-sidebar-period-btn i {
-    color: #10b981 !important;
+    color: #b45309 !important;
   }
   .grades-sidebar .folder-btn.folder-consolidada i {
-    color: #059669 !important;
+    color: #b45309 !important;
   }
   .grades-sidebar .folder-btn.folder-subject-lengua i {
     color: #1d4ed8 !important;

@@ -206,7 +206,7 @@ export default function ModulesDashboard({
 
             {/* MÓDULO 2: NOTAS Y CALIFICACIONES */}
             <article 
-              className="portal-module-card portal-module-card-emerald"
+              className="portal-module-card portal-module-card-amber"
               onClick={() => handleModuleClick('grades')}
               role="button"
               tabIndex={0}
@@ -220,9 +220,9 @@ export default function ModulesDashboard({
             >
               <div className="portal-card-header-bar">
                 <div className="portal-card-icon-container">
-                  <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#059669' }}></i>
+                  <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
                 </div>
-                <span className="portal-badge-green">Activo Institucional</span>
+                <span className="portal-badge-amber">Activo Institucional</span>
               </div>
 
               <div className="portal-card-body">
@@ -231,7 +231,7 @@ export default function ModulesDashboard({
               </div>
 
               <div className="portal-card-footer">
-                <span className="portal-link-label-green">Acceder al módulo &rarr;</span>
+                <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
               </div>
             </article>
 

@@ -440,7 +440,7 @@ export default function GradesSidebar({
             <i className="ph-bold ph-files"></i>
             <span>{isPrivileged ? `Sábanas • ${selectedGrade}` : `Sábanas • Mi Grado (${selectedGrade})`}</span>
           </div>
-          <span style={{ fontSize: '0.65rem', color: '#059669', fontWeight: 700 }}>
+          <span style={{ fontSize: '0.65rem', color: '#b45309', fontWeight: 700 }}>
             {availableSubjects.length + 1}
           </span>
         </div>
@@ -457,7 +457,7 @@ export default function GradesSidebar({
               <i className="ph-bold ph-chart-bar"></i>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: activeSheetType === 'consolidated' ? 700 : 600 }}>Sábana General</span>
-                <span style={{ fontSize: '0.68rem', color: activeSheetType === 'consolidated' ? '#064e3b' : '#64748b' }}>Consolidado de Grado</span>
+                <span style={{ fontSize: '0.68rem', color: activeSheetType === 'consolidated' ? '#92400e' : '#64748b' }}>Consolidado de Grado</span>
               </div>
             </div>
           </button>
@@ -510,7 +510,7 @@ export default function GradesSidebar({
             <i className="ph-bold ph-scales"></i>
             <span>Ponderación SIEE</span>
           </div>
-          <span className="storage-plan-pill" style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}>
+          <span className="storage-plan-pill" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
             100%
           </span>
         </div>

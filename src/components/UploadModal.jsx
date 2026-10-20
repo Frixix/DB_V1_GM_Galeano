@@ -18,7 +18,7 @@ export default function UploadModal({
 
   const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  const defaultFolder = (initialFolder && initialFolder !== 'all' && initialFolder !== 'publico')
+  const defaultFolder = (initialFolder && initialFolder !== 'all' && initialFolder !== 'publico' && initialFolder !== 'calificaciones')
     ? initialFolder
     : (isPrivileged ? 'institucional' : 'planeaciones');
   const isInst = defaultFolder === 'institucional';
@@ -265,7 +265,6 @@ export default function UploadModal({
                 ) : (
                   <>
                     <option value="planeaciones">Planeaciones</option>
-                    <option value="calificaciones">Planillas de Notas</option>
                     <option value="talleres">Guías & Talleres</option>
                     <option value="observador">Observador & Actas</option>
                     {isPrivileged && <option value="institucional">Institucional & Circulares</option>}

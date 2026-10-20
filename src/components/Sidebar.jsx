@@ -378,14 +378,6 @@ export default function Sidebar({
           </button>
 
           <button 
-            className={`folder-btn folder-calificaciones ${currentFolder === 'calificaciones' ? 'active' : ''}`}
-            onClick={() => onFolderSelect('calificaciones')}
-          >
-            <i className="ph-bold ph-table"></i>
-            <span>Planillas de Notas</span>
-          </button>
-
-          <button 
             className={`folder-btn folder-talleres ${currentFolder === 'talleres' ? 'active' : ''}`}
             onClick={() => onFolderSelect('talleres')}
           >
