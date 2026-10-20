@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import PortalNavbar from './PortalNavbar';
 import FinalExamsSidebar from './FinalExamsSidebar';
-import EvaluationCalendarModal from './EvaluationCalendarModal';
-import finalExamsService from '../services/finalExamsService';
+import finalExamsService, { DEFAULT_DEADLINES } from '../services/finalExamsService';
 import { getUserAvatar } from '../services/avatarService';
+import { STUDENTS_BY_GRADE, TEACHER_CURRICULUM_ASSIGNMENTS } from '../data/gradesTreeData';
 import './FinalExamsModule.css';
 
 // Helper para iconos temáticos de materias
@@ -12,15 +12,15 @@ const getSubjectIcon = (subj) => {
   const s = subj.toLowerCase();
   if (s.includes('lengua') || s.includes('español')) return 'ph-book-open';
   if (s.includes('mate')) return 'ph-calculator';
-  if (s.includes('natural')) return 'ph-leaf';
-  if (s.includes('social')) return 'ph-globe';
+  if (s.includes('natural') || s.includes('biolog') || s.includes('cienc')) return 'ph-leaf';
+  if (s.includes('social') || s.includes('geograf') || s.includes('histor')) return 'ph-globe';
   if (s.includes('inglés') || s.includes('ingles')) return 'ph-translate';
-  if (s.includes('art')) return 'ph-palette';
-  if (s.includes('física') || s.includes('fisica')) return 'ph-barbell';
+  if (s.includes('art') || s.includes('dibujo')) return 'ph-palette';
+  if (s.includes('física') || s.includes('fisica') || s.includes('deporte')) return 'ph-barbell';
   if (s.includes('ética') || s.includes('etica') || s.includes('valor')) return 'ph-heart';
-  if (s.includes('tecno') || s.includes('inform')) return 'ph-laptop';
+  if (s.includes('tecno') || s.includes('inform') || s.includes('sistem')) return 'ph-laptop';
   if (s.includes('relig')) return 'ph-cross';
-  return 'ph-book-bookmark';
+  return 'ph-graduation-cap';
 };
 
 export default function FinalExamsModule({
@@ -42,220 +42,180 @@ export default function FinalExamsModule({
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState('all');
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [curriculumTick, setCurriculumTick] = useState(0);
 
+  // Escuchar actualizaciones globales de evaluaciones
   useEffect(() => {
     const handleUpdate = () => {
-      setCurriculumTick(t => t + 1);
+      setCurriculumTick((t) => t + 1);
     };
-    window.addEventListener('gmg_final_exams_updated', handleUpdate);
-    return () => window.removeEventListener('gmg_final_exams_updated', handleUpdate);
+    window.addEventListener('gmg_evaluaciones_updated', handleUpdate);
+    return () => window.removeEventListener('gmg_evaluaciones_updated', handleUpdate);
   }, []);
 
-  const availableInstances = useMemo(() => finalExamsService.getInstances(), []);
+  const availablePeriods = useMemo(() => finalExamsService.getPeriods(), []);
   const availableGrades = useMemo(() => {
     return finalExamsService.getGradesForUser(currentUser);
   }, [currentUser, curriculumTick]);
 
-  const [selectedYear, setSelectedYear] = useState('2026');
-  const [selectedInstance, setSelectedInstance] = useState(availableInstances[0] || 'Convocatoria Ordinaria Final (100%)');
+  const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
   const [selectedGrade, setSelectedGrade] = useState(availableGrades[0] || '1° Primaria');
-  const [activeSheetType, setActiveSheetType] = useState('subject');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'uploaded' | 'pending'
+  const [search, setSearch] = useState('');
+  const [currentView, setCurrentView] = useState('cards'); // 'cards' | 'table'
 
-  const availableSubjects = useMemo(() => {
-    return finalExamsService.getSubjectsForGradeAndUser(selectedGrade, currentUser);
-  }, [selectedGrade, currentUser, curriculumTick]);
-
-  const [selectedSubject, setSelectedSubject] = useState(availableSubjects[0] || 'Lengua Castellana');
+  // Modales
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [subjectForUpload, setSubjectForUpload] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedItemForView, setSelectedItemForView] = useState(null);
+  const [isDeadlinesModalOpen, setIsDeadlinesModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  const handleTeacherSelect = (teacherName) => {
-    setSelectedTeacher(teacherName);
-    if (teacherName !== 'all') {
-      const teacherGradeMap = {
-        'Profe 1': 'Transición',
-        'Jessica': '1° Primaria',
-        'Yuri': '2° Primaria',
-        'Profe 2': '3° Primaria',
-        'Elcy': '4° Primaria',
-        'Profe 3': '5° Primaria'
-      };
-      const targetGrade = teacherGradeMap[teacherName];
-      if (targetGrade && availableGrades.includes(targetGrade)) {
-        setSelectedGrade(targetGrade);
-        setActiveSheetType('subject');
-      }
-    }
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Sincronizar grado inicial si cambia usuario
   useEffect(() => {
     if (!availableGrades.includes(selectedGrade)) {
       setSelectedGrade(availableGrades[0] || '1° Primaria');
     }
   }, [availableGrades, selectedGrade]);
 
-  useEffect(() => {
-    if (!availableSubjects.includes(selectedSubject)) {
-      setSelectedSubject(availableSubjects[0] || 'Lengua Castellana');
+  // Obtener datos consolidados de control de impresión para el grado y periodo
+  const printControlData = useMemo(() => {
+    return finalExamsService.getPrintControlForGrade(selectedPeriod, selectedGrade);
+  }, [selectedPeriod, selectedGrade, curriculumTick]);
+
+  const { items = [], stats = {} } = printControlData;
+
+  // Filtrado reactivo de materias
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      // Filtro por docente seleccionado
+      if (selectedTeacher !== 'all') {
+        if (item.teacher !== selectedTeacher) {
+          return false;
+        }
+      }
+
+      // Filtro por estado de subida
+      if (statusFilter === 'uploaded' && !item.uploaded) return false;
+      if (statusFilter === 'pending' && item.uploaded) return false;
+
+      // Filtro por texto de búsqueda
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const matchSubj = item.subject.toLowerCase().includes(q);
+        const matchTeacher = item.teacher.toLowerCase().includes(q);
+        const matchFile = item.fileName ? item.fileName.toLowerCase().includes(q) : false;
+        if (!matchSubj && !matchTeacher && !matchFile) return false;
+      }
+
+      return true;
+    });
+  }, [items, selectedTeacher, statusFilter, search]);
+
+  // Manejador para abrir modal de subida para una materia específica
+  const handleOpenUpload = (subj = null) => {
+    setSubjectForUpload(subj);
+    setIsUploadModalOpen(true);
+  };
+
+  // Manejador para ver detalle de la evaluación
+  const handleViewItem = (item) => {
+    setSelectedItemForView(item);
+    setIsViewModalOpen(true);
+  };
+
+  // Manejador para descargar archivo de examen institucional
+  const handleDownloadExam = (item) => {
+    if (item.downloadUrl) {
+      const a = document.createElement('a');
+      a.href = item.downloadUrl;
+      a.download = item.fileName || `Evaluacion_${item.subject}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
     }
-  }, [availableSubjects, selectedSubject]);
 
-  const branchData = useMemo(() => {
-    return finalExamsService.getBranch(selectedYear, selectedInstance, selectedGrade, selectedSubject);
-  }, [selectedYear, selectedInstance, selectedGrade, selectedSubject, curriculumTick]);
+    const content = `================================================================================
+                    GIMNASIO MARTÍN GALEANO
+               Sistema Institucional de Básica Primaria
+        REPOSITORIO DE EVALUACIONES FINALES PARA IMPRESIÓN
+================================================================================
 
-  const [students, setStudents] = useState(branchData.students || []);
+Radicado Oficial:   ${item.id || 'EVAL-BORRADOR'}
+Materia / Asignatura:${item.subject}
+Grado Escolar:      ${selectedGrade}
+Periodo Académico:  ${selectedPeriod}
+Docente Responsable:${item.teacher}
+Estudiantes / Copias:${item.studentCount} copias requeridas
+Fecha de Carga:     ${item.uploadedAt || '2026-03-24 14:00'}
+Responsable Carga:  ${item.uploadedBy || item.teacher}
+Estado Fotocopiado: ${item.copiesStatus?.toUpperCase() || 'APROBADO PARA IMPRESIÓN'}
 
-  useEffect(() => {
-    const freshBranch = finalExamsService.getBranch(selectedYear, selectedInstance, selectedGrade, selectedSubject);
-    setStudents(freshBranch.students || []);
-  }, [selectedYear, selectedInstance, selectedGrade, selectedSubject, curriculumTick]);
+--------------------------------------------------------------------------------
+INSTRUCCIONES DE IMPRESIÓN & REPRODUCCIÓN:
+${item.notes || 'Impresión en tamaño carta, a doble cara, grapado en esquina superior izquierda.'}
+--------------------------------------------------------------------------------
 
-  const consolidatedData = useMemo(() => {
-    return finalExamsService.getConsolidatedGradeSheet(selectedYear, selectedInstance, selectedGrade);
-  }, [selectedYear, selectedInstance, selectedGrade, curriculumTick, branchData, students]);
+[CONTENIDO COMPLETO DE LA EVALUACIÓN ACUMULATIVA]
+El presente instrumento de evaluación final ha sido revisado conforme al SIEE
+institucional y remitido a Coordinación y Secretaría para fotocopiado y custodia.
 
-  const gradeDirector = useMemo(() => {
-    return finalExamsService.getGradeDirector(selectedGrade);
-  }, [selectedGrade, curriculumTick]);
+Gimnasio Martín Galeano - Formando en Valores y Excelencia
+================================================================================`;
 
-  const teacherInfo = useMemo(() => {
-    return finalExamsService.getTeacherAssignment(selectedGrade, selectedSubject);
-  }, [selectedGrade, selectedSubject, curriculumTick]);
-
-  const isViewingAsGradeDirector = useMemo(() => {
-    return finalExamsService.isViewingAsGradeDirector(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
-
-  const canEditScores = useMemo(() => {
-    return finalExamsService.canEditScores(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
-
-  const canEditFeedback = useMemo(() => {
-    return finalExamsService.canEditFeedback(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
-
-  const canEditDirective = useMemo(() => {
-    return finalExamsService.canEditDirectiveSuggestion(currentUser);
-  }, [currentUser]);
-
-  const canEditCoordinacion = useMemo(() => {
-    return finalExamsService.canEditCoordinacionObservation(currentUser);
-  }, [currentUser]);
-
-  const canManageCalendar = useMemo(() => {
-    return finalExamsService.canManageCalendar(currentUser);
-  }, [currentUser]);
-
-  // Manejo de notas numéricas del examen final
-  const handleScoreChange = (id, field, value) => {
-    if (!canEditScores) return;
-
-    let num = parseFloat(value);
-    if (isNaN(num)) num = '';
-    else if (num > 5.0) num = 5.0;
-    else if (num < 0) num = 0;
-
-    setStudents(prev => prev.map(student => {
-      if (student.id === id) {
-        const updated = { ...student, [field]: num };
-        const t = Number(updated.notaTeorico) || 0;
-        const p = Number(updated.notaPractico) || 0;
-        const a = Number(updated.notaAcumulativo) || 0;
-        const def = Number(((t * 0.4) + (p * 0.4) + (a * 0.2)).toFixed(1));
-
-        let est = 'Promovido';
-        if (def < 3.0) est = 'En Nivelación';
-        if (def < 2.0) est = 'Reprobado';
-
-        return {
-          ...updated,
-          definitiva: def,
-          estadoPromocion: est
-        };
-      }
-      return student;
-    }));
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.fileName ? item.fileName.replace('.pdf', '.txt') : `Evaluacion_${item.subject}_${selectedGrade}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`✓ Descargando evaluación de ${item.subject}`);
   };
 
-  const handleTeacherFeedbackChange = (id, value) => {
-    if (!canEditFeedback) return;
-    setStudents(prev => prev.map(student => {
-      if (student.id === id) {
-        return { ...student, retroalimentacionDocente: value };
+  // Manejador para eliminar evaluación
+  const handleDeleteEvaluation = (subj) => {
+    if (!window.confirm(`¿Está seguro de eliminar la evaluación de "${subj}" para el grado ${selectedGrade}?\nEsta acción permitirá subir un nuevo archivo de examen.`)) {
+      return;
+    }
+    const ok = finalExamsService.deleteEvaluation(selectedPeriod, selectedGrade, subj);
+    if (ok) {
+      showToast(`Evaluación de ${subj} eliminada correctamente`);
+      if (selectedItemForView?.subject === subj) {
+        setIsViewModalOpen(false);
       }
-      return student;
-    }));
-  };
-
-  const handleDirectiveSuggestionChange = (id, value) => {
-    if (!canEditDirective) return;
-    setStudents(prev => prev.map(student => {
-      if (student.id === id) {
-        return { ...student, sugerenciaDirectiva: value };
-      }
-      return student;
-    }));
-  };
-
-  const handleCoordinacionObservationChange = (id, value) => {
-    if (!canEditCoordinacion) return;
-    setStudents(prev => prev.map(student => {
-      if (student.id === id) {
-        return { ...student, observacionCoordinacion: value };
-      }
-      return student;
-    }));
-  };
-
-  const getDesempeno = (score) => {
-    const s = Number(score);
-    if (s >= 4.6) return { label: 'Superior', className: 'tag-pastel-superior', icon: 'ph-trophy' };
-    if (s >= 4.0) return { label: 'Alto', className: 'tag-pastel-alto', icon: 'ph-check-circle' };
-    if (s >= 3.0) return { label: 'Básico', className: 'tag-pastel-basico', icon: 'ph-check' };
-    return { label: 'Bajo', className: 'tag-pastel-bajo', icon: 'ph-warning' };
-  };
-
-  // Métricas agregadas
-  const classAverage = useMemo(() => {
-    if (!students.length) return '0.0';
-    const total = students.reduce((acc, curr) => acc + (Number(curr.definitiva) || 0), 0);
-    return (total / students.length).toFixed(1);
-  }, [students]);
-
-  const passRate = useMemo(() => {
-    if (!students.length) return 0;
-    const passed = students.filter(s => Number(s.definitiva) >= 3.0).length;
-    return Math.round((passed / students.length) * 100);
-  }, [students]);
-
-  const handleSaveAction = () => {
-    try {
-      finalExamsService.saveBranch(selectedYear, selectedInstance, selectedGrade, selectedSubject, students, currentUser);
-      
-      let msg = '✓ Evaluaciones finales guardadas y sincronizadas exitosamente.';
-      if (canEditCoordinacion && !canEditScores) {
-        msg = '✓ Observaciones de Coordinación Académica registradas en la nube.';
-      } else if (canEditDirective && !canEditScores) {
-        msg = '✓ Sugerencias de auditoría directiva registradas con éxito.';
-      }
-      setToastMessage(msg);
-      setTimeout(() => setToastMessage(null), 3800);
-    } catch (e) {
-      alert(`Error al guardar: ${e.message}`);
     }
   };
+
+  // Manejador para actualizar el estado de fotocopiado
+  const handleUpdateCopiesStatus = (subj, newStatus) => {
+    finalExamsService.updateCopiesStatus(selectedPeriod, selectedGrade, subj, newStatus);
+    showToast(`Estado de impresión actualizado a: ${newStatus}`);
+    if (selectedItemForView?.subject === subj) {
+      setSelectedItemForView((prev) => prev ? { ...prev, copiesStatus: newStatus } : null);
+    }
+  };
+
+  const deadlineInfo = stats?.deadlineInfo || DEFAULT_DEADLINES[selectedPeriod] || {};
 
   return (
-    <div className="final-exams-module-wrapper" id="finalExamsModule">
-      {/* Barra de Navegación Institucional */}
-      <PortalNavbar 
+    <div className="final-exams-module-wrapper" id="view-final-exams-module">
+      {/* Navbar Superior Unificado con Identidad Institucional */}
+      <PortalNavbar
         currentUser={currentUser}
         moduleTitle="Evaluaciones Finales"
-        moduleSubtitle="Evaluaciones Acumulativas & Cierres SIEE"
+        moduleSubtitle="Control de Entrega, Fechas Límite & Fotocopiado de Exámenes"
         onBackToModules={onBackToModules}
-        onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
@@ -265,36 +225,28 @@ export default function FinalExamsModule({
         onLogout={onLogout}
       />
 
-      {/* Layout de Panel Lateral + Contenido */}
       <div className="final-exams-body-layout">
+        {/* Sidebar Izquierda: Ver por Docente, Periodo Académico, Filtros y Progreso */}
         <div className={`sidebar-container ${isSidebarOpen ? 'mobile-open' : ''}`}>
-          <FinalExamsSidebar 
+          <FinalExamsSidebar
             currentUser={currentUser}
             selectedGrade={selectedGrade}
             onSelectGrade={(g) => {
               setSelectedGrade(g);
               setIsSidebarOpen(false);
             }}
-            selectedSubject={selectedSubject}
-            onSelectSubject={(s) => {
-              setSelectedSubject(s);
+            selectedPeriod={selectedPeriod}
+            onSelectPeriod={(p) => {
+              setSelectedPeriod(p);
               setIsSidebarOpen(false);
             }}
-            activeSheetType={activeSheetType}
-            onSelectSheetType={(t) => {
-              setActiveSheetType(t);
-              setIsSidebarOpen(false);
-            }}
-            selectedInstance={selectedInstance}
-            onSelectInstance={(i) => {
-              setSelectedInstance(i);
-              setIsSidebarOpen(false);
-            }}
+            statusFilter={statusFilter}
+            onSelectStatusFilter={(f) => setStatusFilter(f)}
             selectedTeacher={selectedTeacher}
-            onSelectTeacher={handleTeacherSelect}
+            onSelectTeacher={(t) => setSelectedTeacher(t)}
             availableGrades={availableGrades}
-            availableSubjects={availableSubjects}
-            availableInstances={availableInstances}
+            availablePeriods={availablePeriods}
+            stats={stats}
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             onOpenConnectionsModal={onOpenConnectionsModal}
@@ -307,455 +259,1063 @@ export default function FinalExamsModule({
           <div className="mobile-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
         )}
 
-        {/* Área de Contenido Principal */}
+        {/* Área Central: Cabecera, Alertas de Plazo, Controles y Tarjetas de Exámenes */}
         <main className="final-exams-content-area">
-          {/* Encabezado Superior Compacto */}
-          <section className="final-exams-header-compact">
-            <div className="final-exams-header-left">
-              <h2 className="final-exams-main-title">
-                <i className={`ph-bold ${activeSheetType === 'consolidated' ? 'ph-seal-check' : 'ph-certificate'}`}></i>
-                {activeSheetType === 'consolidated' 
-                  ? `Sábana Consolidada de Evaluación Final & Promoción • ${selectedGrade}` 
-                  : `Planilla: ${selectedSubject} • ${selectedGrade} (Examen Final)`
-                }
-              </h2>
-              <div className="final-exams-pills-row">
-                {activeSheetType === 'consolidated' ? (
-                  <span className="final-role-pill mode-consolidada">
-                    <i className="ph-bold ph-squares-four"></i>
-                    Vista de Promoción del Grado
+          {/* Banner de Cabecera del Curso y Periodo Activo */}
+          <section className="final-exams-banner-header">
+            <div className="final-banner-left">
+              <div className="final-banner-icon-box">
+                <i className="ph-bold ph-printer"></i>
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <h2 className="final-banner-title">
+                    Evaluaciones Finales • {selectedGrade}
+                  </h2>
+                  <span className="final-grade-badge">
+                    {stats?.studentCount || 0} Estudiantes Matriculados
                   </span>
-                ) : canEditScores ? (
-                  <span className="final-role-pill mode-docente">
-                    <i className="ph-bold ph-pencil-simple-line"></i>
-                    Modo Calificación Final Docente ({currentUser?.name || teacherInfo.teacherName})
-                  </span>
-                ) : isViewingAsGradeDirector ? (
-                  <span className="final-role-pill mode-director-curso">
-                    <i className="ph-bold ph-shield-star"></i>
-                    Supervisión: Dir. de Curso ({gradeDirector.teacherName})
-                  </span>
-                ) : isRectora ? (
-                  <span className="final-role-pill mode-rectora">
-                    <i className="ph-bold ph-lock-key"></i>
-                    Supervisión Directiva • Cierre SIEE
-                  </span>
-                ) : (
-                  <span className="final-role-pill mode-admin">
-                    <i className="ph-bold ph-shield-check"></i>
-                    Consola de Control & Auditoría Final
-                  </span>
-                )}
-
-                <span className="final-metric-pill" title="Promedio general actual">
-                  <i className="ph-bold ph-chart-line-up"></i> Prom: <strong>{activeSheetType === 'consolidated' ? consolidatedData.stats.gradeAverage : classAverage}</strong>
-                </span>
-                <span className="final-metric-pill" title="Porcentaje de aprobación">
-                  <i className="ph-bold ph-check-circle"></i> Aprob: <strong>{activeSheetType === 'consolidated' ? `${consolidatedData.stats.gradePassRate}%` : `${passRate}%`}</strong>
-                </span>
-                <span className="final-metric-pill" title="Estudiantes evaluados">
-                  <i className="ph-bold ph-student"></i> Alumnos: <strong>{activeSheetType === 'consolidated' ? consolidatedData.stats.totalStudents : students.length}</strong>
-                </span>
-                <span className="final-metric-pill" title="Docente titular">
-                  <i className="ph-bold ph-chalkboard-teacher"></i> {activeSheetType === 'consolidated' ? `Dir: ${gradeDirector.teacherName}` : `Docente: ${teacherInfo.teacherName}`}
-                </span>
+                </div>
+                <p className="final-banner-desc">
+                  Gestión y control de entrega de pruebas acumulativas para fotocopiado y reproducción institucional ({selectedPeriod}).
+                </p>
               </div>
             </div>
 
-            {canManageCalendar && (
-              <div className="final-exams-header-right">
-                <button 
-                  type="button" 
-                  className="btn-header-calendar-control" 
-                  onClick={() => setIsCalendarModalOpen(true)}
-                  title="Gestión de Fechas, Cierres SIEE y Habilitación de Prórrogas Extemporáneas (Control de Coordinación)"
+            <div className="final-banner-actions">
+              {isPrivileged && (
+                <button
+                  type="button"
+                  className="final-btn-secondary"
+                  onClick={() => setIsDeadlinesModalOpen(true)}
+                  title="Configurar calendario de entrega y fechas límite por periodo"
                 >
                   <i className="ph-bold ph-calendar-check"></i>
-                  <span>Fechas & Prórrogas</span>
+                  <span>Fechas Límite</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="final-btn-primary"
+                onClick={() => handleOpenUpload(null)}
+                title="Subir evaluación final para impresión"
+              >
+                <i className="ph-bold ph-upload-simple"></i>
+                <span>Subir Evaluación</span>
+              </button>
+            </div>
+          </section>
+
+          {/* Banner de Alerta de Fecha Límite de Entrega & Resumen de Fotocopiado */}
+          <section className="final-deadline-summary-card">
+            <div className="final-deadline-left">
+              <div className="final-deadline-icon">
+                <i className="ph-bold ph-clock-countdown"></i>
+              </div>
+              <div>
+                <div className="final-deadline-header-row">
+                  <span className="final-deadline-tag">PLAZO DE ENTREGA: {selectedPeriod.toUpperCase()}</span>
+                  <span className={`final-deadline-status-pill ${deadlineInfo.status || 'en_plazo'}`}>
+                    <i className="ph-bold ph-shield-check"></i>
+                    {deadlineInfo.status === 'cerrado' ? 'Periodo Cerrado' : 'En Plazo de Recepción'}
+                  </span>
+                </div>
+                <h4 className="final-deadline-heading">
+                  Fecha Límite: {deadlineInfo.deadlineDate || '27 de Marzo 2026'} a las {deadlineInfo.deliveryTime || '17:00'}
+                </h4>
+                <p className="final-deadline-instructions">
+                  {deadlineInfo.description || 'Todos los exámenes deben estar cargados antes de esta fecha para reproducción física en secretaría.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Métricas Rápidas del Grado */}
+            <div className="final-stats-chips-container">
+              <div className="final-stat-chip">
+                <span className="stat-chip-number">{stats?.uploadedCount || 0} / {stats?.totalSubjects || 0}</span>
+                <span className="stat-chip-label">Materias Subidas</span>
+              </div>
+              <div className="final-stat-chip">
+                <span className="stat-chip-number pending">{stats?.pendingCount || 0}</span>
+                <span className="stat-chip-label">Pendientes</span>
+              </div>
+              <div className="final-stat-chip">
+                <span className="stat-chip-number copies">{stats?.readyCopies || 0} / {stats?.totalCopiesNeeded || 0}</span>
+                <span className="stat-chip-label">Copias Listas</span>
+              </div>
+              <div className="final-stat-chip">
+                <span className="stat-chip-number percent">{stats?.progressPercent || 0}%</span>
+                <span className="stat-chip-label">Avance del Curso</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Barra de Controles y Filtros */}
+          <section className="final-controls-bar">
+            <div className="final-controls-left">
+              {/* Búsqueda en vivo */}
+              <div className="final-search-box">
+                <i className="ph-bold ph-magnifying-glass final-search-icon"></i>
+                <input
+                  type="text"
+                  className="final-search-input"
+                  placeholder="Buscar por materia, docente o archivo..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+
+              {/* Selector de Grado */}
+              <div className="final-filter-unit">
+                <label htmlFor="finalGradeSelect">
+                  <i className="ph-bold ph-graduation-cap"></i> Grado:
+                </label>
+                <select
+                  id="finalGradeSelect"
+                  className="final-select-control"
+                  value={selectedGrade}
+                  onChange={(e) => setSelectedGrade(e.target.value)}
+                >
+                  {availableGrades.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Selector de Estado */}
+              <div className="final-filter-unit">
+                <label htmlFor="finalStatusSelect">
+                  <i className="ph-bold ph-funnel"></i> Estado:
+                </label>
+                <select
+                  id="finalStatusSelect"
+                  className="final-select-control"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">Todas las materias ({items.length})</option>
+                  <option value="uploaded">✓ Listas para impresión ({stats?.uploadedCount || 0})</option>
+                  <option value="pending">⏳ Pendientes de subida ({stats?.pendingCount || 0})</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Alternador de Vistas: Tarjetas vs Tabla */}
+            <div className="final-view-toggle">
+              <button
+                type="button"
+                className={`final-view-btn ${currentView === 'cards' ? 'active' : ''}`}
+                onClick={() => setCurrentView('cards')}
+                title="Vista en Cuadrícula de Tarjetas"
+              >
+                <i className="ph-bold ph-squares-four"></i>
+              </button>
+              <button
+                type="button"
+                className={`final-view-btn ${currentView === 'table' ? 'active' : ''}`}
+                onClick={() => setCurrentView('table')}
+                title="Vista en Tabla Institucional"
+              >
+                <i className="ph-bold ph-table"></i>
+              </button>
+            </div>
+          </section>
+
+          {/* Cuadrícula o Tabla de Evaluaciones por Materia */}
+          <section className="final-exams-container">
+            {filteredItems.length > 0 ? (
+              currentView === 'cards' ? (
+                <div className="final-exams-grid">
+                  {filteredItems.map((item) => {
+                    const avatarUrl = getUserAvatar(item.teacherId);
+                    const canUpload = finalExamsService.canUploadForSubject(currentUser, selectedGrade, item.subject);
+                    const isOwnTeacher = currentUser && (
+                      item.teacherId === currentUser.key ||
+                      item.teacher === currentUser.name
+                    );
+
+                    return (
+                      <article
+                        key={item.subject}
+                        className={`final-subject-card ${item.uploaded ? 'is-uploaded' : 'is-pending'}`}
+                      >
+                        {/* Cabecera de la Materia */}
+                        <div className="subject-card-header">
+                          <div className="subject-icon-box">
+                            <i className={`ph-bold ${getSubjectIcon(item.subject)}`}></i>
+                          </div>
+                          <div className="subject-title-box">
+                            <h3 className="subject-title">{item.subject}</h3>
+                            <span className="subject-period-tag">{selectedPeriod}</span>
+                          </div>
+                          {item.uploaded ? (
+                            <span className="subject-status-pill uploaded" title="Evaluación cargada y lista para fotocopiado">
+                              <i className="ph-bold ph-check-circle"></i>
+                              <span>Lista para Impresión</span>
+                            </span>
+                          ) : (
+                            <span className="subject-status-pill pending" title="Examen pendiente por subir">
+                              <i className="ph-bold ph-clock"></i>
+                              <span>Pendiente</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Docente Responsable */}
+                        <div className="subject-teacher-row">
+                          <div className="teacher-avatar-box">
+                            {avatarUrl ? (
+                              <img
+                                src={avatarUrl}
+                                alt={item.teacher}
+                                className="teacher-avatar-img"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  const f = e.currentTarget.nextSibling;
+                                  if (f) f.style.display = 'inline-block';
+                                }}
+                              />
+                            ) : null}
+                            <i
+                              className="ph-bold ph-user"
+                              style={{ display: avatarUrl ? 'none' : 'inline-block' }}
+                            ></i>
+                          </div>
+                          <div className="teacher-details">
+                            <span className="teacher-label">Docente a Cargo:</span>
+                            <strong className="teacher-name">{item.teacher}</strong>
+                          </div>
+                          {isOwnTeacher && (
+                            <span className="own-teacher-badge" title="Tú estás a cargo de esta materia">
+                              Tu Asignatura
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Contenido / Estado del Archivo */}
+                        <div className="subject-card-body">
+                          {item.uploaded ? (
+                            <div className="uploaded-file-info">
+                              <div className="file-meta-row">
+                                <i className="ph-bold ph-file-pdf file-icon"></i>
+                                <div className="file-texts">
+                                  <span className="file-name" title={item.fileName}>
+                                    {item.fileName}
+                                  </span>
+                                  <span className="file-subtext">
+                                    {item.fileSize} • Subido el {item.uploadedAt}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="copies-status-box">
+                                <div className="copies-metric">
+                                  <i className="ph-bold ph-copy"></i>
+                                  <span><strong>{item.copiesNeeded}</strong> copias requeridas ({selectedGrade})</span>
+                                </div>
+                                <span className={`print-badge ${item.copiesStatus}`}>
+                                  <i className={`ph-bold ${item.copiesStatus === 'impreso' ? 'ph-printer-check' : 'ph-stamp'}`}></i>
+                                  {item.copiesStatus === 'impreso' ? 'Fotocopiado / Impreso' : 'Aprobado para Impresión'}
+                                </span>
+                              </div>
+
+                              {item.notes && (
+                                <p className="print-notes-preview">
+                                  <i className="ph-bold ph-info"></i>
+                                  <span>{item.notes}</span>
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="pending-file-notice">
+                              <div className="pending-alert-icon">
+                                <i className="ph-bold ph-warning-circle"></i>
+                              </div>
+                              <div>
+                                <p className="pending-text">
+                                  Examen final aún no cargado al repositorio.
+                                </p>
+                                <span className="pending-hint">
+                                  Requerido: {item.studentCount} copias para {selectedGrade}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Pie de Acciones */}
+                        <div className="subject-card-footer">
+                          {item.uploaded ? (
+                            <>
+                              <button
+                                type="button"
+                                className="btn-card-action btn-view-download"
+                                onClick={() => handleDownloadExam(item)}
+                                title="Descargar examen en PDF / formato de impresión"
+                              >
+                                <i className="ph-bold ph-download-simple"></i>
+                                <span>Descargar</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="btn-card-action btn-view-details"
+                                onClick={() => handleViewItem(item)}
+                                title="Ver detalles e instrucciones de fotocopiado"
+                              >
+                                <i className="ph-bold ph-eye"></i>
+                                <span>Detalles</span>
+                              </button>
+
+                              {canUpload && (
+                                <button
+                                  type="button"
+                                  className="btn-card-action btn-update"
+                                  onClick={() => handleOpenUpload(item.subject)}
+                                  title="Actualizar o sustituir el archivo de evaluación"
+                                >
+                                  <i className="ph-bold ph-arrow-clockwise"></i>
+                                  <span>Actualizar</span>
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {canUpload ? (
+                                <button
+                                  type="button"
+                                  className="btn-card-action btn-upload-now"
+                                  onClick={() => handleOpenUpload(item.subject)}
+                                  title="Cargar examen para reproducción"
+                                >
+                                  <i className="ph-bold ph-upload-simple"></i>
+                                  <span>Subir Evaluación Ahora</span>
+                                </button>
+                              ) : (
+                                <span className="card-pending-badge-text">
+                                  <i className="ph-bold ph-hourglass-high"></i>
+                                  Pendiente por {item.teacher}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Vista en Tabla Institucional */
+                <div className="final-table-wrapper">
+                  <table className="final-data-table">
+                    <thead>
+                      <tr>
+                        <th>Materia / Asignatura</th>
+                        <th>Docente a Cargo</th>
+                        <th>Estado de Subida</th>
+                        <th>Copias</th>
+                        <th>Archivo Adjunto</th>
+                        <th>Estado Impresión</th>
+                        <th style={{ textAlign: 'right' }}>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredItems.map((item) => {
+                        const avatarUrl = getUserAvatar(item.teacherId);
+                        const canUpload = finalExamsService.canUploadForSubject(currentUser, selectedGrade, item.subject);
+
+                        return (
+                          <tr key={item.subject}>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <i className={`ph-bold ${getSubjectIcon(item.subject)}`} style={{ color: '#6366f1', fontSize: '1.1rem' }}></i>
+                                <strong>{item.subject}</strong>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div className="table-teacher-avatar">
+                                  {avatarUrl ? (
+                                    <img src={avatarUrl} alt={item.teacher} className="table-avatar-img" />
+                                  ) : (
+                                    <i className="ph-bold ph-user"></i>
+                                  )}
+                                </div>
+                                <span>{item.teacher}</span>
+                              </div>
+                            </td>
+                            <td>
+                              {item.uploaded ? (
+                                <span className="table-badge uploaded">
+                                  <i className="ph-bold ph-check"></i> Subido
+                                </span>
+                              ) : (
+                                <span className="table-badge pending">
+                                  <i className="ph-bold ph-clock"></i> Pendiente
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <strong>{item.studentCount}</strong> copias
+                            </td>
+                            <td>
+                              {item.uploaded ? (
+                                <span className="table-file-name" title={item.fileName}>
+                                  {item.fileName}
+                                </span>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin archivo</span>
+                              )}
+                            </td>
+                            <td>
+                              {item.uploaded ? (
+                                <span className={`table-print-status ${item.copiesStatus}`}>
+                                  {item.copiesStatus === 'impreso' ? 'Fotocopiado' : 'Aprobado'}
+                                </span>
+                              ) : (
+                                <span style={{ color: '#94a3b8' }}>-</span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                {item.uploaded ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="table-action-btn"
+                                      onClick={() => handleDownloadExam(item)}
+                                      title="Descargar examen"
+                                    >
+                                      <i className="ph-bold ph-download-simple"></i>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="table-action-btn"
+                                      onClick={() => handleViewItem(item)}
+                                      title="Ver detalle"
+                                    >
+                                      <i className="ph-bold ph-eye"></i>
+                                    </button>
+                                    {canUpload && (
+                                      <button
+                                        type="button"
+                                        className="table-action-btn"
+                                        onClick={() => handleOpenUpload(item.subject)}
+                                        title="Actualizar archivo"
+                                      >
+                                        <i className="ph-bold ph-arrow-clockwise"></i>
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  canUpload && (
+                                    <button
+                                      type="button"
+                                      className="table-action-btn upload"
+                                      onClick={() => handleOpenUpload(item.subject)}
+                                      title="Subir evaluación"
+                                    >
+                                      <i className="ph-bold ph-upload-simple"></i>
+                                      <span>Subir</span>
+                                    </button>
+                                  )
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            ) : (
+              <div className="final-empty-state">
+                <i className="ph-bold ph-tray"></i>
+                <h4>No se encontraron materias con los filtros aplicados</h4>
+                <p>Prueba ajustando el término de búsqueda o seleccionando otro filtro de estado en la barra superior.</p>
+                <button
+                  type="button"
+                  className="final-btn-secondary"
+                  onClick={() => {
+                    setSearch('');
+                    setStatusFilter('all');
+                    setSelectedTeacher('all');
+                  }}
+                >
+                  Restablecer Filtros
                 </button>
               </div>
             )}
           </section>
-
-          {/* =====================================================================
-              VISTA 1: SÁBANA CONSOLIDADA DE EVALUACIÓN FINAL & PROMOCIÓN DEL GRADO
-              ===================================================================== */}
-          {activeSheetType === 'consolidated' ? (
-            <section className="final-sheet-card final-consolidated-sheet-card">
-              <div className="final-consolidated-stats-banner">
-                <div className="final-stat-metric-box">
-                  <span className="stat-label">Promedio Acumulado</span>
-                  <strong className="stat-val stat-val-avg">{consolidatedData.stats.gradeAverage}</strong>
-                  <span className="stat-hint">Transición a 5°</span>
-                </div>
-                <div className="final-stat-metric-box">
-                  <span className="stat-label">Índice de Promoción</span>
-                  <strong className="stat-val stat-val-pass">{consolidatedData.stats.gradePassRate}%</strong>
-                  <span className="stat-hint">{consolidatedData.stats.passedCount} de {consolidatedData.stats.totalStudents} estudiantes</span>
-                </div>
-                <div className="final-stat-metric-box">
-                  <span className="stat-label">En Nivelación / Comisión</span>
-                  <strong className="stat-val stat-val-warn">{consolidatedData.stats.failedCount}</strong>
-                  <span className="stat-hint">Pendientes por dictamen final</span>
-                </div>
-                <div className="final-stat-metric-box">
-                  <span className="stat-label">Dirección de Curso</span>
-                  <strong className="stat-val stat-val-director">{consolidatedData.stats.director.teacherName}</strong>
-                  <span className="stat-hint">Acompañamiento SIEE</span>
-                </div>
-              </div>
-
-              <div className="final-table-wrapper">
-                <table className="final-data-table final-consolidated-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '45px', textAlign: 'center' }}>Puesto</th>
-                      <th style={{ minWidth: '190px' }}>Estudiante</th>
-                      {consolidatedData.subjects.map(subj => (
-                        <th key={subj} style={{ textAlign: 'center', minWidth: '85px' }} title={`Evaluación Final de ${subj}`}>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                            <i className={`ph-bold ${getSubjectIcon(subj)}`} style={{ fontSize: '1rem', color: '#6d28d9' }}></i>
-                            <span style={{ fontSize: '0.68rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px' }}>
-                              {subj.split(' ')[0]}
-                            </span>
-                          </div>
-                        </th>
-                      ))}
-                      <th style={{ width: '75px', textAlign: 'center', backgroundColor: '#f5f3ff' }}>Promedio</th>
-                      <th style={{ width: '85px', textAlign: 'center' }}>Reprobadas</th>
-                      <th style={{ width: '150px', textAlign: 'center' }}>Dictamen de Promoción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {consolidatedData.students.map((st) => (
-                      <tr key={st.id}>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={`ranking-badge ${st.ranking === 1 ? 'rank-1' : (st.ranking === 2 ? 'rank-2' : (st.ranking === 3 ? 'rank-3' : ''))}`}>
-                            {st.ranking}°
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div className="final-student-avatar-mini">
-                              <i className="ph-bold ph-student"></i>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <strong style={{ fontSize: '0.85rem', color: '#0f172a' }}>{st.name}</strong>
-                              <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{st.id}</span>
-                            </div>
-                          </div>
-                        </td>
-                        {consolidatedData.subjects.map(subj => {
-                          const score = st.subjectScores[subj] || 0;
-                          const isLow = score > 0 && score < 3.0;
-                          return (
-                            <td key={subj} style={{ textAlign: 'center', fontWeight: 600 }}>
-                              <span className={`consolidated-score-pill ${isLow ? 'score-low' : (score >= 4.6 ? 'score-sup' : '')}`}>
-                                {score > 0 ? score.toFixed(1) : '-'}
-                              </span>
-                            </td>
-                          );
-                        })}
-                        <td style={{ textAlign: 'center', fontWeight: 800, backgroundColor: '#faf5ff', color: '#4c1d95', fontSize: '0.92rem' }}>
-                          {st.average.toFixed(1)}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={`failed-count-chip ${st.failedSubjects > 0 ? 'has-failed' : 'clean'}`}>
-                            {st.failedSubjects}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={`promotion-status-pill ${st.dictamen === 'Promovido' ? 'status-promoted' : (st.dictamen === 'Nivelación Pendiente' ? 'status-recovery' : 'status-commission')}`}>
-                            <i className={`ph-bold ${st.dictamen === 'Promovido' ? 'ph-check-circle' : 'ph-warning'}`}></i>
-                            {st.dictamen}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="final-table-footer">
-                <div className="final-footer-hint">
-                  <i className="ph-bold ph-info"></i>
-                  <span>Sábana consolidada de fin de año lectivo. Conforme al Decreto 1290 y SIEE del Gimnasio Martin Galeano.</span>
-                </div>
-                <button 
-                  type="button" 
-                  className="grades-btn-secondary" 
-                  onClick={() => alert(`Exportando Sábana Consolidada de Evaluación Final de ${selectedGrade} a Excel...`)}
-                >
-                  <i className="ph-bold ph-file-xls"></i>
-                  <span>Exportar Consolidado Excel</span>
-                </button>
-              </div>
-            </section>
-          ) : (
-            /* =====================================================================
-                VISTA 2: PLANILLA DE EVALUACIÓN FINAL POR ASIGNATURA
-                ===================================================================== */
-            <section className="final-sheet-card">
-              <div className="final-table-wrapper">
-                <table className="final-data-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '40px', textAlign: 'center' }}>#</th>
-                      <th style={{ width: '80px' }}>Código</th>
-                      <th style={{ minWidth: '180px' }}>Estudiante</th>
-                      <th style={{ width: '90px', textAlign: 'center' }} title="Examen Escrito / Teórico (40%)">
-                        Teórico <br/><small>(40%)</small>
-                      </th>
-                      <th style={{ width: '90px', textAlign: 'center' }} title="Sustentación / Práctica (40%)">
-                        Práctico <br/><small>(40%)</small>
-                      </th>
-                      <th style={{ width: '90px', textAlign: 'center' }} title="Prueba Acumulativa Saber (20%)">
-                        Saber <br/><small>(20%)</small>
-                      </th>
-                      <th style={{ width: '85px', textAlign: 'center', backgroundColor: '#f5f3ff' }}>
-                        Nota Final <br/><small>(SIEE)</small>
-                      </th>
-                      <th style={{ width: '95px', textAlign: 'center' }}>Desempeño</th>
-                      <th style={{ width: '105px', textAlign: 'center' }}>Estado</th>
-                      <th style={{ minWidth: '180px' }}>Retroalimentación Docente</th>
-                      <th style={{ minWidth: '180px', backgroundColor: '#eef2ff' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#4338ca' }}>
-                          <i className="ph-bold ph-clipboard-text"></i>
-                          <span>Obs. Coordinación</span>
-                        </div>
-                      </th>
-                      <th style={{ minWidth: '180px', backgroundColor: '#fefce8' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#b45309' }}>
-                          <i className="ph-bold ph-crown"></i>
-                          <span>Sugerencia Rectora</span>
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {students.map((st, index) => {
-                      const desemp = getDesempeno(st.definitiva);
-                      return (
-                        <tr key={st.id}>
-                          <td style={{ textAlign: 'center', color: '#64748b', fontSize: '0.8rem' }}>{index + 1}</td>
-                          <td style={{ color: '#64748b', fontSize: '0.78rem', fontWeight: 600 }}>{st.id}</td>
-                          <td>
-                            <strong style={{ fontSize: '0.85rem', color: '#0f172a' }}>{st.name}</strong>
-                          </td>
-                          {/* Nota Teórico */}
-                          <td style={{ textAlign: 'center' }}>
-                            {canEditScores ? (
-                              <input 
-                                type="number" 
-                                min="0" 
-                                max="5" 
-                                step="0.1" 
-                                value={st.notaTeorico} 
-                                onChange={(e) => handleScoreChange(st.id, 'notaTeorico', e.target.value)} 
-                                className="final-score-input"
-                              />
-                            ) : (
-                              <span className="final-score-readonly">{st.notaTeorico !== undefined && st.notaTeorico !== '' ? Number(st.notaTeorico).toFixed(1) : '-'}</span>
-                            )}
-                          </td>
-                          {/* Nota Práctico */}
-                          <td style={{ textAlign: 'center' }}>
-                            {canEditScores ? (
-                              <input 
-                                type="number" 
-                                min="0" 
-                                max="5" 
-                                step="0.1" 
-                                value={st.notaPractico} 
-                                onChange={(e) => handleScoreChange(st.id, 'notaPractico', e.target.value)} 
-                                className="final-score-input"
-                              />
-                            ) : (
-                              <span className="final-score-readonly">{st.notaPractico !== undefined && st.notaPractico !== '' ? Number(st.notaPractico).toFixed(1) : '-'}</span>
-                            )}
-                          </td>
-                          {/* Nota Acumulativo */}
-                          <td style={{ textAlign: 'center' }}>
-                            {canEditScores ? (
-                              <input 
-                                type="number" 
-                                min="0" 
-                                max="5" 
-                                step="0.1" 
-                                value={st.notaAcumulativo} 
-                                onChange={(e) => handleScoreChange(st.id, 'notaAcumulativo', e.target.value)} 
-                                className="final-score-input"
-                              />
-                            ) : (
-                              <span className="final-score-readonly">{st.notaAcumulativo !== undefined && st.notaAcumulativo !== '' ? Number(st.notaAcumulativo).toFixed(1) : '-'}</span>
-                            )}
-                          </td>
-                          {/* Definitiva Calculada */}
-                          <td style={{ textAlign: 'center', backgroundColor: '#faf5ff', fontWeight: 800, color: '#4c1d95', fontSize: '0.92rem' }}>
-                            {st.definitiva !== undefined ? Number(st.definitiva).toFixed(1) : '-'}
-                          </td>
-                          {/* Desempeño */}
-                          <td style={{ textAlign: 'center' }}>
-                            <span className={`tag-pastel ${desemp.className}`}>
-                              <i className={`ph-bold ${desemp.icon}`}></i>
-                              {desemp.label}
-                            </span>
-                          </td>
-                          {/* Estado */}
-                          <td style={{ textAlign: 'center' }}>
-                            <span className={`promotion-status-pill ${st.estadoPromocion === 'Promovido' ? 'status-promoted' : (st.estadoPromocion === 'En Nivelación' ? 'status-recovery' : 'status-commission')}`}>
-                              {st.estadoPromocion}
-                            </span>
-                          </td>
-                          {/* Retroalimentación Docente */}
-                          <td>
-                            {canEditFeedback ? (
-                              <textarea 
-                                rows="2" 
-                                value={st.retroalimentacionDocente || ''} 
-                                onChange={(e) => handleTeacherFeedbackChange(st.id, e.target.value)} 
-                                placeholder="Logros y recomendaciones finales..." 
-                                className="final-textarea-input"
-                              />
-                            ) : (
-                              <p className="final-text-readonly">{st.retroalimentacionDocente || 'Sin retroalimentación docente.'}</p>
-                            )}
-                          </td>
-                          {/* Observación Coordinación Académica */}
-                          <td style={{ backgroundColor: '#f8fafc' }}>
-                            {canEditCoordinacion ? (
-                              <textarea 
-                                rows="2" 
-                                value={st.observacionCoordinacion || ''} 
-                                onChange={(e) => handleCoordinacionObservationChange(st.id, e.target.value)} 
-                                placeholder="Observación oficial de Coordinación..." 
-                                className="final-textarea-input final-textarea-coord"
-                              />
-                            ) : (
-                              <p className="final-text-readonly" style={{ color: '#4338ca' }}>
-                                {st.observacionCoordinacion || 'Sin observaciones de Coordinación.'}
-                              </p>
-                            )}
-                          </td>
-                          {/* Sugerencia Rectora */}
-                          <td style={{ backgroundColor: '#fffbeb' }}>
-                            {canEditDirective ? (
-                              <textarea 
-                                rows="2" 
-                                value={st.sugerenciaDirectiva || ''} 
-                                onChange={(e) => handleDirectiveSuggestionChange(st.id, e.target.value)} 
-                                placeholder="Sugerencia de auditoría directiva..." 
-                                className="final-textarea-input final-textarea-dir"
-                              />
-                            ) : (
-                              <p className="final-text-readonly" style={{ color: '#b45309' }}>
-                                {st.sugerenciaDirectiva || 'Sin sugerencia directiva.'}
-                              </p>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pie de tabla con leyenda y acciones */}
-              <div className="final-table-footer">
-                <div className="final-footer-hint">
-                  <i className="ph-bold ph-scales"></i>
-                  <span>
-                    Ponderación SIEE Evaluación Final: Teórico (40%) + Práctico (40%) + Saber (20%).
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    type="button" 
-                    className="grades-btn-secondary" 
-                    onClick={() => alert(`Exportando calificaciones de evaluación final de ${selectedSubject} en Excel...`)}
-                  >
-                    <i className="ph-bold ph-file-xls"></i>
-                    <span>Consolidado Excel</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
         </main>
       </div>
 
-      {/* Botón Flotante para Guardar Planilla de Evaluaciones Finales (FAB) */}
-      {activeSheetType === 'subject' && (
-        <button
-          type="button"
-          className="btn-floating-upload final-floating-save-btn"
-          onClick={handleSaveAction}
-          title={
-            canEditScores 
-              ? "Guardar calificaciones finales y observaciones" 
-              : isViewingAsGradeDirector 
-              ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
-              : canEditCoordinacion
-              ? "Guardar observaciones de Coordinación Académica"
-              : (canEditDirective ? "Guardar sugerencias de auditoría directiva" : "Guardar auditoría final")
-          }
-          style={{
-            background: canEditScores
-              ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
-              : canEditCoordinacion
-              ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
-              : canEditDirective
-              ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
-              : isViewingAsGradeDirector
-              ? 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)'
-              : 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
-            boxShadow: canEditScores
-              ? '0 10px 25px -5px rgba(5, 150, 105, 0.45), 0 8px 10px -6px rgba(5, 150, 105, 0.25)'
-              : canEditCoordinacion
-              ? '0 10px 25px -5px rgba(99, 102, 241, 0.45), 0 8px 10px -6px rgba(99, 102, 241, 0.25)'
-              : canEditDirective
-              ? '0 10px 25px -5px rgba(217, 119, 6, 0.45), 0 8px 10px -6px rgba(217, 119, 6, 0.25)'
-              : '0 10px 25px -5px rgba(30, 41, 59, 0.45), 0 8px 10px -6px rgba(30, 41, 59, 0.25)',
-            cursor: isViewingAsGradeDirector ? 'default' : 'pointer'
-          }}
-        >
-          <i className={`ph-bold ${
-            canEditScores 
-              ? 'ph-floppy-disk' 
-              : isViewingAsGradeDirector 
-              ? 'ph-eye' 
-              : canEditCoordinacion
-              ? 'ph-clipboard-text'
-              : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
-          }`}></i>
-          <span>
-            {canEditScores 
-              ? 'Guardar Evaluaciones' 
-              : isViewingAsGradeDirector 
-              ? 'Modo Director de Curso' 
-              : canEditCoordinacion
-              ? 'Guardar Observaciones'
-              : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
-            }
-          </span>
-        </button>
-      )}
+      {/* Botón Flotante para Subir Evaluación (Inferior Derecha) */}
+      <button
+        type="button"
+        className="btn-floating-upload final-floating-save-btn"
+        onClick={() => handleOpenUpload(null)}
+        title="Subir evaluación para impresión"
+        style={{
+          background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+          boxShadow: '0 6px 16px rgba(79, 70, 229, 0.35)'
+        }}
+      >
+        <i className="ph-bold ph-upload-simple"></i>
+        <span>Subir Evaluación</span>
+      </button>
 
-      {/* Modal de Control de Fechas, Cierres SIEE y Prórrogas */}
-      <EvaluationCalendarModal 
-        isOpen={isCalendarModalOpen}
-        onClose={() => setIsCalendarModalOpen(false)}
-        currentUser={currentUser}
-        onCalendarUpdated={() => setCurriculumTick(t => t + 1)}
-      />
-
-      {/* Notificación Toast Flotante */}
+      {/* Toast de Notificaciones */}
       {toastMessage && (
-        <div className="grades-toast">
-          <i className="ph-bold ph-check-circle" style={{ fontSize: '1.25rem', color: '#34d399' }}></i>
+        <div className="final-toast-alert" role="alert">
+          <i className="ph-bold ph-check-circle"></i>
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Modal 1: Subir Evaluación para Impresión */}
+      <UploadExamModal
+        isOpen={isUploadModalOpen}
+        onClose={() => {
+          setIsUploadModalOpen(false);
+          setSubjectForUpload(null);
+        }}
+        currentUser={currentUser}
+        initialGrade={selectedGrade}
+        initialPeriod={selectedPeriod}
+        initialSubject={subjectForUpload}
+        onUploadSuccess={(msg) => {
+          setIsUploadModalOpen(false);
+          setSubjectForUpload(null);
+          showToast(msg);
+        }}
+      />
+
+      {/* Modal 2: Detalle y Gestión de Fotocopiado de la Evaluación */}
+      <ViewExamModal
+        isOpen={isViewModalOpen}
+        item={selectedItemForView}
+        selectedGrade={selectedGrade}
+        selectedPeriod={selectedPeriod}
+        currentUser={currentUser}
+        isPrivileged={isPrivileged}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedItemForView(null);
+        }}
+        onDownload={handleDownloadExam}
+        onDelete={handleDeleteEvaluation}
+        onUpdateCopiesStatus={handleUpdateCopiesStatus}
+        onReplace={(subj) => {
+          setIsViewModalOpen(false);
+          handleOpenUpload(subj);
+        }}
+      />
+
+      {/* Modal 3: Configuración de Fechas Límite por Periodo */}
+      {isPrivileged && (
+        <DeadlinesModal
+          isOpen={isDeadlinesModalOpen}
+          currentUser={currentUser}
+          onClose={() => setIsDeadlinesModalOpen(false)}
+          onSaved={(msg) => {
+            setIsDeadlinesModalOpen(false);
+            showToast(msg);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// SUB-COMPONENTE: MODAL PARA SUBIR EVALUACIÓN
+// =============================================================================
+function UploadExamModal({
+  isOpen,
+  onClose,
+  currentUser,
+  initialGrade,
+  initialPeriod,
+  initialSubject,
+  onUploadSuccess
+}) {
+  const [period, setPeriod] = useState(initialPeriod || '1° Periodo (25%)');
+  const [grade, setGrade] = useState(initialGrade || '1° Primaria');
+  const availableGrades = useMemo(() => finalExamsService.getGradesForUser(currentUser), [currentUser]);
+
+  const availableSubjects = useMemo(() => {
+    return finalExamsService.getSubjectsForGradeAndUser(grade, currentUser);
+  }, [grade, currentUser]);
+
+  const [subject, setSubject] = useState(initialSubject || availableSubjects[0] || 'Lengua Castellana');
+  const [file, setFile] = useState(null);
+  const [notes, setNotes] = useState('Impresión a doble cara, tamaño carta, grapado en esquina.');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialSubject && availableSubjects.includes(initialSubject)) {
+      setSubject(initialSubject);
+    } else if (availableSubjects.length > 0) {
+      setSubject(availableSubjects[0]);
+    }
+  }, [initialSubject, availableSubjects]);
+
+  useEffect(() => {
+    if (initialGrade) setGrade(initialGrade);
+    if (initialPeriod) setPeriod(initialPeriod);
+  }, [initialGrade, initialPeriod]);
+
+  if (!isOpen) return null;
+
+  const assignment = finalExamsService.getTeacherAssignment(grade, subject);
+  const studentCount = finalExamsService.getStudentCount(grade);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      finalExamsService.uploadEvaluation({
+        period,
+        grade,
+        subject,
+        file,
+        notes,
+        copiesStatus: 'aprobado',
+        user: currentUser
+      });
+
+      onUploadSuccess(`✓ Evaluación de ${subject} guardada y remitida para impresión (${studentCount} copias).`);
+    } catch (err) {
+      alert(`Error al guardar la evaluación: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="final-modal-overlay" onClick={onClose}>
+      <div className="final-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="final-modal-header">
+          <div className="final-modal-title-row">
+            <div className="final-modal-icon-badge">
+              <i className="ph-bold ph-upload-simple"></i>
+            </div>
+            <div>
+              <h3>Subir Evaluación para Impresión</h3>
+              <p>Carga de archivo oficial y especificaciones para fotocopiado escolar</p>
+            </div>
+          </div>
+          <button type="button" className="final-modal-close-btn" onClick={onClose}>
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="final-modal-body">
+          <div className="final-form-grid">
+            <div className="final-form-group">
+              <label>Periodo Académico:</label>
+              <select
+                className="final-form-input"
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+              >
+                {finalExamsService.getPeriods().map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="final-form-group">
+              <label>Grado Escolar:</label>
+              <select
+                className="final-form-input"
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+              >
+                {availableGrades.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="final-form-group" style={{ marginTop: '0.85rem' }}>
+            <label>Materia / Asignatura:</label>
+            <select
+              className="final-form-input"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            >
+              {availableSubjects.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tarjeta de Docente Asignado & Copias */}
+          <div className="final-modal-assignment-preview">
+            <div className="assignment-teacher-info">
+              <i className="ph-bold ph-user-check"></i>
+              <div>
+                <span className="info-lbl">Docente a cargo de la materia:</span>
+                <strong className="info-val">{assignment.teacherName}</strong>
+              </div>
+            </div>
+
+            <div className="assignment-copies-info">
+              <i className="ph-bold ph-copy"></i>
+              <div>
+                <span className="info-lbl">Copias a generar:</span>
+                <strong className="info-val">{studentCount} Copias ({grade})</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Selector de Archivo */}
+          <div className="final-form-group" style={{ marginTop: '1rem' }}>
+            <label>Archivo del Examen (PDF / Word):</label>
+            <div className="final-file-dropzone">
+              <input
+                type="file"
+                id="examFileInput"
+                accept=".pdf,.doc,.docx,.xlsx"
+                className="final-file-hidden-input"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setFile(e.target.files[0]);
+                  }
+                }}
+              />
+              <label htmlFor="examFileInput" className="final-dropzone-label">
+                <i className="ph-bold ph-cloud-arrow-up dropzone-icon"></i>
+                {file ? (
+                  <div className="selected-file-details">
+                    <strong className="selected-filename">{file.name}</strong>
+                    <span className="selected-filesize">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                    <span className="dropzone-change-hint">Clic para cambiar de archivo</span>
+                  </div>
+                ) : (
+                  <div>
+                    <strong className="dropzone-prompt">Haz clic para seleccionar o arrastra el archivo aquí</strong>
+                    <span className="dropzone-hint">Formatos soportados: PDF, Word (.docx) • Máx 15MB</span>
+                  </div>
+                )}
+              </label>
+            </div>
+          </div>
+
+          {/* Indicaciones para Impresión */}
+          <div className="final-form-group" style={{ marginTop: '1rem' }}>
+            <label>Indicaciones para Fotocopiado & Reproducción:</label>
+            <textarea
+              className="final-form-textarea"
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ej: Impresión a doble cara, tamaño carta, grapado en esquina superior..."
+            />
+          </div>
+
+          <div className="final-modal-footer">
+            <button type="button" className="final-btn-secondary" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="final-btn-primary" disabled={isSubmitting}>
+              <i className="ph-bold ph-floppy-disk"></i>
+              <span>{isSubmitting ? 'Guardando...' : 'Guardar y Enviar a Impresión'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// SUB-COMPONENTE: MODAL PARA VER DETALLES DE EVALUACIÓN
+// =============================================================================
+function ViewExamModal({
+  isOpen,
+  item,
+  selectedGrade,
+  selectedPeriod,
+  currentUser,
+  isPrivileged,
+  onClose,
+  onDownload,
+  onDelete,
+  onUpdateCopiesStatus,
+  onReplace
+}) {
+  if (!isOpen || !item) return null;
+
+  const canUpload = finalExamsService.canUploadForSubject(currentUser, selectedGrade, item.subject);
+
+  return (
+    <div className="final-modal-overlay" onClick={onClose}>
+      <div className="final-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="final-modal-header">
+          <div className="final-modal-title-row">
+            <div className="final-modal-icon-badge" style={{ background: '#ede9fe', color: '#6d28d9' }}>
+              <i className="ph-bold ph-file-text"></i>
+            </div>
+            <div>
+              <h3>{item.subject} • {selectedGrade}</h3>
+              <p>Control de Fotocopiado & Especificaciones del Examen</p>
+            </div>
+          </div>
+          <button type="button" className="final-modal-close-btn" onClick={onClose}>
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        <div className="final-modal-body">
+          {/* Ficha de Información Principal */}
+          <div className="final-detail-card-info">
+            <div className="detail-row">
+              <span className="detail-lbl">Radicado:</span>
+              <strong className="detail-val">{item.id || 'EVAL-2026'}</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Periodo:</span>
+              <strong className="detail-val">{selectedPeriod}</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Docente a Cargo:</span>
+              <strong className="detail-val">{item.teacher}</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Subido Por:</span>
+              <strong className="detail-val">{item.uploadedBy || item.teacher}</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Fecha de Carga:</span>
+              <strong className="detail-val">{item.uploadedAt || '2026-03-24'}</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Archivo:</span>
+              <strong className="detail-val">{item.fileName || 'Evaluacion.pdf'} ({item.fileSize || '1.2 MB'})</strong>
+            </div>
+            <div className="detail-row">
+              <span className="detail-lbl">Copias Requeridas:</span>
+              <strong className="detail-val" style={{ color: '#4338ca' }}>
+                {item.studentCount} Copias ({selectedGrade})
+              </strong>
+            </div>
+          </div>
+
+          {/* Control de Estado de Impresión para Rectora / Admin / Coordinación */}
+          {isPrivileged && (
+            <div className="final-print-status-control" style={{ marginTop: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.4rem' }}>
+                Actualizar Estado en Fotocopiadora / Secretaría:
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className={`btn-status-choice ${item.copiesStatus === 'aprobado' ? 'active aprobado' : ''}`}
+                  onClick={() => onUpdateCopiesStatus(item.subject, 'aprobado')}
+                >
+                  <i className="ph-bold ph-stamp"></i> Aprobado para Copias
+                </button>
+                <button
+                  type="button"
+                  className={`btn-status-choice ${item.copiesStatus === 'impreso' ? 'active impreso' : ''}`}
+                  onClick={() => onUpdateCopiesStatus(item.subject, 'impreso')}
+                >
+                  <i className="ph-bold ph-printer-check"></i> Impreso / Listo en Mesa
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Notas para Fotocopiado */}
+          <div className="final-detail-notes-box" style={{ marginTop: '1rem' }}>
+            <span className="notes-lbl">Instrucciones para Fotocopiado:</span>
+            <p className="notes-text">{item.notes || 'Sin especificaciones adicionales de reproducción.'}</p>
+          </div>
+
+          <div className="final-modal-footer" style={{ marginTop: '1.25rem' }}>
+            {canUpload && (
+              <button
+                type="button"
+                className="final-btn-danger"
+                onClick={() => onDelete(item.subject)}
+                title="Eliminar este archivo de evaluación"
+              >
+                <i className="ph-bold ph-trash"></i>
+                <span>Eliminar</span>
+              </button>
+            )}
+
+            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+              {canUpload && (
+                <button
+                  type="button"
+                  className="final-btn-secondary"
+                  onClick={() => onReplace(item.subject)}
+                >
+                  <i className="ph-bold ph-arrow-clockwise"></i>
+                  <span>Sustituir Archivo</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="final-btn-primary"
+                onClick={() => onDownload(item)}
+              >
+                <i className="ph-bold ph-download-simple"></i>
+                <span>Descargar Examen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// SUB-COMPONENTE: MODAL DE GESTIÓN DE FECHAS LÍMITE (COORDINACIÓN / ADMIN)
+// =============================================================================
+function DeadlinesModal({ isOpen, currentUser, onClose, onSaved }) {
+  const [deadlines, setDeadlines] = useState(() => finalExamsService.getDeadlines());
+  const [activePeriod, setActivePeriod] = useState('1° Periodo (25%)');
+
+  const currentPeriodData = deadlines[activePeriod] || DEFAULT_DEADLINES[activePeriod] || {};
+
+  const [date, setDate] = useState(currentPeriodData.deadlineDate || '2026-03-27');
+  const [time, setTime] = useState(currentPeriodData.deliveryTime || '17:00');
+  const [status, setStatus] = useState(currentPeriodData.status || 'en_plazo');
+  const [description, setDescription] = useState(currentPeriodData.description || '');
+
+  useEffect(() => {
+    const data = deadlines[activePeriod] || DEFAULT_DEADLINES[activePeriod] || {};
+    setDate(data.deadlineDate || '2026-03-27');
+    setTime(data.deliveryTime || '17:00');
+    setStatus(data.status || 'en_plazo');
+    setDescription(data.description || '');
+  }, [activePeriod, deadlines]);
+
+  if (!isOpen) return null;
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    try {
+      finalExamsService.updateDeadline(
+        activePeriod,
+        {
+          deadlineDate: date,
+          deliveryTime: time,
+          status,
+          description
+        },
+        currentUser
+      );
+      setDeadlines(finalExamsService.getDeadlines());
+      onSaved(`✓ Fechas límite de ${activePeriod} actualizadas correctamente.`);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  return (
+    <div className="final-modal-overlay" onClick={onClose}>
+      <div className="final-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="final-modal-header">
+          <div className="final-modal-title-row">
+            <div className="final-modal-icon-badge" style={{ background: '#fef3c7', color: '#92400e' }}>
+              <i className="ph-bold ph-calendar-check"></i>
+            </div>
+            <div>
+              <h3>Gestión de Fechas Límite de Evaluaciones</h3>
+              <p>Control de plazos de entrega para fotocopiado y reproducción por periodo</p>
+            </div>
+          </div>
+          <button type="button" className="final-modal-close-btn" onClick={onClose}>
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        <form onSubmit={handleSave} className="final-modal-body">
+          {/* Pestañas de Periodos */}
+          <div className="deadlines-period-tabs">
+            {finalExamsService.getPeriods().map((p) => (
+              <button
+                key={p}
+                type="button"
+                className={`deadline-tab-btn ${activePeriod === p ? 'active' : ''}`}
+                onClick={() => setActivePeriod(p)}
+              >
+                {p.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+
+          <div className="final-form-grid" style={{ marginTop: '1rem' }}>
+            <div className="final-form-group">
+              <label>Fecha Límite de Recepción:</label>
+              <input
+                type="date"
+                className="final-form-input"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="final-form-group">
+              <label>Hora Límite:</label>
+              <input
+                type="time"
+                className="final-form-input"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="final-form-group" style={{ marginTop: '0.85rem' }}>
+            <label>Estado del Plazo:</label>
+            <select
+              className="final-form-input"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="en_plazo">En Plazo de Recepción</option>
+              <option value="programado">Programado / Futuro</option>
+              <option value="cerrado">Plazo Cerrado</option>
+            </select>
+          </div>
+
+          <div className="final-form-group" style={{ marginTop: '0.85rem' }}>
+            <label>Instrucciones & Observaciones para el Cuerpo Docente:</label>
+            <textarea
+              className="final-form-textarea"
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Instrucciones sobre entrega a tiempo para impresión..."
+            />
+          </div>
+
+          <div className="final-modal-footer">
+            <button type="button" className="final-btn-secondary" onClick={onClose}>
+              Cerrar
+            </button>
+            <button type="submit" className="final-btn-primary">
+              <i className="ph-bold ph-floppy-disk"></i>
+              <span>Guardar Configuración</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

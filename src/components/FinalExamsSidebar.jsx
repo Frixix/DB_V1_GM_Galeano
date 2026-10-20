@@ -2,55 +2,19 @@ import { useState } from 'react';
 import { getUserAvatar } from '../services/avatarService.js';
 import finalExamsService from '../services/finalExamsService.js';
 
-// Helper para iconos temáticos de materias
-const getSubjectIcon = (subj) => {
-  if (!subj) return 'ph-book-bookmark';
-  const s = subj.toLowerCase();
-  if (s.includes('lengua') || s.includes('español')) return 'ph-book-open';
-  if (s.includes('mate')) return 'ph-calculator';
-  if (s.includes('natural')) return 'ph-leaf';
-  if (s.includes('social')) return 'ph-globe';
-  if (s.includes('inglés') || s.includes('ingles')) return 'ph-translate';
-  if (s.includes('art')) return 'ph-palette';
-  if (s.includes('física') || s.includes('fisica')) return 'ph-barbell';
-  if (s.includes('ética') || s.includes('etica') || s.includes('valor')) return 'ph-heart';
-  if (s.includes('tecno') || s.includes('inform')) return 'ph-laptop';
-  if (s.includes('relig')) return 'ph-cross';
-  return 'ph-book-bookmark';
-};
-
-// Helper para clases pastel temáticas de materias
-const getSubjectFolderClass = (subj) => {
-  if (!subj) return 'folder-subject-default';
-  const s = subj.toLowerCase();
-  if (s.includes('lengua') || s.includes('español') || s.includes('castell')) return 'folder-subject-lengua';
-  if (s.includes('mate') || s.includes('geom') || s.includes('estad')) return 'folder-subject-mate';
-  if (s.includes('natural') || s.includes('biol') || s.includes('cienc')) return 'folder-subject-naturales';
-  if (s.includes('social') || s.includes('hist') || s.includes('geog')) return 'folder-subject-sociales';
-  if (s.includes('inglés') || s.includes('ingles') || s.includes('idiom')) return 'folder-subject-ingles';
-  if (s.includes('art') || s.includes('danza') || s.includes('teatr') || s.includes('music')) return 'folder-subject-arte';
-  if (s.includes('física') || s.includes('fisica') || s.includes('depor')) return 'folder-subject-fisica';
-  if (s.includes('ética') || s.includes('etica') || s.includes('valor')) return 'folder-subject-etica';
-  if (s.includes('tecno') || s.includes('inform') || s.includes('sistem')) return 'folder-subject-tecno';
-  if (s.includes('relig')) return 'folder-subject-religion';
-  return 'folder-subject-default';
-};
-
 export default function FinalExamsSidebar({
   currentUser,
   selectedGrade,
   onSelectGrade,
-  selectedSubject,
-  onSelectSubject,
-  activeSheetType,
-  onSelectSheetType,
-  selectedInstance,
-  onSelectInstance,
+  selectedPeriod,
+  onSelectPeriod,
+  statusFilter = 'all',
+  onSelectStatusFilter,
   selectedTeacher = 'all',
   onSelectTeacher,
   availableGrades = [],
-  availableSubjects = [],
-  availableInstances = [],
+  availablePeriods = [],
+  stats = {},
   onlineMap = {},
   onlineCount = 0,
   onOpenConnectionsModal,
@@ -93,6 +57,9 @@ export default function FinalExamsSidebar({
       onSelectGrade(availableGrades[0]);
     }
   };
+
+  const progressPercent = stats?.progressPercent || 0;
+  const deadlineInfo = stats?.deadlineInfo || {};
 
   return (
     <aside className="sidebar final-exams-sidebar" id="finalExamsSidebar">
@@ -384,130 +351,112 @@ export default function FinalExamsSidebar({
         </div>
       )}
 
-      {/* SECCIÓN 2: Instancia / Convocatoria de Evaluación Final */}
-      <div className="sidebar-section" id="finalInstanceSection">
+      {/* SECCIÓN 2: Periodo Académico */}
+      <div className="sidebar-section" id="finalPeriodSection">
         <div className="sidebar-header">
-          <i className="ph-bold ph-calendar-check"></i>
-          <span>Convocatoria de Cierre</span>
+          <i className="ph-bold ph-clock"></i>
+          <span>Periodo Académico</span>
         </div>
         <div className="grades-sidebar-period-pills">
-          {availableInstances.map((inst) => {
-            const isInstActive = selectedInstance === inst;
-            const shortLabel = inst.includes('Ordinaria') ? 'Ordinaria' : (inst.includes('Nivelaciones') ? 'Nivelación' : 'Comisión');
+          {availablePeriods.map((p) => {
+            const isPeriodActive = selectedPeriod === p;
             return (
               <button
-                key={inst}
+                key={p}
                 type="button"
-                className={`grades-sidebar-period-btn ${isInstActive ? 'active' : ''}`}
-                onClick={() => onSelectInstance(inst)}
-                title={`Cambiar a ${inst}`}
-                style={isInstActive ? { borderColor: '#6366f1', color: '#4338ca', background: '#eef2ff' } : {}}
+                className={`grades-sidebar-period-btn ${isPeriodActive ? 'active' : ''}`}
+                onClick={() => onSelectPeriod(p)}
+                title={`Cambiar a ${p}`}
+                style={isPeriodActive ? { borderColor: '#6366f1', color: '#4338ca', background: '#eef2ff' } : {}}
               >
-                <i className="ph-bold ph-certificate"></i>
-                <span>{shortLabel}</span>
+                <i className="ph-bold ph-calendar-blank"></i>
+                <span>{p.split(' ')[0]}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* SECCIÓN 3: Sábanas de Evaluación Final y Promoción */}
-      <div className="sidebar-section" id="finalSheetsSection">
-        <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ph-bold ph-files"></i>
-            <span>{isPrivileged ? `Sábanas • ${selectedGrade}` : `Sábanas • Mi Grado (${selectedGrade})`}</span>
-          </div>
-          <span style={{ fontSize: '0.65rem', color: '#6d28d9', fontWeight: 700 }}>
-            {availableSubjects.length + 1}
-          </span>
+      {/* SECCIÓN 3: Filtro de Estado de Impresión */}
+      <div className="sidebar-section" id="finalFilterStatusSection">
+        <div className="sidebar-header">
+          <i className="ph-bold ph-funnel"></i>
+          <span>Filtro de Estado</span>
         </div>
-
         <nav className="folder-list">
-          {/* Card: Sábana Consolidada Final y Promoción */}
           <button
             type="button"
-            className={`folder-btn folder-consolidada ${activeSheetType === 'consolidated' ? 'active' : ''}`}
-            onClick={() => onSelectSheetType('consolidated')}
-            title={`Ver Sábana Consolidada de Evaluación Final y Promoción de ${selectedGrade}`}
-            style={activeSheetType === 'consolidated' ? { borderLeftColor: '#7c3aed', background: '#f5f3ff' } : {}}
+            className={`folder-btn folder-all ${statusFilter === 'all' ? 'active' : ''}`}
+            onClick={() => onSelectStatusFilter('all')}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-              <i className="ph-bold ph-seal-check" style={{ color: activeSheetType === 'consolidated' ? '#6d28d9' : '#8b5cf6' }}></i>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: activeSheetType === 'consolidated' ? 700 : 600, color: activeSheetType === 'consolidated' ? '#4c1d95' : 'inherit' }}>
-                  Sábana Consolidada Final
-                </span>
-                <span style={{ fontSize: '0.68rem', color: activeSheetType === 'consolidated' ? '#6d28d9' : '#64748b' }}>
-                  Promedios, Puestos y Promoción
-                </span>
-              </div>
-            </div>
+            <i className="ph-bold ph-folders"></i>
+            <span>Todas las Materias</span>
+            <span className="teacher-badge-count">{stats?.totalSubjects || 0}</span>
           </button>
 
-          {/* Subgrupo: Asignaturas Individuales */}
-          <div className="obs-folder-subgroup-label" style={{ marginTop: '0.5rem', marginBottom: '0.2rem' }}>
-            <i className="ph-bold ph-book-open"></i>
-            <span>{isPrivileged ? `EVALUACIONES (${selectedGrade})` : `A TU CARGO (${selectedGrade})`}</span>
-          </div>
+          <button
+            type="button"
+            className={`folder-btn folder-institucional ${statusFilter === 'uploaded' ? 'active' : ''}`}
+            onClick={() => onSelectStatusFilter('uploaded')}
+          >
+            <i className="ph-bold ph-check-circle" style={{ color: '#059669' }}></i>
+            <span>Listas para Impresión</span>
+            <span className="teacher-badge-count" style={{ background: '#dcfce7', color: '#15803d' }}>
+              {stats?.uploadedCount || 0}
+            </span>
+          </button>
 
-          {availableSubjects.map((subj) => {
-            const isSelected = activeSheetType === 'subject' && selectedSubject === subj;
-            const teacher = finalExamsService.getTeacherAssignment(selectedGrade, subj);
-            const isMySubject = finalExamsService.canEditScores(currentUser, selectedGrade, subj);
-            const iconClass = getSubjectIcon(subj);
-            const subjectClass = getSubjectFolderClass(subj);
-
-            return (
-              <button
-                key={subj}
-                type="button"
-                className={`folder-btn ${subjectClass} ${isSelected ? 'active' : ''}`}
-                onClick={() => {
-                  onSelectSubject(subj);
-                  onSelectSheetType('subject');
-                }}
-                title={`Evaluación final de ${subj} (Docente: ${teacher.teacherName})`}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-                  <i className={`ph-bold ${iconClass}`}></i>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                    <span style={{ fontSize: '0.83rem', fontWeight: isSelected ? 700 : 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {subj}
-                    </span>
-                    <span style={{ fontSize: '0.68rem', color: isSelected ? 'inherit' : (isMySubject ? '#059669' : '#64748b'), opacity: isSelected ? 0.9 : 1 }}>
-                      {isMySubject ? '★ A tu cargo' : teacher.teacherName}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+          <button
+            type="button"
+            className={`folder-btn folder-talleres ${statusFilter === 'pending' ? 'active' : ''}`}
+            onClick={() => onSelectStatusFilter('pending')}
+          >
+            <i className="ph-bold ph-clock-countdown" style={{ color: '#d97706' }}></i>
+            <span>Pendientes de Subida</span>
+            {stats?.pendingCount > 0 && (
+              <span className="teacher-badge-count" style={{ background: '#fef3c7', color: '#92400e' }}>
+                {stats.pendingCount}
+              </span>
+            )}
+          </button>
         </nav>
       </div>
 
-      {/* SECCIÓN 4: Ponderación de Evaluación Final */}
-      <div className="db-summary-card" id="finalExamsSieeSummary" style={{ marginTop: 'auto' }}>
+      {/* SECCIÓN 4: Control de Impresión & Copias */}
+      <div className="db-summary-card" id="finalPrintSummaryCard" style={{ marginTop: 'auto' }}>
         <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ph-bold ph-graduation-cap" style={{ color: '#6d28d9' }}></i>
-            <span>Ponderación Examen</span>
+            <i className="ph-bold ph-printer" style={{ color: '#6d28d9' }}></i>
+            <span>Control de Impresión</span>
           </div>
           <span className="storage-plan-pill" style={{ background: '#ede9fe', color: '#5b21b6', border: '1px solid #ddd6fe' }}>
-            100%
+            {progressPercent}% Listo
           </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.73rem', color: '#475569', marginTop: '0.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Prueba Escrita / Teórica:</span> <strong>40%</strong>
+        <div className="storage-bar-wrapper" style={{ marginTop: '0.65rem' }}>
+          <div 
+            className="storage-bar-progress" 
+            style={{ 
+              width: `${progressPercent}%`,
+              background: progressPercent === 100 ? '#059669' : 'linear-gradient(90deg, #6366f1, #7c3aed)'
+            }}
+          ></div>
+        </div>
+
+        <div className="storage-labels" style={{ marginTop: '0.35rem' }}>
+          <span>{stats?.uploadedCount || 0} de {stats?.totalSubjects || 0} materias</span>
+          <span>{stats?.totalCopiesNeeded || 0} copias requeridas</span>
+        </div>
+
+        <div style={{ marginTop: '0.65rem', padding: '0.55rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.72rem', color: '#475569' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#6d28d9', fontWeight: 700, marginBottom: '2px' }}>
+            <i className="ph-bold ph-calendar-check"></i>
+            <span>Fecha Límite:</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Sustentación / Práctica:</span> <strong>40%</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Prueba Acumulativa Saber:</span> <strong>20%</strong>
-          </div>
+          <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>
+            {deadlineInfo.deadlineDate || '27 de Marzo 2026'} ({deadlineInfo.deliveryTime || '17:00'})
+          </p>
         </div>
       </div>
     </aside>

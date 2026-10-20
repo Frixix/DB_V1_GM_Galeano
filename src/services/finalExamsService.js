@@ -1,5 +1,6 @@
 import { 
   ACADEMIC_YEARS, 
+  ACADEMIC_PERIODS,
   GRADES_LIST, 
   ALL_SUBJECTS, 
   STUDENTS_BY_GRADE, 
@@ -8,136 +9,156 @@ import {
 } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
 
-const FINAL_EXAMS_STORAGE_KEY = 'gmg_final_exams_tree_v1';
-const FINAL_CALENDAR_STORAGE_KEY = 'gmg_final_exams_calendar_v1';
+const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v1';
+const DEADLINES_STORAGE_KEY = 'gmg_evaluaciones_deadlines_v1';
 
-export const FINAL_INSTANCES = [
-  'Convocatoria Ordinaria Final (100%)',
-  'Nivelaciones & Recuperaciones Finales',
-  'Comisión de Evaluación y Promoción'
-];
-
-const DEFAULT_FINAL_CALENDAR = {
-  'Convocatoria Ordinaria Final (100%)': {
-    startDate: '2026-11-03',
-    endDate: '2026-11-20',
-    closureDate: '2026-11-27',
-    status: 'abierto',
-    description: 'Exámenes finales acumulativos y sustentaciones de fin de año'
+export const DEFAULT_DEADLINES = {
+  '1° Periodo (25%)': {
+    deadlineDate: '2026-03-27',
+    deliveryTime: '17:00',
+    status: 'en_plazo',
+    description: 'Fecha límite de entrega de evaluaciones para fotocopiado y reproducción del Primer Periodo',
+    responsible: 'Coordinación Académica'
   },
-  'Nivelaciones & Recuperaciones Finales': {
-    startDate: '2026-11-23',
-    endDate: '2026-11-27',
-    closureDate: '2026-12-01',
+  '2° Periodo (25%)': {
+    deadlineDate: '2026-06-12',
+    deliveryTime: '17:00',
     status: 'programado',
-    description: 'Habilitaciones y planes de mejoramiento final para estudiantes con áreas pendientes'
+    description: 'Fecha límite de entrega de evaluaciones para fotocopiado y reproducción del Segundo Periodo',
+    responsible: 'Coordinación Académica'
   },
-  'Comisión de Evaluación y Promoción': {
-    startDate: '2026-11-30',
-    endDate: '2026-12-04',
-    closureDate: '2026-12-05',
+  '3° Periodo (25%)': {
+    deadlineDate: '2026-09-11',
+    deliveryTime: '17:00',
     status: 'programado',
-    description: 'Dictamen oficial de promoción de estudiantes de Transición a 5° Primaria'
+    description: 'Fecha límite de entrega de evaluaciones para fotocopiado y reproducción del Tercer Periodo',
+    responsible: 'Coordinación Académica'
+  },
+  '4° Periodo (25%)': {
+    deadlineDate: '2026-11-13',
+    deliveryTime: '17:00',
+    status: 'programado',
+    description: 'Fecha límite de entrega de evaluaciones para fotocopiado y reproducción del Cuarto Periodo (Cierre Final)',
+    responsible: 'Coordinación Académica'
   }
 };
 
 /**
- * Genera el roster inicial de evaluación final para una rama específica
+ * Genera registros de demostración iniciales con algunas evaluaciones ya subidas
+ * y otras pendientes para dar dinamismo institucional inmediato.
  */
-const createInitialFinalRoster = (grade, subject) => {
-  const studentsList = STUDENTS_BY_GRADE[grade] || [];
-  
-  // Asignación de notas realistas iniciales
-  const scorePresets = [
-    { t: 4.8, p: 4.7, a: 4.5, feedback: 'Excelente dominio de competencias y sustentación impecable.', coord: 'Estudiante con desempeño superior en el cierre de año.', dir: 'Felicitaciones por el rendimiento integral.' },
-    { t: 4.2, p: 4.3, a: 4.0, feedback: 'Buen desarrollo conceptual y cumplimiento de objetivos pedagógicos.', coord: 'Aprobación solvente.', dir: '' },
-    { t: 3.8, p: 3.5, a: 3.7, feedback: 'Alcanza los logros básicos requeridos para la promoción.', coord: 'Seguimiento preventivo para el próximo año.', dir: '' },
-    { t: 4.5, p: 4.4, a: 4.2, feedback: 'Participación destacada en sustentación y portafolio final.', coord: 'Promovido sin observaciones.', dir: 'Gran avance.' },
-    { t: 3.2, p: 3.4, a: 3.0, feedback: 'Requiere reforzar lectura analítica y disciplina de estudio.', coord: 'Se recomienda compromiso familiar para el grado superior.', dir: '' },
-    { t: 2.8, p: 2.9, a: 2.5, feedback: 'Dificultades en prueba escrita. Convocado a nivelación final.', coord: 'Pendiente de acta de nivelación y sustento de recuperación.', dir: 'Citación a acudiente requerida.' }
-  ];
+const createInitialEvaluationsData = () => {
+  const initialData = {};
 
-  return studentsList.map((st, index) => {
-    const preset = scorePresets[index % scorePresets.length];
-    const teorico = preset.t;
-    const practico = preset.p;
-    const acumulativo = preset.a;
-    const def = Number(((teorico * 0.4) + (practico * 0.4) + (acumulativo * 0.2)).toFixed(1));
+  ACADEMIC_PERIODS.forEach((period, pIdx) => {
+    initialData[period] = {};
 
-    let estado = 'Promovido';
-    if (def < 3.0) estado = 'En Nivelación';
-    if (def < 2.0) estado = 'Reprobado';
+    GRADES_LIST.forEach((grade) => {
+      initialData[period][grade] = {};
+      const subjectsInGrade = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+      const studentCount = (STUDENTS_BY_GRADE[grade] || []).length;
 
-    return {
-      id: st.id,
-      name: st.name,
-      notaTeorico: teorico,
-      notaPractico: practico,
-      notaAcumulativo: acumulativo,
-      definitiva: def,
-      estadoPromocion: estado,
-      retroalimentacionDocente: preset.feedback,
-      observacionCoordinacion: preset.coord,
-      sugerenciaDirectiva: preset.dir
-    };
+      Object.entries(subjectsInGrade).forEach(([subj, assign], idx) => {
+        // En el 1° periodo marcamos la mayoría como subidas y un par pendientes
+        const isUploaded = pIdx === 0 ? (idx % 3 !== 2) : false;
+
+        if (isUploaded) {
+          const cleanSubj = subj.toLowerCase().replace(/[\s&]+/g, '_');
+          const cleanGrade = grade.toLowerCase().replace(/[\s°]+/g, '');
+          initialData[period][grade][subj] = {
+            id: `EVAL-${pIdx + 1}-${idx + 101}`,
+            uploaded: true,
+            title: `Evaluación de ${subj} - ${grade}`,
+            fileName: `Evaluacion_${cleanSubj}_${cleanGrade}_P${pIdx + 1}.pdf`,
+            fileSize: `${(1.1 + (idx * 0.2)).toFixed(1)} MB`,
+            fileType: 'application/pdf',
+            uploadedAt: '2026-03-24 14:35',
+            uploadedBy: assign.teacherName,
+            teacherId: assign.docente_id,
+            copiesNeeded: studentCount,
+            copiesStatus: idx === 0 ? 'impreso' : 'aprobado',
+            notes: 'Impresión a doble cara, grapada en la esquina superior izquierda.',
+            downloadUrl: null
+          };
+        } else {
+          initialData[period][grade][subj] = {
+            id: null,
+            uploaded: false,
+            title: `Evaluación de ${subj} - ${grade}`,
+            fileName: null,
+            fileSize: null,
+            fileType: null,
+            uploadedAt: null,
+            uploadedBy: assign.teacherName,
+            teacherId: assign.docente_id,
+            copiesNeeded: studentCount,
+            copiesStatus: 'pendiente',
+            notes: '',
+            downloadUrl: null
+          };
+        }
+      });
+    });
   });
+
+  return initialData;
 };
 
 class FinalExamsService {
   constructor() {
-    this.tree = this.loadTree();
-    this.calendar = this.loadCalendar();
+    this.evaluations = this.loadEvaluations();
+    this.deadlines = this.loadDeadlines();
   }
 
-  loadTree() {
-    if (typeof window === 'undefined') return {};
+  loadEvaluations() {
+    if (typeof window === 'undefined') return createInitialEvaluationsData();
     try {
-      const data = localStorage.getItem(FINAL_EXAMS_STORAGE_KEY);
-      return data ? JSON.parse(data) : {};
+      const data = localStorage.getItem(EVALUACIONES_STORAGE_KEY);
+      return data ? JSON.parse(data) : createInitialEvaluationsData();
     } catch (e) {
-      console.error('Error al cargar árbol de Evaluaciones Finales:', e);
-      return {};
+      console.error('Error cargando repositorio de evaluaciones para impresión:', e);
+      return createInitialEvaluationsData();
     }
   }
 
-  saveTree() {
+  saveEvaluations() {
     if (typeof window === 'undefined') return;
     try {
-      localStorage.setItem(FINAL_EXAMS_STORAGE_KEY, JSON.stringify(this.tree));
+      localStorage.setItem(EVALUACIONES_STORAGE_KEY, JSON.stringify(this.evaluations));
     } catch (e) {
-      console.error('Error al guardar árbol de Evaluaciones Finales:', e);
+      console.error('Error guardando repositorio de evaluaciones para impresión:', e);
     }
   }
 
-  loadCalendar() {
-    if (typeof window === 'undefined') return DEFAULT_FINAL_CALENDAR;
+  loadDeadlines() {
+    if (typeof window === 'undefined') return DEFAULT_DEADLINES;
     try {
-      const data = localStorage.getItem(FINAL_CALENDAR_STORAGE_KEY);
-      return data ? JSON.parse(data) : DEFAULT_FINAL_CALENDAR;
+      const data = localStorage.getItem(DEADLINES_STORAGE_KEY);
+      return data ? JSON.parse(data) : DEFAULT_DEADLINES;
     } catch (e) {
-      return DEFAULT_FINAL_CALENDAR;
+      return DEFAULT_DEADLINES;
     }
   }
 
-  saveCalendar() {
+  saveDeadlines() {
     if (typeof window === 'undefined') return;
     try {
-      localStorage.setItem(FINAL_CALENDAR_STORAGE_KEY, JSON.stringify(this.calendar));
+      localStorage.setItem(DEADLINES_STORAGE_KEY, JSON.stringify(this.deadlines));
     } catch (e) {
-      console.error('Error al guardar calendario de Evaluaciones Finales:', e);
+      console.error('Error guardando fechas límite de impresión:', e);
     }
   }
 
   notifyUpdate() {
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('gmg_final_exams_updated', {
+      window.dispatchEvent(new CustomEvent('gmg_evaluaciones_updated', {
         detail: { timestamp: new Date().toISOString() }
       }));
     }
   }
 
-  getInstances() {
-    return FINAL_INSTANCES;
+  getPeriods() {
+    return ACADEMIC_PERIODS;
   }
 
   getYears() {
@@ -166,6 +187,10 @@ class FinalExamsService {
     return { docente_id: 'jessica', teacherName: 'Jessica' };
   }
 
+  getStudentCount(grade) {
+    return (STUDENTS_BY_GRADE[grade] || []).length;
+  }
+
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
     const role = user.role;
@@ -190,7 +215,6 @@ class FinalExamsService {
       return validAll;
     }
 
-    // Docente: asignaturas a su cargo en ese grado
     const mySubjects = validAll.filter(subj => {
       const assignment = this.getTeacherAssignment(grade, subj);
       return assignment.docente_id === userKey || assignment.teacherName === user.name;
@@ -199,182 +223,184 @@ class FinalExamsService {
     return mySubjects.length > 0 ? mySubjects : validAll;
   }
 
-  canEditScores(user, grade, subject) {
+  canUploadForSubject(user, grade, subject) {
     if (!user) return false;
-    if (user.role === 'admin') return true;
-    if (user.role === 'coordinador' || user.role === 'rectora') return false; // Blindaje estricto
-
+    if (['admin', 'rectora', 'coordinador'].includes(user.role)) return true;
     const userKey = user.key || user.role;
     const assignment = this.getTeacherAssignment(grade, subject);
     return assignment.docente_id === userKey || assignment.teacherName === user.name;
   }
 
-  canEditFeedback(user, grade, subject) {
-    return this.canEditScores(user, grade, subject);
-  }
-
-  canEditCoordinacionObservation(user) {
+  canManageDeadlines(user) {
     if (!user) return false;
-    return ['coordinador', 'admin'].includes(user.role);
-  }
-
-  canEditDirectiveSuggestion(user) {
-    if (!user) return false;
-    return ['rectora', 'induccion_rectora', 'admin'].includes(user.role);
-  }
-
-  canManageCalendar(user) {
-    if (!user) return false;
-    return ['coordinador', 'admin'].includes(user.role);
-  }
-
-  isViewingAsGradeDirector(user, grade, subject) {
-    if (!user || !grade || !subject) return false;
-    const isDir = this.isGradeDirector(user, grade);
-    const isTeacher = this.canEditScores(user, grade, subject);
-    return isDir && !isTeacher;
+    return ['coordinador', 'admin', 'rectora'].includes(user.role);
   }
 
   /**
-   * Obtiene la rama de evaluaciones finales: Año -> Instancia -> Grado -> Materia
+   * Obtiene la lista consolidada de materias de un grado con su estado de evaluación para impresión
    */
-  getBranch(year = '2026', instance = FINAL_INSTANCES[0], grade = '1° Primaria', subject = 'Lengua Castellana') {
-    if (!this.tree[year]) this.tree[year] = {};
-    if (!this.tree[year][instance]) this.tree[year][instance] = {};
-    if (!this.tree[year][instance][grade]) this.tree[year][instance][grade] = {};
+  getPrintControlForGrade(period = '1° Periodo (25%)', grade = '1° Primaria') {
+    if (!this.evaluations[period]) this.evaluations[period] = {};
+    if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
 
-    if (!this.tree[year][instance][grade][subject]) {
-      this.tree[year][instance][grade][subject] = {
-        meta: {
-          year,
-          instance,
-          grade,
-          subject,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        students: createInitialFinalRoster(grade, subject)
-      };
-      this.saveTree();
-    }
+    const assignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+    const studentCount = this.getStudentCount(grade);
 
-    return this.tree[year][instance][grade][subject];
-  }
-
-  /**
-   * Guarda o actualiza la rama de evaluaciones finales
-   */
-  saveBranch(year, instance, grade, subject, students, user) {
-    if (!this.tree[year]) this.tree[year] = {};
-    if (!this.tree[year][instance]) this.tree[year][instance] = {};
-    if (!this.tree[year][instance][grade]) this.tree[year][instance][grade] = {};
-
-    const existingBranch = this.tree[year][instance][grade][subject] || {};
-
-    this.tree[year][instance][grade][subject] = {
-      meta: {
-        ...(existingBranch.meta || {}),
-        updatedAt: new Date().toISOString(),
-        updatedBy: user?.name || 'Sistema'
-      },
-      students
-    };
-
-    this.saveTree();
-    this.notifyUpdate();
-    return true;
-  }
-
-  /**
-   * Devuelve la Sábana Consolidada de Evaluación Final y Promoción de un Grado
-   */
-  getConsolidatedGradeSheet(year = '2026', instance = FINAL_INSTANCES[0], grade = '1° Primaria') {
-    const subjects = this.getSubjectsForGradeAndUser(grade, null);
-    const studentsList = STUDENTS_BY_GRADE[grade] || [];
-
-    const consolidatedStudents = studentsList.map(st => {
-      const subjectScores = {};
-      let totalSum = 0;
-      let validCount = 0;
-      let failedSubjects = 0;
-
-      subjects.forEach(subj => {
-        const branch = this.getBranch(year, instance, grade, subj);
-        const stData = branch.students.find(s => s.id === st.id);
-        const score = stData ? Number(stData.definitiva) : 0;
-        subjectScores[subj] = score;
-
-        if (score > 0) {
-          totalSum += score;
-          validCount++;
-        }
-        if (score > 0 && score < 3.0) {
-          failedSubjects++;
-        }
-      });
-
-      const average = validCount > 0 ? Number((totalSum / validCount).toFixed(1)) : 0;
-      
-      let dictamen = 'Promovido';
-      if (failedSubjects >= 2 || (average > 0 && average < 3.0)) {
-        dictamen = 'Comisión de Promoción';
-      } else if (failedSubjects === 1) {
-        dictamen = 'Nivelación Pendiente';
+    const items = Object.entries(assignments).map(([subj, teacher]) => {
+      let evalData = this.evaluations[period][grade][subj];
+      if (!evalData) {
+        evalData = {
+          id: null,
+          uploaded: false,
+          title: `Evaluación de ${subj} - ${grade}`,
+          fileName: null,
+          fileSize: null,
+          fileType: null,
+          uploadedAt: null,
+          uploadedBy: teacher.teacherName,
+          teacherId: teacher.docente_id,
+          copiesNeeded: studentCount,
+          copiesStatus: 'pendiente',
+          notes: '',
+          downloadUrl: null
+        };
+        this.evaluations[period][grade][subj] = evalData;
       }
 
       return {
-        id: st.id,
-        name: st.name,
-        subjectScores,
-        average,
-        failedSubjects,
-        dictamen
+        subject: subj,
+        teacher: teacher.teacherName,
+        teacherId: teacher.docente_id,
+        director: this.getGradeDirector(grade),
+        studentCount,
+        ...evalData
       };
     });
 
-    // Calcular rankings / puestos
-    consolidatedStudents.sort((a, b) => b.average - a.average);
-    consolidatedStudents.forEach((st, idx) => {
-      st.ranking = idx + 1;
-    });
+    const totalSubjects = items.length;
+    const uploadedCount = items.filter(i => i.uploaded).length;
+    const pendingCount = totalSubjects - uploadedCount;
+    const totalCopiesNeeded = studentCount * totalSubjects;
+    const readyCopies = studentCount * uploadedCount;
+    const progressPercent = totalSubjects > 0 ? Math.round((uploadedCount / totalSubjects) * 100) : 0;
 
-    const totalStudents = consolidatedStudents.length;
-    const sumAverages = consolidatedStudents.reduce((sum, s) => sum + s.average, 0);
-    const gradeAverage = totalStudents > 0 ? (sumAverages / totalStudents).toFixed(1) : '0.0';
-    const passedCount = consolidatedStudents.filter(s => s.dictamen === 'Promovido').length;
-    const gradePassRate = totalStudents > 0 ? Math.round((passedCount / totalStudents) * 100) : 0;
+    const deadlineInfo = this.deadlines[period] || DEFAULT_DEADLINES[period] || {};
 
     return {
-      year,
-      instance,
+      period,
       grade,
-      subjects,
-      students: consolidatedStudents,
+      items,
       stats: {
-        totalStudents,
-        gradeAverage,
-        gradePassRate,
-        passedCount,
-        failedCount: totalStudents - passedCount,
+        totalSubjects,
+        uploadedCount,
+        pendingCount,
+        studentCount,
+        totalCopiesNeeded,
+        readyCopies,
+        progressPercent,
+        deadlineInfo,
         director: this.getGradeDirector(grade)
       }
     };
   }
 
-  getCalendar() {
-    return this.calendar;
+  /**
+   * Sube o actualiza la evaluación de una materia para impresión
+   */
+  uploadEvaluation({ period, grade, subject, file, notes, copiesStatus = 'aprobado', user }) {
+    if (!this.evaluations[period]) this.evaluations[period] = {};
+    if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
+
+    const assignment = this.getTeacherAssignment(grade, subject);
+    const studentCount = this.getStudentCount(grade);
+    const radicado = `EVAL-${Date.now().toString().slice(-4)}`;
+
+    let fileName = file?.name || `Evaluacion_${subject.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}.pdf`;
+    let fileSize = file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : '1.2 MB';
+    let fileType = file?.type || 'application/pdf';
+
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    this.evaluations[period][grade][subject] = {
+      id: radicado,
+      uploaded: true,
+      title: `Evaluación de ${subject} - ${grade}`,
+      fileName,
+      fileSize,
+      fileType,
+      uploadedAt: formattedDate,
+      uploadedBy: user?.name || assignment.teacherName,
+      teacherId: assignment.docente_id,
+      copiesNeeded: studentCount,
+      copiesStatus: copiesStatus || 'aprobado',
+      notes: notes || 'Listo para impresión y fotocopiado.',
+      downloadUrl: file ? URL.createObjectURL(file) : null
+    };
+
+    this.saveEvaluations();
+    this.notifyUpdate();
+    return this.evaluations[period][grade][subject];
   }
 
-  updateCalendarInstance(instanceKey, data, user) {
-    if (!this.canManageCalendar(user)) {
-      throw new Error('No tienes permisos de Coordinación o Administración para modificar el calendario.');
+  /**
+   * Elimina o revoca una evaluación subida
+   */
+  deleteEvaluation(period, grade, subject) {
+    if (this.evaluations[period] && this.evaluations[period][grade] && this.evaluations[period][grade][subject]) {
+      const assignment = this.getTeacherAssignment(grade, subject);
+      const studentCount = this.getStudentCount(grade);
+
+      this.evaluations[period][grade][subject] = {
+        id: null,
+        uploaded: false,
+        title: `Evaluación de ${subject} - ${grade}`,
+        fileName: null,
+        fileSize: null,
+        fileType: null,
+        uploadedAt: null,
+        uploadedBy: assignment.teacherName,
+        teacherId: assignment.docente_id,
+        copiesNeeded: studentCount,
+        copiesStatus: 'pendiente',
+        notes: '',
+        downloadUrl: null
+      };
+
+      this.saveEvaluations();
+      this.notifyUpdate();
+      return true;
     }
-    this.calendar[instanceKey] = {
-      ...(this.calendar[instanceKey] || {}),
+    return false;
+  }
+
+  /**
+   * Actualiza el estado de fotocopiado/impresión de una evaluación
+   */
+  updateCopiesStatus(period, grade, subject, status) {
+    if (this.evaluations[period]?.[grade]?.[subject]) {
+      this.evaluations[period][grade][subject].copiesStatus = status;
+      this.saveEvaluations();
+      this.notifyUpdate();
+      return true;
+    }
+    return false;
+  }
+
+  getDeadlines() {
+    return this.deadlines;
+  }
+
+  updateDeadline(period, data, user) {
+    if (!this.canManageDeadlines(user)) {
+      throw new Error('No tienes permisos para modificar las fechas límite de entrega.');
+    }
+    this.deadlines[period] = {
+      ...(this.deadlines[period] || DEFAULT_DEADLINES[period] || {}),
       ...data,
       lastModifiedBy: user?.name || 'Coordinación'
     };
-    this.saveCalendar();
+    this.saveDeadlines();
     this.notifyUpdate();
   }
 }
