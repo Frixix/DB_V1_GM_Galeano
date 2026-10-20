@@ -340,32 +340,60 @@ export default function App() {
           currentUser={currentUser}
           onBackToModules={() => setActiveModule(null)}
           onOpenProfile={handleOpenProfile}
+          onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+          onlineMap={onlineMap}
+          onlineCount={onlineCount}
+          circularesCount={totalUnreadCount}
+          onOpenCirculares={handleOpenCircularesBell}
+          onOpenTour={handleOpenTour}
+          onLogout={handleLogout}
         />
         <ProfileModal 
           isOpen={isProfileModalOpen}
-          currentUser={currentUser}
-          targetUserKey={profileTargetUserKey}
-          initialTab={profileInitialTab}
           onClose={() => setIsProfileModalOpen(false)}
+          currentUser={currentUser}
+          initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
           onProfileUpdated={(updatedUser) => {
-            if (updatedUser?.key === currentUser?.key) {
-              setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+            setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+          }}
+          onAvatarUpdated={(targetKey, newAvatar) => {
+            const targetName = USERS[targetKey]?.name || targetKey;
+            setCurrentUser((prev) => {
+              if (prev && (prev.key === targetKey || prev.role === targetKey)) {
+                return { ...prev, avatar: newAvatar };
+              }
+              return prev;
+            });
+            setAvatarTick((t) => t + 1);
+            setAvatarToast({ name: targetName });
+            setTimeout(() => {
+              setAvatarToast(null);
+            }, 4500);
+
+            if (typeof refreshPresence === 'function') {
+              refreshPresence();
             }
           }}
-          onAvatarChangeToast={(msg) => setAvatarToast(msg)}
         />
         <ConnectionsModal 
           isOpen={isConnectionsModalOpen}
           onClose={() => setIsConnectionsModalOpen(false)}
           presenceData={presenceData}
-          onlineMap={onlineMap}
           currentUser={currentUser}
+          onSelectTeacher={(teacherName) => {
+            setCurrentTeacher(teacherName);
+            setCurrentFolder('all');
+            setActiveModule('docs');
+          }}
+          onRefresh={refreshPresence}
+          loading={presenceLoading}
         />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
-          currentUser={currentUser}
+          onClose={() => setIsLogoutModalOpen(false)}
           onConfirm={executeLogout}
-          onCancel={() => setIsLogoutModalOpen(false)}
+          currentUser={currentUser}
         />
       </>
     );

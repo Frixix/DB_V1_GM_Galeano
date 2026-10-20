@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PortalNavbar from './PortalNavbar';
 import teacherService from '../services/teacherService';
 import { getUserAvatar } from '../services/avatarService';
 import { resetUserPasswordToDefault } from '../services/authService';
@@ -20,7 +21,17 @@ const getSubjectIcon = (subj) => {
   return 'ph-book-bookmark';
 };
 
-export default function GestionDocenteModule({ currentUser, onBackToModules }) {
+export default function GestionDocenteModule({ 
+  currentUser, 
+  onBackToModules,
+  onOpenProfile,
+  onOpenConnectionsModal,
+  onlineCount = 0,
+  circularesCount = 0,
+  onOpenCirculares,
+  onOpenTour,
+  onLogout
+}) {
   const [activeTab, setActiveTab] = useState('directores'); // 'directores', 'malla', 'perfiles', 'auditoria'
   const [teachers, setTeachers] = useState([]);
   const [matrix, setMatrix] = useState([]);
@@ -178,33 +189,35 @@ export default function GestionDocenteModule({ currentUser, onBackToModules }) {
 
   return (
     <div className="gestion-docente-page">
-      {/* Header Sticky Superior */}
-      <header className="gd-header-container">
+      {/* 1. Barra Superior Institucional Unificada */}
+      <PortalNavbar
+        currentUser={currentUser}
+        moduleTitle="Gestión Docente"
+        moduleSubtitle="Planta Curricular & Directores de Curso"
+        onBackToModules={onBackToModules}
+        onOpenConnectionsModal={onOpenConnectionsModal}
+        onlineCount={onlineCount}
+        circularesCount={circularesCount}
+        onOpenCirculares={onOpenCirculares}
+        onOpenTour={onOpenTour}
+        onOpenProfile={onOpenProfile}
+        onLogout={onLogout}
+      />
+
+      {/* 2. Barra de Herramientas y Navegación del Módulo */}
+      <div className="gd-subnav-container">
         <div className="gd-header-top">
-          <div className="gd-header-left">
-            {onBackToModules && (
-              <button 
-                type="button" 
-                className="gd-back-btn" 
-                onClick={onBackToModules}
-                title="Regresar al panel de módulos"
-              >
-                <i className="ph-bold ph-arrow-left"></i>
-                <span>Módulos</span>
-              </button>
-            )}
-            <div className="gd-title-area">
-              <h1 className="gd-main-title">
-                <i className="ph-bold ph-chalkboard-teacher" style={{ color: '#4f46e5' }}></i>
-                Gestión Docente & Planta Curricular
-                <span className="gd-badge-privilege">
-                  <i className="ph-bold ph-shield-check"></i> Directivo & Coordinación
-                </span>
-              </h1>
-              <p className="gd-subtitle">
-                Asignación de directores de curso, titularidad de materias y perfiles con impacto en tiempo real en todo el sistema.
-              </p>
-            </div>
+          <div className="gd-title-area">
+            <h1 className="gd-main-title">
+              <i className="ph-bold ph-chalkboard-teacher" style={{ color: '#4f46e5' }}></i>
+              Gestión Docente & Planta Curricular
+              <span className="gd-badge-privilege">
+                <i className="ph-bold ph-shield-check"></i> Directivo & Coordinación
+              </span>
+            </h1>
+            <p className="gd-subtitle">
+              Asignación de directores de curso, titularidad de materias y perfiles con impacto en tiempo real en todo el sistema.
+            </p>
           </div>
 
           <div className="gd-header-actions">
@@ -282,7 +295,7 @@ export default function GestionDocenteModule({ currentUser, onBackToModules }) {
             <span className="gd-tab-badge">{auditLogs.length}</span>
           </button>
         </nav>
-      </header>
+      </div>
 
       {/* Contenido Principal */}
       <main className="gd-body-container">
