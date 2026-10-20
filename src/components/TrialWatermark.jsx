@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { SYSTEM_STORAGE_CAPACITY_BYTES } from '../data/users';
 
 export default function TrialWatermark({ documents = [] }) {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef(null);
 
-  const SYSTEM_CAPACITY = 3 * 1024 * 1024 * 1024; // 3 GB (Fase de Prueba)
+  const SYSTEM_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 2 GB
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
   const percentUsed = Math.min(100, Math.max(1, ((totalUsedBytes / SYSTEM_CAPACITY) * 100))).toFixed(1);
@@ -52,7 +53,7 @@ export default function TrialWatermark({ documents = [] }) {
           <div className="popover-storage-box">
             <div className="popover-storage-labels">
               <span>Almacenamiento Usado:</span>
-              <strong>{usedMB} MB / 3 GB ({percentUsed}%)</strong>
+              <strong>{usedMB} MB / 2 GB ({percentUsed}%)</strong>
             </div>
             <div className="popover-bar-track">
               <div 
@@ -65,11 +66,11 @@ export default function TrialWatermark({ documents = [] }) {
           <p className="popover-desc">
             {isFull ? (
               <span style={{ color: '#b91c1c', fontWeight: 600 }}>
-                ⚠️ Se ha alcanzado la cuota de 3 GB asignada para esta instalación institucional. Contacte a la administración del sistema.
+                ⚠️ Se ha alcanzado la cuota de 2 GB asignada para esta instalación institucional. Contacte a la administración del sistema.
               </span>
             ) : (
               <span>
-                Esta instalación opera bajo <strong>Versión Institucional</strong> con una cuota asignada de hasta <strong>3 GB</strong> de almacenamiento en la nube.
+                Esta instalación opera bajo <strong>Versión Institucional</strong> con una cuota asignada de hasta <strong>2 GB</strong> de almacenamiento en la nube.
               </span>
             )}
           </p>
@@ -80,7 +81,7 @@ export default function TrialWatermark({ documents = [] }) {
       <div 
         className={`trial-watermark-pill ${isFull ? 'watermark-full' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
-        title="Versión Institucional Activa · 3 GB Asignados (Clic para ver estado)"
+        title="Versión Institucional Activa · 2 GB Asignados (Clic para ver estado)"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {

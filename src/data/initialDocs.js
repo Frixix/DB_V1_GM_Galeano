@@ -55,24 +55,6 @@ export const initialDocuments = [
     notes: 'Guías con actividades prácticas para laboratorio escolar.',
   },
   {
-    id: 'MG-PRI-004',
-    title: 'Planilla de Seguimiento y Lectoescritura',
-    folder: 'calificaciones',
-    grade: 'Primero (1°)',
-    subject: 'Lengua Castellana',
-    teacher: 'Elcy',
-    period: '1° Periodo',
-    isPublic: false,
-    fileName: 'Planilla_Espanol_1_Elcy.xlsx',
-    fileSize: '512 KB',
-    compressedSize: '135 KB',
-    rawBytes: 512 * 1024,
-    ratio: '74%',
-    isCompressed: true,
-    uploadedAt: '05/10/2026, 02:10 p. m.',
-    notes: 'Valoración formativa de trazo y comprensión de fonemas.',
-  },
-  {
     id: 'MG-BOV-001',
     title: 'Acta Ordinaria N° 01 - Consejo Directivo 2026',
     folder: 'boveda',
@@ -93,4 +75,4 @@ export const initialDocuments = [
     notes:
       'Aprobación del presupuesto operativo y plan de gestión institucional de Básica Primaria.',
   },
-]
+];

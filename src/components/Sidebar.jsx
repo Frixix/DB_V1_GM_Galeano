@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { USERS } from '../data/users.js';
+import { USERS, SYSTEM_STORAGE_CAPACITY_BYTES } from '../data/users.js';
 import { getUserAvatar } from '../services/avatarService.js';
 
 export default function Sidebar({ 
@@ -18,7 +18,7 @@ export default function Sidebar({
   onBackToModules
 }) {
   const isPrivileged = ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
-  const SYSTEM_CAPACITY = 3 * 1024 * 1024 * 1024; // 3 GB
+  const SYSTEM_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 2 GB
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
   const percentUsed = Math.min(100, Math.max(1, ((totalUsedBytes / SYSTEM_CAPACITY) * 100))).toFixed(1);
@@ -398,7 +398,7 @@ export default function Sidebar({
             <span>Almacenamiento</span>
           </div>
           <span className={`storage-plan-pill ${isStorageFull ? 'full' : (isStorageNearFull ? 'warning' : '')}`}>
-            {isStorageFull ? '3 GB Lleno' : 'Versión Institucional'}
+            {isStorageFull ? '2 GB Lleno' : 'Versión Institucional'}
           </span>
         </div>
 
@@ -411,25 +411,25 @@ export default function Sidebar({
 
         <div className="storage-labels">
           <span>{usedMB} MB usados ({percentUsed}%)</span>
-          <span>3 GB disponibles</span>
+          <span>2 GB disponibles</span>
         </div>
 
         {isStorageFull ? (
           <div className="summary-alert-full">
             <div className="summary-alert-header">
               <i className="ph-bold ph-warning-octagon"></i>
-              <strong>Capacidad Agotada (3 GB)</strong>
+              <strong>Capacidad Agotada (2 GB)</strong>
             </div>
             <p>
-              Has alcanzado el límite de 3 GB de la <strong>cuota institucional</strong>. Para continuar almacenando documentos, contacte al administrador.
+              Has alcanzado el límite de 2 GB de la <strong>cuota institucional</strong>. Para continuar almacenando documentos, contacte al administrador.
             </p>
           </div>
         ) : (
           <p className="summary-reminder">
             {isStorageNearFull ? (
-              <>⚠️ <strong>Cerca del límite:</strong> 85%+ de capacidad utilizada de los 3 GB institucionales.</>
+              <>⚠️ <strong>Cerca del límite:</strong> 85%+ de capacidad utilizada de los 2 GB institucionales.</>
             ) : (
-              <>Plan Institucional: <strong>3 GB asignados</strong> para gestión académica.</>
+              <>Plan Institucional: <strong>2 GB asignados</strong> para gestión académica.</>
             )}
           </p>
         )}

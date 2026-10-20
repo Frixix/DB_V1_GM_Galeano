@@ -76,7 +76,10 @@ export function useDocuments() {
           console.warn('Error al cargar de Supabase, usando locales:', fetchErr);
           setError(fetchErr.message);
         } else if (data && data.length > 0) {
-          setDocuments(data.map(mapDbToDoc));
+          const validDocs = data
+            .map(mapDbToDoc)
+            .filter(d => d.folder !== 'calificaciones' && d.id !== 'MG-PRI-004');
+          setDocuments(validDocs);
         }
       });
 
@@ -89,6 +92,7 @@ export function useDocuments() {
           if (!isMounted) return;
           if (payload.eventType === 'INSERT') {
             const newDoc = mapDbToDoc(payload.new);
+            if (newDoc.folder === 'calificaciones' || newDoc.id === 'MG-PRI-004') return;
             setDocuments(prev => {
               const existingIndex = prev.findIndex(d => d.id === newDoc.id);
               if (existingIndex >= 0) {

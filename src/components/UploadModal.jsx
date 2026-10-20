@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatBytes, formatDateTime, generateRadicado } from '../utils/format';
 import { compressFileIfNeeded } from '../utils/compression';
 import { uploadDocumentFile } from '../services/storageService';
+import { SYSTEM_STORAGE_CAPACITY_BYTES } from '../data/users';
 
 export default function UploadModal({ 
   isOpen, 
@@ -12,13 +13,13 @@ export default function UploadModal({
   initialFolder = 'planeaciones',
   totalUsedBytes = 0
 }) {
-  const SYSTEM_STORAGE_CAPACITY = 3 * 1024 * 1024 * 1024; // 3 GB
+  const SYSTEM_STORAGE_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 2 GB
   const remainingBytes = Math.max(0, SYSTEM_STORAGE_CAPACITY - totalUsedBytes);
   const isStorageFull = totalUsedBytes >= SYSTEM_STORAGE_CAPACITY;
 
   const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
 
-  const defaultFolder = (initialFolder && initialFolder !== 'all' && initialFolder !== 'publico' && initialFolder !== 'calificaciones')
+  const defaultFolder = (initialFolder && initialFolder !== 'all' && initialFolder !== 'publico' && initialFolder !== 'calificaciones' && initialFolder !== 'observador')
     ? initialFolder
     : (isPrivileged ? 'institucional' : 'planeaciones');
   const isInst = defaultFolder === 'institucional';
@@ -70,9 +71,9 @@ export default function UploadModal({
 
     setErrorMessage('');
 
-    // Validar si la cuota global de 3 GB de la Fase de Prueba ya está llena
+    // Validar si la cuota global de 2 GB de la Fase de Prueba ya está llena
     if (isStorageFull) {
-      setErrorMessage('El almacenamiento asignado para la fase de prueba (3 GB) se encuentra lleno. Contacte a la administración para habilitar espacio adicional.');
+      setErrorMessage('El almacenamiento asignado para la fase de prueba (2 GB) se encuentra lleno. Contacte a la administración para habilitar espacio adicional.');
       setSelectedFile(null);
       setCompressedInfo(null);
       return;
@@ -86,9 +87,9 @@ export default function UploadModal({
       return;
     }
 
-    // Validar si este archivo sobrepasa el espacio restante para alcanzar los 3 GB
+    // Validar si este archivo sobrepasa el espacio restante para alcanzar los 2 GB
     if (file.size > remainingBytes) {
-      setErrorMessage(`El archivo pesa ${formatBytes(file.size)}, superando el espacio disponible restante en la fase de prueba (${formatBytes(remainingBytes)} disponibles de 3 GB).`);
+      setErrorMessage(`El archivo pesa ${formatBytes(file.size)}, superando el espacio disponible restante en la fase de prueba (${formatBytes(remainingBytes)} disponibles de 2 GB).`);
       setSelectedFile(null);
       setCompressedInfo(null);
       return;
@@ -124,7 +125,7 @@ export default function UploadModal({
     e.preventDefault();
 
     if (isStorageFull) {
-      setErrorMessage('La fase de prueba ha alcanzado el límite de 3 GB. Contacte a la administración para continuar.');
+      setErrorMessage('La fase de prueba ha alcanzado el límite de 2 GB. Contacte a la administración para continuar.');
       return;
     }
 
@@ -142,7 +143,7 @@ export default function UploadModal({
     const finalSize = compressedInfo?.compressedBytes || rawBytes;
 
     if (totalUsedBytes + finalSize > SYSTEM_STORAGE_CAPACITY) {
-      setErrorMessage(`Este documento supera la capacidad máxima de 3 GB de la fase de prueba. Quedan solo ${formatBytes(remainingBytes)} disponibles.`);
+      setErrorMessage(`Este documento supera la capacidad máxima de 2 GB de la fase de prueba. Quedan solo ${formatBytes(remainingBytes)} disponibles.`);
       return;
     }
 
@@ -229,10 +230,10 @@ export default function UploadModal({
             <div className="upload-storage-full-alert">
               <div className="alert-header">
                 <i className="ph-bold ph-lock-key"></i>
-                <strong>Capacidad de 3 GB Alcanzada (Fase de Prueba)</strong>
+                <strong>Capacidad de 2 GB Alcanzada (Fase de Prueba)</strong>
               </div>
               <p>
-                El almacenamiento asignado para la <strong>fase de prueba (3 GB)</strong> se encuentra lleno. Para radicar nuevos documentos, contacte a la administración.
+                El almacenamiento asignado para la <strong>fase de prueba (2 GB)</strong> se encuentra lleno. Para radicar nuevos documentos, contacte a la administración.
               </p>
             </div>
           )}
@@ -266,7 +267,6 @@ export default function UploadModal({
                   <>
                     <option value="planeaciones">Planeaciones</option>
                     <option value="talleres">Guías & Talleres</option>
-                    <option value="observador">Observador & Actas</option>
                     {isPrivileged && <option value="institucional">Institucional & Circulares</option>}
                   </>
                 )}
@@ -379,7 +379,7 @@ export default function UploadModal({
                 <i className={`ph-bold ${isStorageFull ? 'ph-lock-key' : 'ph-cloud-arrow-up'}`}></i>
                 <div className="drop-text">
                   {isStorageFull 
-                    ? 'Subidas bloqueadas: Capacidad de 3 GB agotada' 
+                    ? 'Subidas bloqueadas: Capacidad de 2 GB agotada' 
                     : 'Haga clic o arrastre su archivo aquí'}
                 </div>
                 <div className="file-hint">
@@ -435,7 +435,7 @@ export default function UploadModal({
             </button>
             <button type="submit" className="btn btn-primary" disabled={isProcessing || isStorageFull}>
               <i className="ph-bold ph-check"></i>
-              {isProcessing ? 'Procesando...' : (isStorageFull ? 'Límite de 3 GB Alcanzado' : 'Guardar y Radicar')}
+              {isProcessing ? 'Procesando...' : (isStorageFull ? 'Límite de 2 GB Alcanzado' : 'Guardar y Radicar')}
             </button>
           </div>
         </form>
