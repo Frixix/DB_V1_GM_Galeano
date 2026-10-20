@@ -348,7 +348,7 @@ export default function UploadModal({
                 </div>
                 <div className="boveda-security-info">
                   <strong>Estrictamente Confidencial</strong>
-                  <small>Exclusivo Rectoría y Administración (No visible para cuerpo docente • Para comunicación docente usar Módulo 1: Gestión Documental)</small>
+                  <small>Exclusivo Rectoría y Administración (No visible para cuerpo docente • Para comunicación docente usar Módulo 2: Recursos Pedagógicos & Circulares)</small>
                 </div>
               </div>
             ) : (

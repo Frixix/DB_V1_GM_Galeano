@@ -2,7 +2,7 @@ import './PortalNavbar.css';
 
 /**
  * PortalNavbar: Barra Superior Institucional Unificada
- * Idéntica en todas las vistas: Panel Principal, Gestión Documental, Notas y Calificaciones, Bóveda Directiva.
+ * Idéntica en todas las vistas: Panel Principal, Recursos Pedagógicos & Circulares, Notas y Calificaciones, Bóveda Directiva.
  * Paridad 100%: Presencia en vivo, Notificaciones, Guía de Sistema, Chip de Usuario/Rol y Cerrar Sesión.
  */
 export default function PortalNavbar({

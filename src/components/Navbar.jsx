@@ -1,7 +1,7 @@
 import PortalNavbar from './PortalNavbar';
 
 /**
- * Navbar institucional para Gestión Documental
+ * Navbar institucional para Recursos Pedagógicos & Circulares
  * Mantiene retrocompatibilidad delegando en PortalNavbar con paridad visual 100%.
  */
 export default function Navbar({ 
@@ -19,7 +19,7 @@ export default function Navbar({
   return (
     <PortalNavbar
       currentUser={currentUser}
-      moduleTitle="Gestión Documental"
+      moduleTitle="Recursos Pedagógicos & Circulares"
       moduleSubtitle={`Archivo Central • Panel de ${currentUser?.name || 'Docente'}`}
       onBackToModules={onBackToModules}
       onToggleSidebar={onToggleSidebar}

@@ -103,16 +103,16 @@ export default function ModulesDashboard({
                 )}
               </button>
 
-              {/* Módulo 2 Activo: Gestión Documental */}
+              {/* Módulo 2 Activo: Recursos Pedagógicos & Circulares */}
               <button 
                 type="button"
                 className={`portal-nav-item portal-nav-item-docs ${selectedNavModule === 'docs' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('docs')}
-                title="Acceder a Gestión Documental y Archivo Central"
+                title="Acceder a Recursos Pedagógicos & Circulares"
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-folder-notch-open"></i>
-                <span className="portal-nav-text">Gestión Documental</span>
+                <span className="portal-nav-text">Recursos Pedagógicos & Circulares</span>
               </button>
 
               {/* Módulo 3: Novedades & Reemplazos Docentes */}
@@ -233,7 +233,7 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-            {/* MÓDULO 2: GESTIÓN DOCUMENTAL Y ARCHIVO CENTRAL */}
+            {/* MÓDULO 2: RECURSOS PEDAGÓGICOS & CIRCULARES */}
             <article 
               className="portal-module-card portal-module-card-active"
               onClick={() => handleModuleClick('docs')}
@@ -254,8 +254,8 @@ export default function ModulesDashboard({
               </div>
 
               <div className="portal-card-body">
-                <h3>Gestión Documental y Archivo Central</h3>
-                <p>Módulo central para radicación, resguardo, consulta y auditoría de circulares, planeaciones curriculares, guías y archivos institucionales.</p>
+                <h3>Recursos Pedagógicos & Circulares</h3>
+                <p>Módulo central para radicación, resguardo, consulta y auditoría de circulares oficiales, planeaciones curriculares, guías y talleres pedagógicos.</p>
               </div>
 
               <div className="portal-card-footer">

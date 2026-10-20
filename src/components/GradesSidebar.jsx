@@ -19,7 +19,7 @@ const getSubjectIcon = (subj) => {
   return 'ph-book-bookmark';
 };
 
-// Helper para clases pastel temáticas de materias idénticas a Gestión Documental
+// Helper para clases pastel temáticas de materias idénticas a Recursos Pedagógicos & Circulares
 const getSubjectFolderClass = (subj) => {
   if (!subj) return 'folder-subject-default';
   const s = subj.toLowerCase();
