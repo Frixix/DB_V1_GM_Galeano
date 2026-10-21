@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { RECORD_STATUSES, RECORD_TYPES, SEMAFORO_CONFIG } from '../data/initialObservador';
 import { getDeadlineMeta } from '../utils/observadorDates';
 import { committeeService } from '../services/committeeService.js';
+import { downloadDocumentBlob } from '../services/storageService.js';
 
 export default function ViewObservadorModal({
   isOpen,
@@ -482,6 +483,66 @@ export default function ViewObservadorModal({
                 Observaciones Complementarias
               </h4>
               <p className="obs-section-content">{record.notes}</p>
+            </div>
+          )}
+
+          {/* Soporte / Archivo Adjunto en Cloudflare R2 o Supabase */}
+          {(record.storageKey || record.fileName) && (
+            <div className="obs-section-block">
+              <h4 className="obs-section-title">
+                <i className="ph-bold ph-paperclip"></i>
+                Documento de Soporte / Acta Adjunta
+              </h4>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.95rem', background: '#f0fdfa', border: '1px solid #ccfbf1', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                  <i className="ph-bold ph-file-text" style={{ fontSize: '1.3rem', color: '#0f766e', flexShrink: 0 }}></i>
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ fontSize: '0.82rem', color: '#0f172a', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      {record.fileName || 'Acta_Soporte.pdf'}
+                    </strong>
+                    <span style={{ fontSize: '0.68rem', color: '#0f766e' }}>
+                      {record.storageKey ? 'Almacenado seguro en Cloudflare R2 / Supabase' : 'Archivo registrado institucionalmente'}
+                    </span>
+                  </div>
+                </div>
+                {record.storageKey && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const blob = await downloadDocumentBlob(record.storageKey);
+                      if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = record.fileName || 'soporte_observador.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      } else {
+                        alert('No se pudo descargar el archivo desde el almacenamiento en la nube.');
+                      }
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '5px 12px',
+                      background: '#0f766e',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    <i className="ph-bold ph-download-simple"></i>
+                    <span>Descargar Soporte</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

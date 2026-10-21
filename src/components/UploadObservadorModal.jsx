@@ -3,6 +3,7 @@ import { STUDENTS_BY_GRADE } from '../data/gradesTreeData';
 import { OBSERVADOR_ROUTES, RECORD_STATUSES, COMMITTEE_MEMBERS, AVAILABLE_TEACHERS } from '../data/initialObservador';
 import { getDateRules, addDays, formatDisplayDate, getDaysDifference } from '../utils/observadorDates';
 import { committeeService } from '../services/committeeService.js';
+import { uploadDocumentFile } from '../services/storageService.js';
 
 export default function UploadObservadorModal({
   isOpen,
@@ -101,7 +102,7 @@ export default function UploadObservadorModal({
     return map[route] || 'REG';
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -184,6 +185,16 @@ export default function UploadObservadorModal({
       hour12: true
     })}`;
 
+    let uploadedStorageKey = null;
+    if (selectedFile) {
+      try {
+        const uploadRes = await uploadDocumentFile(selectedFile, 'observador', newId);
+        uploadedStorageKey = uploadRes.storageKey;
+      } catch (err) {
+        console.warn('[UploadObservadorModal] Error al subir archivo adjunto a R2/Storage:', err);
+      }
+    }
+
     const newRecord = {
       id: newId,
       route,
@@ -205,6 +216,7 @@ export default function UploadObservadorModal({
       followUpDate: formatDisplayDate(followUpDate, 'short'),
       followUpDateISO: followUpDate,
       fileName: selectedFile ? selectedFile.name : null,
+      storageKey: uploadedStorageKey,
       notes: selectedFile ? `Archivo adjunto: ${selectedFile.name}` : '',
       resolutionNotes: semaforo === 'verde' ? agreements.trim() : '',
       resolutionImage: null,
