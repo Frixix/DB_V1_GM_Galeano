@@ -1385,6 +1385,227 @@
   color: #475569;
 }
 
+/* ==========================================================================
+   SECCIÓN DE CARGA DE SOPORTE & ACTAS EN CLOUDFLARE R2
+   ========================================================================== */
+.obs-file-upload-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.obs-file-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.obs-file-title-label {
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.obs-r2-cloud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.obs-file-dropzone-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.obs-file-dropzone-box:hover {
+  background: #f0fdfa;
+  border-color: #0f766e;
+}
+
+.obs-dropzone-icon {
+  font-size: 1.5rem;
+  color: #0f766e;
+  flex-shrink: 0;
+}
+
+.obs-dropzone-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.obs-dropzone-info strong {
+  font-size: 0.8rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.obs-dropzone-info span {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.obs-file-chosen-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0.65rem 0.95rem;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+}
+
+.obs-file-chosen-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.obs-file-type-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #ccfbf1;
+  color: #0f766e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.obs-file-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.obs-file-title {
+  font-size: 0.8rem;
+  color: #0f172a;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.obs-file-sub {
+  font-size: 0.68rem;
+  color: #0f766e;
+  font-weight: 500;
+}
+
+.obs-btn-remove-selected-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.obs-btn-remove-selected-file:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+}
+
+/* Soporte en ViewObservadorModal */
+.obs-empty-attach-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.obs-empty-attach-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.obs-empty-attach-info .obs-cloud-icon {
+  font-size: 1.4rem;
+  color: #0f766e;
+  flex-shrink: 0;
+}
+
+.obs-empty-attach-info strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #0f172a;
+}
+
+.obs-empty-attach-info span {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.obs-btn-upload-direct-r2,
+.obs-btn-replace-r2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.obs-btn-upload-direct-r2:hover {
+  background: #115e59;
+}
+
+.obs-btn-replace-r2 {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.obs-btn-replace-r2:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
 .obs-upload-footer {
   display: flex;
   justify-content: flex-end;

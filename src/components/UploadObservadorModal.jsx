@@ -45,6 +45,7 @@ export default function UploadObservadorModal({
 
   const [status, setStatus] = useState('en_seguimiento');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Sincronizar fechas automatizadas al cambiar la ruta o tipo de sesión
@@ -188,10 +189,13 @@ export default function UploadObservadorModal({
     let uploadedStorageKey = null;
     if (selectedFile) {
       try {
+        setIsUploading(true);
         const uploadRes = await uploadDocumentFile(selectedFile, 'observador', newId);
         uploadedStorageKey = uploadRes.storageKey;
       } catch (err) {
         console.warn('[UploadObservadorModal] Error al subir archivo adjunto a R2/Storage:', err);
+      } finally {
+        setIsUploading(false);
       }
     }
 
@@ -573,17 +577,65 @@ export default function UploadObservadorModal({
               </select>
             </div>
 
-            <div className="obs-form-group">
-              <label htmlFor="obsFileInput">
-                <i className="ph-bold ph-paperclip"></i> Adjuntar Evidencia o Acta Escaneada (Opcional)
-              </label>
-              <input
-                type="file"
-                id="obsFileInput"
-                className="obs-file-input"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-              />
+            <div className="obs-form-group obs-file-upload-block">
+              <div className="obs-file-header-bar">
+                <label htmlFor="obsFileInput" className="obs-file-title-label">
+                  <i className="ph-bold ph-paperclip"></i>
+                  <span>Adjuntar Evidencia o Acta Escaneada (Opcional)</span>
+                </label>
+                <span className="obs-r2-cloud-badge" title="Almacenamiento seguro en la nube con Cloudflare R2">
+                  <i className="ph-bold ph-cloud-arrow-up"></i> Custodia R2
+                </span>
+              </div>
+
+              {!selectedFile ? (
+                <div 
+                  className="obs-file-dropzone-box"
+                  onClick={() => document.getElementById('obsFileInput')?.click()}
+                  title="Seleccionar archivo para subir a Cloudflare R2"
+                >
+                  <i className="ph-bold ph-file-arrow-up obs-dropzone-icon"></i>
+                  <div className="obs-dropzone-info">
+                    <strong>Haz clic aquí para seleccionar evidencia o acta</strong>
+                    <span>Formatos: PDF, Word (.docx) o imágenes escaneadas (PNG, JPG)</span>
+                  </div>
+                  <input
+                    type="file"
+                    id="obsFileInput"
+                    className="obs-file-input-native"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              ) : (
+                <div className="obs-file-chosen-card">
+                  <div className="obs-file-chosen-left">
+                    <div className="obs-file-type-icon">
+                      <i className={selectedFile.name.toLowerCase().endsWith('.pdf') ? 'ph-bold ph-file-pdf' : 'ph-bold ph-file-text'}></i>
+                    </div>
+                    <div className="obs-file-details">
+                      <strong className="obs-file-title" title={selectedFile.name}>{selectedFile.name}</strong>
+                      <span className="obs-file-sub">
+                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Listo para subir a Cloudflare R2
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="obs-btn-remove-selected-file"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      const fileInput = document.getElementById('obsFileInput');
+                      if (fileInput) fileInput.value = '';
+                    }}
+                    title="Quitar archivo adjunto"
+                  >
+                    <i className="ph-bold ph-trash"></i>
+                    <span>Quitar</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -684,12 +736,21 @@ export default function UploadObservadorModal({
 
           {/* Botones de Envío */}
           <div className="obs-upload-footer">
-            <button type="button" className="obs-btn-outline" onClick={onClose}>
+            <button type="button" className="obs-btn-outline" onClick={onClose} disabled={isUploading}>
               Cancelar
             </button>
-            <button type="submit" className="obs-btn-primary obs-btn-submit">
-              <i className="ph-bold ph-check"></i>
-              <span>Radicar Registro / Acta</span>
+            <button type="submit" className="obs-btn-primary obs-btn-submit" disabled={isUploading}>
+              {isUploading ? (
+                <>
+                  <i className="ph-bold ph-spinner ph-spin"></i>
+                  <span>Subiendo a R2 & Radicando...</span>
+                </>
+              ) : (
+                <>
+                  <i className="ph-bold ph-check"></i>
+                  <span>Radicar Registro / Acta</span>
+                </>
+              )}
             </button>
           </div>
         </form>

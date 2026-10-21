@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { RECORD_STATUSES, RECORD_TYPES, SEMAFORO_CONFIG } from '../data/initialObservador';
 import { getDeadlineMeta } from '../utils/observadorDates';
 import { committeeService } from '../services/committeeService.js';
-import { downloadDocumentBlob } from '../services/storageService.js';
+import { downloadDocumentBlob, uploadDocumentFile } from '../services/storageService.js';
 
 export default function ViewObservadorModal({
   isOpen,
@@ -18,6 +18,8 @@ export default function ViewObservadorModal({
   const [resolutionText, setResolutionText] = useState('');
   const [resolutionImage, setResolutionImage] = useState(null);
   const [resolveError, setResolveError] = useState('');
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
+  const [evidenceSuccessMsg, setEvidenceSuccessMsg] = useState('');
 
   // Resetear estados al abrir o cambiar de registro
   useEffect(() => {
@@ -25,6 +27,8 @@ export default function ViewObservadorModal({
     setResolutionText('');
     setResolutionImage(null);
     setResolveError('');
+    setIsUploadingEvidence(false);
+    setEvidenceSuccessMsg('');
   }, [record?.id, isOpen]);
 
   useEffect(() => {
@@ -120,6 +124,33 @@ export default function ViewObservadorModal({
       resolvedAt: null,
       resolvedBy: null
     });
+  };
+
+  const handleUploadEvidenceDirect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !record) return;
+
+    try {
+      setIsUploadingEvidence(true);
+      setEvidenceSuccessMsg('');
+      const res = await uploadDocumentFile(file, 'observador', record.id);
+      if (res && res.storageKey) {
+        onUpdateStatus(record.id, {
+          fileName: file.name,
+          storageKey: res.storageKey,
+          notes: record.notes ? `${record.notes} • Acta escaneada: ${file.name}` : `Acta escaneada: ${file.name}`
+        });
+        setEvidenceSuccessMsg(`¡Soporte "${file.name}" cargado con éxito en Cloudflare R2!`);
+        setTimeout(() => setEvidenceSuccessMsg(''), 4500);
+      } else {
+        alert('No se pudo completar la subida a Cloudflare R2.');
+      }
+    } catch (err) {
+      alert(`Error al subir evidencia a Cloudflare R2: ${err.message}`);
+    } finally {
+      setIsUploadingEvidence(false);
+      e.target.value = '';
+    }
   };
 
   return (
@@ -487,12 +518,20 @@ export default function ViewObservadorModal({
           )}
 
           {/* Soporte / Archivo Adjunto en Cloudflare R2 o Supabase */}
-          {(record.storageKey || record.fileName) && (
-            <div className="obs-section-block">
-              <h4 className="obs-section-title">
-                <i className="ph-bold ph-paperclip"></i>
-                Documento de Soporte / Acta Adjunta
-              </h4>
+          <div className="obs-section-block">
+            <h4 className="obs-section-title">
+              <i className="ph-bold ph-paperclip"></i>
+              Documento de Soporte / Acta Escaneada (Cloudflare R2)
+            </h4>
+
+            {evidenceSuccessMsg && (
+              <div style={{ marginBottom: '0.65rem', padding: '0.45rem 0.75rem', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', fontSize: '0.75rem', color: '#065f46', fontWeight: 600 }}>
+                <i className="ph-bold ph-check-circle" style={{ marginRight: '5px' }}></i>
+                {evidenceSuccessMsg}
+              </div>
+            )}
+
+            {(record.storageKey || record.fileName) ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.95rem', background: '#f0fdfa', border: '1px solid #ccfbf1', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                   <i className="ph-bold ph-file-text" style={{ fontSize: '1.3rem', color: '#0f766e', flexShrink: 0 }}></i>
@@ -505,46 +544,81 @@ export default function ViewObservadorModal({
                     </span>
                   </div>
                 </div>
-                {record.storageKey && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const blob = await downloadDocumentBlob(record.storageKey);
-                      if (blob) {
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = record.fileName || 'soporte_observador.pdf';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      } else {
-                        alert('No se pudo descargar el archivo desde el almacenamiento en la nube.');
-                      }
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '5px 12px',
-                      background: '#0f766e',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      flexShrink: 0
-                    }}
-                  >
-                    <i className="ph-bold ph-download-simple"></i>
-                    <span>Descargar Soporte</span>
-                  </button>
-                )}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  {record.storageKey && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const blob = await downloadDocumentBlob(record.storageKey);
+                        if (blob) {
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = record.fileName || 'soporte_observador.pdf';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        } else {
+                          alert('No se pudo descargar el archivo desde el almacenamiento en la nube.');
+                        }
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '5px 12px',
+                        background: '#0f766e',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <i className="ph-bold ph-download-simple"></i>
+                      <span>Descargar Soporte</span>
+                    </button>
+                  )}
+
+                  <label className="obs-btn-replace-r2" title="Reemplazar o subir nueva versión escaneada">
+                    <i className="ph-bold ph-arrows-clockwise"></i>
+                    <span>{isUploadingEvidence ? 'Subiendo...' : 'Actualizar'}</span>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      style={{ display: 'none' }}
+                      disabled={isUploadingEvidence}
+                      onChange={handleUploadEvidenceDirect}
+                    />
+                  </label>
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="obs-empty-attach-card">
+                <div className="obs-empty-attach-info">
+                  <i className="ph-bold ph-cloud-arrow-up obs-cloud-icon"></i>
+                  <div>
+                    <strong>Sin evidencia o acta escaneada adjunta</strong>
+                    <span>Puedes adjuntar el acta firmada o soporte en PDF/imagen a Cloudflare R2 en cualquier momento.</span>
+                  </div>
+                </div>
+                <label className="obs-btn-upload-direct-r2">
+                  <i className="ph-bold ph-upload-simple"></i>
+                  <span>{isUploadingEvidence ? 'Subiendo a R2...' : 'Adjuntar Evidencia a R2'}</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                    style={{ display: 'none' }}
+                    disabled={isUploadingEvidence}
+                    onChange={handleUploadEvidenceDirect}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
 
           {/* Sección 4: Bloque de Firmas Institucionales */}
           <div className="obs-signatures-container">
