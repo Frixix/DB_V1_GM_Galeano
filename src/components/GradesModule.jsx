@@ -232,6 +232,10 @@ export default function GradesModule({
     return gradesService.canManageMatricula(currentUser);
   }, [currentUser]);
 
+  const canManageCurriculum = useMemo(() => {
+    return gradesService.canManageCurriculum ? gradesService.canManageCurriculum(currentUser) : (isPrivileged || isCoordinador);
+  }, [currentUser, isPrivileged, isCoordinador]);
+
   // Manejo de cambio en nota de actividad continua de aula (80%)
   const handleActivityScoreChange = (studentId, activityId, value) => {
     if (!canEditScores) return;

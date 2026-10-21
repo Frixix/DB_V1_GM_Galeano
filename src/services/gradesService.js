@@ -728,6 +728,14 @@ class GradesService {
     return user.role === 'coordinador' || user.role === 'admin';
   }
 
+  /**
+   * Permiso para gestión de malla curricular y novedades docentes
+   */
+  canManageCurriculum(user) {
+    if (!user) return false;
+    return user.role === 'admin' || user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'coordinador';
+  }
+
   // =====================================================================
   // GESTIÓN DE FECHAS, CIERRES Y PRÓRROGAS EXTEMPORÁNEAS (COORDINACIÓN)
   // =====================================================================
