@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import Login from './components/Login';
 import ModulesDashboard from './components/ModulesDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
