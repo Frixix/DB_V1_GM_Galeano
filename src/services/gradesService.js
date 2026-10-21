@@ -58,6 +58,105 @@ const DEFAULT_EVALUATION_CALENDAR = {
  * - Transferencia inmediata de planillas de estudiantes al nuevo docente nombrado.
  */
 
+/**
+ * Calcula el rendimiento y proyección según el modelo SIEE 80% Aula / 20% Evaluación Final
+ * - Promedio simple de $N$ actividades continuas de aula (80%)
+ * - Evaluación Final (20%)
+ * - Simulación predictiva con 1.0 si la evaluación final no se ha presentado
+ */
+export function calculateGrade80_20(student, branchActivities = []) {
+  if (!student) {
+    return {
+      promedioAula: 0,
+      aporteAula: 0,
+      evaluacionFinal: null,
+      aporteFinal: 0.20,
+      definitiva: '1.0',
+      definitivaNum: 1.0,
+      isSimulated: true,
+      notaRequerida: 3.0,
+      puedeAprobar: true,
+      activeScoresCount: 0
+    };
+  }
+
+  const validScores = [];
+
+  if (branchActivities && branchActivities.length > 0) {
+    branchActivities.forEach((act) => {
+      let val = null;
+      if (student.scores && student.scores[act.id] !== undefined && student.scores[act.id] !== null && student.scores[act.id] !== '') {
+        val = Number(student.scores[act.id]);
+      } else if (student[act.id] !== undefined && student[act.id] !== null && student[act.id] !== '') {
+        val = Number(student[act.id]);
+      }
+      if (val !== null && !isNaN(val) && val >= 1.0 && val <= 5.0) {
+        validScores.push(val);
+      }
+    });
+  }
+
+  // Si no se encontraron por branchActivities, buscar en campos legados c1 y c2
+  if (validScores.length === 0) {
+    if (student.c1 !== undefined && student.c1 !== '' && !isNaN(Number(student.c1))) {
+      validScores.push(Number(student.c1));
+    }
+    if (student.c2 !== undefined && student.c2 !== '' && !isNaN(Number(student.c2))) {
+      validScores.push(Number(student.c2));
+    }
+  }
+
+  const activeScoresCount = validScores.length;
+  const promedioAula = activeScoresCount > 0
+    ? Number((validScores.reduce((sum, n) => sum + n, 0) / activeScoresCount).toFixed(2))
+    : 0;
+
+  const aporteAula = Number((promedioAula * 0.80).toFixed(2));
+
+  // Evaluación Final (20%)
+  let finalExamVal = null;
+  if (student.evaluacionFinal !== undefined && student.evaluacionFinal !== null && student.evaluacionFinal !== '') {
+    finalExamVal = Number(student.evaluacionFinal);
+  } else if (student.c3 !== undefined && student.c3 !== null && student.c3 !== '') {
+    finalExamVal = Number(student.c3);
+  }
+
+  const hasFinalExam = finalExamVal !== null && !isNaN(finalExamVal) && finalExamVal >= 1.0 && finalExamVal <= 5.0;
+
+  let aporteFinal = 0;
+  let definitivaNum = 0;
+  let isSimulated = false;
+
+  if (hasFinalExam) {
+    aporteFinal = Number((finalExamVal * 0.20).toFixed(2));
+    definitivaNum = Number((aporteAula + aporteFinal).toFixed(1));
+    isSimulated = false;
+  } else {
+    // SIMULACIÓN PREDICTIVA CON 1.0:
+    aporteFinal = 0.20;
+    definitivaNum = Number((aporteAula + 0.20).toFixed(1));
+    isSimulated = true;
+  }
+
+  // Nota requerida en la prueba final para aprobar con 3.0
+  const notaRequeridaRaw = (3.0 - aporteAula) / 0.20;
+  const notaRequerida = Number(Math.max(1.0, Math.min(5.0, notaRequeridaRaw)).toFixed(1));
+  const puedeAprobar = notaRequeridaRaw <= 5.0;
+
+  return {
+    promedioAula,
+    aporteAula,
+    evaluacionFinal: hasFinalExam ? finalExamVal : null,
+    aporteFinal,
+    definitiva: definitivaNum.toFixed(1),
+    definitivaNum,
+    isSimulated,
+    notaRequerida,
+    puedeAprobar,
+    activeScoresCount
+  };
+}
+
 class GradesService {
   constructor() {
     this.checkVersionAndMigrate();
@@ -292,10 +391,8 @@ class GradesService {
         const branch = subjectRosters[subj];
         const studentRecord = branch?.students?.find(s => s.id === st.id);
         if (studentRecord) {
-          const c1 = Number(studentRecord.c1) || 0;
-          const c2 = Number(studentRecord.c2) || 0;
-          const c3 = Number(studentRecord.c3) || 0;
-          const defNum = Number(((c1 * 0.4) + (c2 * 0.4) + (c3 * 0.2)).toFixed(1));
+          const calc = calculateGrade80_20(studentRecord, branch?.activities);
+          const defNum = calc.definitivaNum;
           subjectGrades[subj] = defNum;
           totalSum += defNum;
           subjectsCount += 1;
@@ -356,6 +453,11 @@ class GradesService {
     if (!this.tree[year][period][grade]) this.tree[year][period][grade] = {};
 
     const teacherInfo = this.getTeacherAssignment(grade, subject);
+    const defaultActivities = [
+      { id: 'act_1', name: 'Taller 1', type: 'Taller' },
+      { id: 'act_2', name: 'Quiz Rápido', type: 'Quiz' },
+      { id: 'act_3', name: 'Trabajo en Clase', type: 'Clase' }
+    ];
 
     if (!this.tree[year][period][grade][subject]) {
       const initialRoster = createInitialRosterForBranch(grade, subject, period);
@@ -363,18 +465,25 @@ class GradesService {
       this.tree[year][period][grade][subject] = {
         docente_id: teacherInfo.docente_id,
         teacherName: teacherInfo.teacherName,
+        activities: defaultActivities,
         students: initialRoster,
         lastUpdated: new Date().toISOString()
       };
       this.persistTree();
     } else {
+      const branch = this.tree[year][period][grade][subject];
+      if (!branch.activities || !Array.isArray(branch.activities) || branch.activities.length === 0) {
+        branch.activities = defaultActivities;
+        this.persistTree();
+      }
+
       // Sincronizar docente asignado si hubo reemplazo administrativo o actualización de perfil docente
       if (
-        this.tree[year][period][grade][subject].docente_id !== teacherInfo.docente_id ||
-        this.tree[year][period][grade][subject].teacherName !== teacherInfo.teacherName
+        branch.docente_id !== teacherInfo.docente_id ||
+        branch.teacherName !== teacherInfo.teacherName
       ) {
-        this.tree[year][period][grade][subject].docente_id = teacherInfo.docente_id;
-        this.tree[year][period][grade][subject].teacherName = teacherInfo.teacherName;
+        branch.docente_id = teacherInfo.docente_id;
+        branch.teacherName = teacherInfo.teacherName;
         this.persistTree();
       }
     }
@@ -522,8 +631,11 @@ class GradesService {
     );
   }
 
-  saveBranchStudents(year, period, grade, subject, students, user) {
+  saveBranchStudents(year, period, grade, subject, students, user, activities = null) {
     const branch = this.getBranch(year, period, grade, subject);
+    if (activities && Array.isArray(activities)) {
+      branch.activities = activities;
+    }
     branch.students = students.map(student => ({
       ...student,
       observacion_coordinacion: student.observacion_coordinacion || student.observacionCoordinacion || null,

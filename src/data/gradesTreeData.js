@@ -193,18 +193,19 @@ export const TEACHER_CURRICULUM_ASSIGNMENTS = {
 
 /**
  * Generador de notas iniciales para una rama específica del árbol
+ * Compatible con el nuevo motor flexible 80% Aula Continua / 20% Evaluación Final
  */
 export const createInitialRosterForBranch = (grade, subject, period) => {
   const students = STUDENTS_BY_GRADE[grade] || STUDENTS_BY_GRADE['1° Primaria'];
   
   // Notas con variaciones pedagógicas realistas
   const presets = [
-    { c1: 4.8, c2: 4.5, c3: 5.0, retro: 'Excelente autonomía y participación activa en clase.', dir: 'Felicitaciones por el destacado desempeño académico.' },
-    { c1: 4.0, c2: 4.2, c3: 4.0, retro: 'Cumplido con sus actividades y tareas diarias.', dir: '' },
-    { c1: 4.6, c2: 4.7, c3: 4.8, retro: 'Gran liderazgo en proyectos de grupo.', dir: 'Candidata a cuadro de honor institucional.' },
-    { c1: 3.6, c2: 3.8, c3: 4.0, retro: 'Progreso notable en la conceptualización.', dir: '' },
-    { c1: 4.2, c2: 4.1, c3: 4.5, retro: 'Ordenado y con disposición positiva.', dir: '' },
-    { c1: 3.2, c2: 3.4, c3: 3.5, retro: 'Reforzar talleres procedimentales en casa.', dir: 'Sugerido plan de mejoramiento preventivo.' },
+    { a1: 4.8, a2: 4.5, a3: 4.7, ef: 5.0, retro: 'Excelente autonomía y participación activa en clase.', dir: 'Felicitaciones por el destacado desempeño académico.' },
+    { a1: 4.0, a2: 4.2, a3: 3.9, ef: null, retro: 'Cumplido con sus actividades y tareas diarias.', dir: '' },
+    { a1: 4.6, a2: 4.7, a3: 4.8, ef: 4.8, retro: 'Gran liderazgo en proyectos de grupo.', dir: 'Candidata a cuadro de honor institucional.' },
+    { a1: 3.6, a2: 3.8, a3: 3.5, ef: null, retro: 'Progreso notable en la conceptualización.', dir: '' },
+    { a1: 4.2, a2: 4.1, a3: 4.5, ef: 4.5, retro: 'Ordenado y con disposición positiva.', dir: '' },
+    { a1: 3.0, a2: 3.2, a3: 3.4, ef: null, retro: 'Reforzar talleres continuos en casa.', dir: 'Sugerido plan de mejoramiento preventivo.' },
   ];
 
   return students.map((st, i) => {
@@ -212,9 +213,18 @@ export const createInitialRosterForBranch = (grade, subject, period) => {
     return {
       id: st.id,
       name: st.name,
-      c1: p.c1,
-      c2: p.c2,
-      c3: p.c3,
+      // Diccionario de actividades continuas de aula (80%)
+      scores: {
+        act_1: p.a1,
+        act_2: p.a2,
+        act_3: p.a3
+      },
+      // Evaluación Final (20%) - Si es null, el motor proyecta la simulación con 1.0
+      evaluacionFinal: p.ef,
+      // Campos legados para compatibilidad hacia atrás
+      c1: p.a1,
+      c2: p.a2,
+      c3: p.ef || '',
       retroalimentacionDocente: p.retro,
       sugerenciaDirectiva: p.dir,
       comentarioAuditoria: ''

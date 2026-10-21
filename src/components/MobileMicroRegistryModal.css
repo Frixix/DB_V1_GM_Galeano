@@ -1,0 +1,649 @@
+/* ==========================================================================
+   MICRO-REGISTRO RÁPIDO MÓVIL (MobileMicroRegistryModal)
+   Diseño táctil ergonómico para calificación móvil en < 5 minutos
+   ========================================================================== */
+
+.micro-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  animation: microFadeIn 0.2s ease-out;
+}
+
+@keyframes microFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.micro-modal-container {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  animation: microSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes microSlideUp {
+  from {
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Cabecera */
+.micro-header {
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  color: #ffffff;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.micro-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.micro-title-box h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.micro-title-box p {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #ccfbf1;
+}
+
+.micro-badge-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fef08a;
+  margin-bottom: 4px;
+}
+
+.micro-btn-close {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.15s ease;
+}
+
+.micro-btn-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Scroll de Actividades */
+.micro-activities-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.micro-act-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.micro-act-chip.active {
+  background: #ffffff;
+  color: #0f766e;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.micro-act-chip.chip-final-exam {
+  border-color: #fef08a;
+}
+
+.micro-act-chip.chip-final-exam.active {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.micro-act-weight {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.micro-act-chip.active .micro-act-weight {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.final-tag {
+  background: #ca8a04 !important;
+  color: #ffffff !important;
+}
+
+/* Barra de progreso */
+.micro-progress-bar-wrap {
+  margin-bottom: 8px;
+}
+
+.micro-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #ccfbf1;
+  margin-bottom: 4px;
+}
+
+.micro-progress-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.micro-progress-fill {
+  height: 100%;
+  background: #fef08a;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Switch de vistas */
+.micro-view-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.micro-toggle-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #ccfbf1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.micro-toggle-btn.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   MODO 1: TARJETA 1 A 1
+   ========================================================================== */
+.micro-card-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.micro-student-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.micro-student-card.flash-success {
+  background: #ecfdf5;
+  border-color: #10b981;
+  transform: scale(1.01);
+}
+
+.micro-student-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.micro-student-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
+  flex-shrink: 0;
+}
+
+.micro-student-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.micro-student-counter {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0f766e;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.micro-student-name {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.micro-student-code {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Casilla de Nota Actual */
+.micro-current-score-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.micro-score-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.micro-score-display-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.micro-score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.micro-score-badge.has-score {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.micro-score-badge.empty {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
+}
+
+.micro-simulated-note {
+  font-size: 0.7rem;
+  color: #d97706;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Input Nativo Teclado Numérico */
+.micro-input-native-wrap label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.micro-native-row {
+  display: flex;
+  gap: 8px;
+}
+
+.micro-input-native {
+  flex: 1;
+  height: 48px;
+  border: 2px solid #0f766e;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.12);
+}
+
+.micro-input-native:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25);
+}
+
+.micro-btn-next-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 1.1rem;
+  height: 48px;
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+}
+
+/* Botonera de Notas Rápidas (1 TOQUE = CALIFICA Y AVANZA) */
+.micro-quick-pad-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.85rem;
+}
+
+.micro-quick-pad-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.micro-quick-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.micro-quick-score-btn {
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.12s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.micro-quick-score-btn:active {
+  transform: scale(0.92);
+}
+
+.micro-quick-score-btn.pass {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.micro-quick-score-btn.superior {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.micro-quick-score-btn.low {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.micro-quick-score-btn.selected {
+  outline: 3px solid #0f766e;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.3);
+}
+
+/* Barra de navegación inferior */
+.micro-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.micro-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.micro-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.micro-nav-indicator {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+/* ==========================================================================
+   MODO 2: LISTA RÁPIDA
+   ========================================================================== */
+.micro-list-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+}
+
+.micro-list-header-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  color: #0f766e;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  margin-bottom: 0.75rem;
+}
+
+.micro-students-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.micro-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  gap: 12px;
+}
+
+.micro-list-row-student {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.micro-list-idx {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  width: 22px;
+}
+
+.micro-list-names strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.micro-list-names small {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.micro-list-score-input {
+  width: 68px;
+  height: 42px;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.micro-list-score-input:focus {
+  border-color: #0f766e;
+  outline: none;
+}
+
+.micro-list-score-input.pass {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.micro-list-score-input.low {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Pie del Modal */
+.micro-footer {
+  padding: 0.85rem 1.25rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.micro-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.micro-btn-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
+}
+
+@media (max-width: 480px) {
+  .micro-quick-buttons-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import PortalNavbar from './PortalNavbar';
 import GradesSidebar from './GradesSidebar';
 import EvaluationCalendarModal from './EvaluationCalendarModal';
+import MobileMicroRegistryModal from './MobileMicroRegistryModal';
 import './GradesModule.css';
-import gradesService from '../services/gradesService';
+import { gradesService, calculateGrade80_20 } from '../services/gradesService';
 
 // Clases pastel para los avatares circulares de estudiantes
 const PASTEL_AVATAR_CLASSES = [
@@ -133,11 +134,24 @@ export default function GradesModule({
   }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
 
   const [students, setStudents] = useState(branchData.students || []);
+  const [activities, setActivities] = useState(() => {
+    return branchData.activities || [
+      { id: 'act_1', name: 'Taller 1', type: 'Taller' },
+      { id: 'act_2', name: 'Quiz Rápido', type: 'Quiz' },
+      { id: 'act_3', name: 'Trabajo en Clase', type: 'Clase' }
+    ];
+  });
+  const [isMobileMicroOpen, setIsMobileMicroOpen] = useState(false);
 
-  // Sincronizar roster al cambiar de rama en el árbol o al registrarse un reemplazo
+  // Sincronizar roster y actividades al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
     const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
     setStudents(freshBranch.students || []);
+    setActivities(freshBranch.activities || [
+      { id: 'act_1', name: 'Taller 1', type: 'Taller' },
+      { id: 'act_2', name: 'Quiz Rápido', type: 'Quiz' },
+      { id: 'act_3', name: 'Trabajo en Clase', type: 'Clase' }
+    ]);
   }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
 
   // Carga del Consolidado General del Grado (Vista General)
@@ -181,21 +195,106 @@ export default function GradesModule({
     return gradesService.canManageCalendarAndDeadlines(currentUser);
   }, [currentUser]);
 
-  // Manejo de cambio en notas numéricas (Exclusivo Docente Titular de la materia)
-  const handleScoreChange = (id, field, value) => {
+  // Manejo de cambio en nota de actividad continua de aula (80%)
+  const handleActivityScoreChange = (studentId, activityId, value) => {
     if (!canEditScores) return;
 
-    let num = parseFloat(value);
-    if (isNaN(num)) num = '';
-    else if (num > 5.0) num = 5.0;
-    else if (num < 0) num = 0;
+    let num = value;
+    if (value !== '') {
+      num = parseFloat(String(value).replace(',', '.'));
+      if (isNaN(num)) num = '';
+      else if (num > 5.0) num = 5.0;
+      else if (num < 0) num = 0;
+    }
 
     setStudents(prev => prev.map(student => {
-      if (student.id === id) {
-        return { ...student, [field]: num };
+      if (student.id === studentId) {
+        const nextScores = { ...(student.scores || {}), [activityId]: num };
+        return {
+          ...student,
+          scores: nextScores,
+          [activityId]: num,
+          c1: nextScores.act_1 !== undefined ? nextScores.act_1 : student.c1,
+          c2: nextScores.act_2 !== undefined ? nextScores.act_2 : student.c2
+        };
       }
       return student;
     }));
+  };
+
+  // Manejo de cambio en nota de Evaluación Final (20%)
+  const handleFinalExamChange = (studentId, value) => {
+    if (!canEditScores) return;
+
+    let num = value;
+    if (value !== '') {
+      num = parseFloat(String(value).replace(',', '.'));
+      if (isNaN(num)) num = '';
+      else if (num > 5.0) num = 5.0;
+      else if (num < 0) num = 0;
+    }
+
+    setStudents(prev => prev.map(student => {
+      if (student.id === studentId) {
+        return {
+          ...student,
+          evaluacionFinal: num,
+          c3: num
+        };
+      }
+      return student;
+    }));
+  };
+
+  // Handler unificado para MobileMicroRegistryModal
+  const handleMobileScoreUpdate = (studentId, activityOrFinalId, value) => {
+    if (activityOrFinalId === 'evaluacionFinal') {
+      handleFinalExamChange(studentId, value);
+    } else {
+      handleActivityScoreChange(studentId, activityOrFinalId, value);
+    }
+  };
+
+  // Agregar nueva actividad continua de aula (hasta 10)
+  const handleAddActivity = () => {
+    if (!canEditScores) return;
+    if (activities.length >= 10) {
+      alert('Se ha alcanzado el límite máximo de 10 actividades continuas por periodo.');
+      return;
+    }
+
+    const nextIndex = activities.length + 1;
+    const newAct = {
+      id: `act_${Date.now()}`,
+      name: `Actividad ${nextIndex}`,
+      type: 'Taller'
+    };
+
+    const nextActivities = [...activities, newAct];
+    setActivities(nextActivities);
+    gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser, nextActivities);
+    setToastMessage(`¡Nueva actividad "${newAct.name}" creada con éxito! El 80% se consolida automáticamente.`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Eliminar actividad continua de aula (mínimo 1)
+  const handleRemoveActivity = (activityId) => {
+    if (!canEditScores) return;
+    if (activities.length <= 1) {
+      alert('Debe conservar al menos 1 actividad continua de aula.');
+      return;
+    }
+
+    const targetAct = activities.find(a => a.id === activityId);
+    if (!window.confirm(`¿Deseas eliminar la actividad "${targetAct?.name || activityId}"?`)) {
+      return;
+    }
+
+    const nextActivities = activities.filter(a => a.id !== activityId);
+    setActivities(nextActivities);
+    gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser, nextActivities);
+    setToastMessage(`Actividad eliminada. Promedio de aula recalculado.`);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   // Manejo de observaciones pedagógicas (Docente Titular de la materia)
@@ -235,15 +334,6 @@ export default function GradesModule({
     }));
   };
 
-  // Cálculo de definitiva ponderada
-  const calculateDefinitive = (c1, c2, c3) => {
-    const val1 = Number(c1) || 0;
-    const val2 = Number(c2) || 0;
-    const val3 = Number(c3) || 0;
-    const def = (val1 * 0.4) + (val2 * 0.4) + (val3 * 0.2);
-    return def.toFixed(1);
-  };
-
   // Escala valorativa nacional institucional (SIEE)
   const getDesempeno = (score) => {
     const s = Number(score);
@@ -261,8 +351,20 @@ export default function GradesModule({
     return 'def-pill-bajo';
   };
 
+  // Cálculos SIEE 80/20 y predicciones de cada estudiante
+  const studentCalculations = useMemo(() => {
+    const map = {};
+    students.forEach(st => {
+      map[st.id] = calculateGrade80_20(st, activities);
+    });
+    return map;
+  }, [students, activities]);
+
   // Métricas estadísticas del grupo actual (Materia)
-  const averagesList = students.map(s => Number(calculateDefinitive(s.c1, s.c2, s.c3)));
+  const averagesList = useMemo(() => {
+    return students.map(s => studentCalculations[s.id]?.definitivaNum || 1.0);
+  }, [students, studentCalculations]);
+
   const classAverage = averagesList.length 
     ? (averagesList.reduce((acc, curr) => acc + curr, 0) / averagesList.length).toFixed(2)
     : '0.00';
@@ -304,7 +406,7 @@ export default function GradesModule({
       return;
     }
 
-    gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser);
+    gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser, activities);
 
     if (canEditScores) {
       setToastMessage(`¡Planilla guardada! Notas y retroalimentación de ${selectedSubject} registradas por ${currentUser?.name || 'la docente'}.`);
@@ -643,7 +745,7 @@ export default function GradesModule({
         ) : (
           /* =====================================================================
              VISTA 2: PLANILLA DETALLADA DE LA ASIGNATURA SELECCIONADA
-             Estructura 3 componentes: Cognitivo 40%, Procedimental 40%, Actitudinal 20%
+             Modelo Flexible 80% Aula Continua / 20% Evaluación Final
              ===================================================================== */
           <section className="grades-sheet-card">
             <div className="subject-sheet-header-bar">
@@ -656,15 +758,53 @@ export default function GradesModule({
                   <p>Docente a cargo: <strong>{teacherInfo.teacherName}</strong> • {selectedPeriod}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                className="grades-btn-secondary btn-return-consolidated"
-                onClick={() => setActiveSheetType('consolidated')}
-                title="Volver a la sábana general consolidada del grado"
-              >
-                <i className="ph-bold ph-chart-bar"></i>
-                <span>Ver Sábana General</span>
-              </button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {canEditScores && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-mobile-micro"
+                      onClick={() => setIsMobileMicroOpen(true)}
+                      title="Micro-registro rápido desde el móvil (teclado táctil en menos de 5 min)"
+                    >
+                      <i className="ph-bold ph-device-mobile"></i>
+                      <span>Micro-registro Móvil</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-add-activity"
+                      onClick={handleAddActivity}
+                      disabled={activities.length >= 10}
+                      title={activities.length >= 10 ? 'Límite de 10 actividades alcanzado' : 'Crear nueva actividad de aula (hasta 10)'}
+                    >
+                      <i className="ph-bold ph-plus-circle"></i>
+                      <span>+ Actividad ({activities.length}/10)</span>
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className="grades-btn-secondary btn-return-consolidated"
+                  onClick={() => setActiveSheetType('consolidated')}
+                  title="Volver a la sábana general consolidada del grado"
+                >
+                  <i className="ph-bold ph-chart-bar"></i>
+                  <span>Ver Sábana General</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Banner Informativo del Modelo 80% / 20% */}
+            <div className="model-banner-8020">
+              <div className="model-badge">
+                <i className="ph-bold ph-sparkle"></i>
+                <span>Modelo Flexible 80% / 20%</span>
+              </div>
+              <div className="model-desc">
+                <strong>Actividades de Aula ({activities.length} activas = 80%):</strong> Califica talleres, quices, exposiciones o trabajo en clase sin rigidez. El promedio simple consolida el 80%.
+                <br />
+                <strong>Evaluación Final (20%) con Simulación Predictiva:</strong> Si el examen aún no se presenta, se proyecta con 1.0 para visualizar la definitiva real y cuánto requiere el estudiante para aprobar (3.0).
+              </div>
             </div>
 
             <div className="grades-table-wrapper">
@@ -672,52 +812,60 @@ export default function GradesModule({
                 <thead>
                   <tr>
                     <th style={{ width: '38px', textAlign: 'center' }}>#</th>
-                    <th style={{ minWidth: '200px' }}>Estudiante</th>
+                    <th style={{ minWidth: '190px' }}>Estudiante</th>
                     
-                    {/* Componente 1: Cognitivo (40%) */}
-                    <th className="th-pastel-component" style={{ textAlign: 'center', minWidth: '95px' }}>
+                    {/* Columnas dinámicas de Actividades de Aula Continua (80%) */}
+                    {activities.map((act, actIdx) => (
+                      <th key={act.id} className="th-pastel-component th-activity-col" style={{ textAlign: 'center', minWidth: '100px' }}>
+                        <div className="th-component-header" style={{ position: 'relative' }}>
+                          <span title={act.name || `Actividad ${actIdx + 1}`}>
+                            {act.name || act.label || `Act. ${actIdx + 1}`}
+                          </span>
+                          <span className="th-badge-weight">Aula</span>
+                          {canEditScores && activities.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn-remove-activity"
+                              onClick={() => handleRemoveActivity(act.id)}
+                              title={`Eliminar actividad ${act.name || act.id}`}
+                            >
+                              ×
+                            </button>
+                          )}
+                          {!canEditScores && (
+                            <i 
+                              className="ph-bold ph-lock-key th-lock-icon" 
+                              title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                            ></i>
+                          )}
+                        </div>
+                      </th>
+                    ))}
+
+                    {/* Promedio Ponderado Aula (80%) */}
+                    <th className="th-pastel-prom-aula" style={{ textAlign: 'center', minWidth: '95px' }}>
                       <div className="th-component-header">
-                        <span>Cognitivo</span>
-                        <span className="th-badge-weight">40%</span>
-                        {!canEditScores && (
-                          <i 
-                            className="ph-bold ph-lock-key th-lock-icon" 
-                            title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
-                          ></i>
-                        )}
+                        <span>Prom. Aula</span>
+                        <span className="th-badge-weight">80%</span>
                       </div>
                     </th>
 
-                    {/* Componente 2: Procedimental (40%) */}
-                    <th className="th-pastel-component" style={{ textAlign: 'center', minWidth: '95px' }}>
+                    {/* Evaluación Final / Bimestral (20%) */}
+                    <th className="th-pastel-final-exam" style={{ textAlign: 'center', minWidth: '110px' }}>
                       <div className="th-component-header">
-                        <span>Procedimental</span>
-                        <span className="th-badge-weight">40%</span>
-                        {!canEditScores && (
-                          <i 
-                            className="ph-bold ph-lock-key th-lock-icon" 
-                            title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
-                          ></i>
-                        )}
-                      </div>
-                    </th>
-
-                    {/* Componente 3: Actitudinal (20%) */}
-                    <th className="th-pastel-component" style={{ textAlign: 'center', minWidth: '95px' }}>
-                      <div className="th-component-header">
-                        <span>Actitudinal</span>
+                        <span>Eval. Final</span>
                         <span className="th-badge-weight">20%</span>
                         {!canEditScores && (
                           <i 
                             className="ph-bold ph-lock-key th-lock-icon" 
-                            title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                            title={isViewingAsGradeDirector ? `Solo Lectura: Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
                           ></i>
                         )}
                       </div>
                     </th>
 
-                    {/* Definitiva */}
-                    <th className="th-pastel-definitiva" style={{ textAlign: 'center', minWidth: '85px' }}>
+                    {/* Definitiva SIEE (100%) */}
+                    <th className="th-pastel-definitiva" style={{ textAlign: 'center', minWidth: '95px' }}>
                       <div className="th-component-header">
                         <span>Definitiva</span>
                         <span className="th-badge-def">100%</span>
@@ -730,7 +878,7 @@ export default function GradesModule({
                     </th>
 
                     {/* Rama Árbol: Retroalimentación Docente */}
-                    <th className="th-pastel-docente-col" style={{ minWidth: '220px' }}>
+                    <th className="th-pastel-docente-col" style={{ minWidth: '200px' }}>
                       <div className="th-component-header">
                         <i className="ph-bold ph-chalkboard-teacher"></i>
                         <span>Retroalimentación Docente</span>
@@ -743,7 +891,7 @@ export default function GradesModule({
                     </th>
 
                     {/* Rama Árbol: Observación de Coordinación (Exclusivo Coordinación y Admin) */}
-                    <th className="th-pastel-coordinacion-col" style={{ minWidth: '220px' }}>
+                    <th className="th-pastel-coordinacion-col" style={{ minWidth: '200px' }}>
                       <div className="th-component-header">
                         <i className="ph-bold ph-clipboard-text"></i>
                         <span>Observación de Coordinación</span>
@@ -752,7 +900,7 @@ export default function GradesModule({
                     </th>
 
                     {/* Rama Árbol: Sugerencia Directiva (Rectoría) */}
-                    <th className="th-pastel-directiva-col" style={{ minWidth: '220px' }}>
+                    <th className="th-pastel-directiva-col" style={{ minWidth: '200px' }}>
                       <div className="th-component-header">
                         <i className="ph-bold ph-crown"></i>
                         <span>Sugerencia Directiva (Rectoría)</span>
@@ -764,15 +912,16 @@ export default function GradesModule({
                 <tbody>
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={10} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                      <td colSpan={activities.length + 7} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                         No se encontraron estudiantes para los filtros seleccionados.
                       </td>
                     </tr>
                   ) : (
                     filteredStudents.map((student, idx) => {
-                      const def = calculateDefinitive(student.c1, student.c2, student.c3);
-                      const des = getDesempeno(def);
-                      const defBadgeClass = getDefinitiveBadgeClass(def);
+                      const gradeData = calculateGrade80_20(student, activities);
+                      const defVal = gradeData.definitiva;
+                      const des = getDesempeno(defVal);
+                      const defBadgeClass = getDefinitiveBadgeClass(defVal);
                       const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
 
                       return (
@@ -794,98 +943,95 @@ export default function GradesModule({
                             </div>
                           </td>
 
-                          {/* Nota Cognitivo (40%) */}
-                          <td style={{ textAlign: 'center' }} className="td-score-c1">
-                            <div className="score-input-wrap">
-                              <input 
-                                type="number" 
-                                step="0.1" 
-                                min="1.0" 
-                                max="5.0"
-                                value={student.c1}
-                                onChange={(e) => handleScoreChange(student.id, 'c1', e.target.value)}
-                                className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                                readOnly={!canEditScores}
-                                title={
-                                  !canEditScores 
-                                    ? (isViewingAsGradeDirector 
-                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                        : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
-                                    : "Calificar componente cognitivo"
-                                }
-                              />
-                              {!canEditScores && (
-                                <i 
-                                  className="ph-bold ph-lock-key input-mini-lock" 
-                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
-                                ></i>
-                              )}
-                            </div>
-                          </td>
+                          {/* Celdas dinámicas de Actividades de Aula */}
+                          {activities.map((act) => {
+                            const val = student.scores ? student.scores[act.id] : student[act.id];
+                            return (
+                              <td key={act.id} style={{ textAlign: 'center' }} className="td-score-c1">
+                                <div className="score-input-wrap">
+                                  <input 
+                                    type="number" 
+                                    step="0.1" 
+                                    min="1.0" 
+                                    max="5.0"
+                                    inputMode="decimal"
+                                    value={val !== undefined && val !== null ? val : ''}
+                                    onChange={(e) => handleActivityScoreChange(student.id, act.id, e.target.value)}
+                                    className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
+                                    placeholder="—"
+                                    readOnly={!canEditScores}
+                                    title={
+                                      !canEditScores 
+                                        ? (isViewingAsGradeDirector 
+                                            ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                            : "Solo Lectura: SIEE") 
+                                        : `Calificar ${act.name || act.id} (1.0 a 5.0)`
+                                    }
+                                  />
+                                  {!canEditScores && (
+                                    <i 
+                                      className="ph-bold ph-lock-key input-mini-lock" 
+                                      title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                                    ></i>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
 
-                          {/* Nota Procedimental (40%) */}
-                          <td style={{ textAlign: 'center' }} className="td-score-c2">
-                            <div className="score-input-wrap">
-                              <input 
-                                type="number" 
-                                step="0.1" 
-                                min="1.0" 
-                                max="5.0"
-                                value={student.c2}
-                                onChange={(e) => handleScoreChange(student.id, 'c2', e.target.value)}
-                                className={`grades-input-score input-c2 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                                readOnly={!canEditScores}
-                                title={
-                                  !canEditScores 
-                                    ? (isViewingAsGradeDirector 
-                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                        : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
-                                    : "Calificar componente procedimental"
-                                }
-                              />
-                              {!canEditScores && (
-                                <i 
-                                  className="ph-bold ph-lock-key input-mini-lock" 
-                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
-                                ></i>
-                              )}
-                            </div>
-                          </td>
-
-                          {/* Nota Actitudinal (20%) */}
-                          <td style={{ textAlign: 'center' }} className="td-score-c3">
-                            <div className="score-input-wrap">
-                              <input 
-                                type="number" 
-                                step="0.1" 
-                                min="1.0" 
-                                max="5.0"
-                                value={student.c3}
-                                onChange={(e) => handleScoreChange(student.id, 'c3', e.target.value)}
-                                className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                                readOnly={!canEditScores}
-                                title={
-                                  !canEditScores 
-                                    ? (isViewingAsGradeDirector 
-                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                        : "Solo Lectura: Los directivos no pueden alterar notas docentes por seguridad institucional (SIEE)") 
-                                    : "Calificar componente actitudinal"
-                                }
-                              />
-                              {!canEditScores && (
-                                <i 
-                                  className="ph-bold ph-lock-key input-mini-lock" 
-                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
-                                ></i>
-                              )}
-                            </div>
-                          </td>
-
-                          {/* Definitiva con Pill Pastel */}
-                          <td className="grades-definitiva-cell td-score-def">
-                            <span className={`definitiva-pill ${defBadgeClass}`}>
-                              {def}
+                          {/* Promedio Aula (80%) */}
+                          <td className="td-prom-aula" style={{ textAlign: 'center' }}>
+                            <span className="prom-aula-pill">
+                              {gradeData.promedioAula !== null ? gradeData.promedioAula.toFixed(1) : '—'}
                             </span>
+                          </td>
+
+                          {/* Evaluación Final (20%) */}
+                          <td style={{ textAlign: 'center' }} className="td-final-exam">
+                            <div className="score-input-wrap">
+                              <input 
+                                type="number" 
+                                step="0.1" 
+                                min="1.0" 
+                                max="5.0"
+                                inputMode="decimal"
+                                value={student.evaluacionFinal !== undefined && student.evaluacionFinal !== null ? student.evaluacionFinal : ''}
+                                onChange={(e) => handleFinalExamChange(student.id, e.target.value)}
+                                className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''} ${gradeData.isSimulated ? 'is-simulated' : ''}`}
+                                placeholder="Pendiente"
+                                readOnly={!canEditScores}
+                                title={
+                                  !canEditScores 
+                                    ? (isViewingAsGradeDirector 
+                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                        : "Solo Lectura: SIEE") 
+                                    : "Calificación de la Evaluación Final (20%)"
+                                }
+                              />
+                              {!canEditScores && (
+                                <i 
+                                  className="ph-bold ph-lock-key input-mini-lock" 
+                                  title={isViewingAsGradeDirector ? `Solo lectura para Director de Curso` : "Calificación protegida por SIEE"}
+                                ></i>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Definitiva con Simulación Predictiva */}
+                          <td className="grades-definitiva-cell td-score-def">
+                            <div className="definitiva-cell-wrap">
+                              <span className={`definitiva-pill ${defBadgeClass}`}>
+                                {defVal !== null ? defVal.toFixed(1) : '—'}
+                              </span>
+                              {gradeData.isSimulated && (
+                                <span 
+                                  className="predictive-hint-pill" 
+                                  title={`Simulación predictiva con 1.0 en la prueba final. Requiere ${gradeData.notaRequerida !== null ? gradeData.notaRequerida.toFixed(1) : '—'} en el examen para aprobar la asignatura con 3.0`}
+                                >
+                                  *Proy. 1.0 (Req: {gradeData.notaRequerida !== null ? gradeData.notaRequerida.toFixed(1) : '—'})
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           {/* Desempeño SIEE */}
@@ -989,13 +1135,16 @@ export default function GradesModule({
             <div className="grades-sheet-footer">
               <div className="grades-footer-legend">
                 <span className="footer-legend-item">
-                  <span className="legend-dot dot-c3"></span> Cognitivo 40%
+                  <span className="legend-dot" style={{ backgroundColor: '#6366f1' }}></span> Aula Continua 80% ({activities.length} acts)
                 </span>
                 <span className="footer-legend-item">
-                  <span className="legend-dot dot-c3"></span> Procedimental 40%
+                  <span className="legend-dot" style={{ backgroundColor: '#f59e0b' }}></span> Evaluación Final 20%
                 </span>
                 <span className="footer-legend-item">
-                  <span className="legend-dot dot-c3"></span> Actitudinal 20%
+                  <span className="legend-dot" style={{ backgroundColor: '#10b981' }}></span> Definitiva SIEE 100%
+                </span>
+                <span className="footer-legend-item">
+                  <span className="legend-dot" style={{ backgroundColor: '#ef4444' }}></span> *Proyección Simulación 1.0
                 </span>
                 <span className="footer-legend-rbac">
                   <i className={`ph-bold ${canEditScores ? 'ph-check-circle' : (isViewingAsGradeDirector ? 'ph-shield-star' : 'ph-shield-check')}`}></i>
@@ -1086,6 +1235,19 @@ export default function GradesModule({
         onClose={() => setIsCalendarModalOpen(false)}
         currentUser={currentUser}
         onCalendarUpdated={() => setCurriculumTick(t => t + 1)}
+      />
+
+      {/* Modal de Micro-registro Rápido Móvil (Táctil con teclado numérico y auto-avance) */}
+      <MobileMicroRegistryModal
+        isOpen={isMobileMicroOpen}
+        onClose={() => setIsMobileMicroOpen(false)}
+        students={filteredStudents}
+        activities={activities}
+        selectedSubject={selectedSubject}
+        selectedGrade={selectedGrade}
+        selectedPeriod={selectedPeriod}
+        onScoreUpdate={handleMobileScoreUpdate}
+        canEdit={canEditScores}
       />
 
       {/* Notificación Toast Flotante */}
