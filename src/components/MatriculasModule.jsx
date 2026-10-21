@@ -220,17 +220,6 @@ export default function MatriculasModule({
               <strong> prohibición estricta de eliminación</strong> con soporte de inhabilitación por traslado o retiro.
             </p>
           </div>
-          <div className="banner-right">
-            <button
-              type="button"
-              className="btn-open-enroll"
-              onClick={() => setIsEnrollModalOpen(true)}
-              title="Inscribir nuevo estudiante extemporáneo al colegio"
-            >
-              <i className="ph-bold ph-user-plus"></i>
-              <span>+ Inscribir Estudiante Extemporáneo</span>
-            </button>
-          </div>
         </section>
 
         {/* 4 Tarjetas de Métricas KPI */}
@@ -658,6 +647,18 @@ export default function MatriculasModule({
           </section>
         )}
       </div>
+
+      {/* Botón Flotante para Inscribir Estudiante (Inferior Derecha - Reutilización de componente global) */}
+      <button
+        type="button"
+        className="btn-floating-upload"
+        onClick={() => setIsEnrollModalOpen(true)}
+        title="Inscribir nuevo estudiante extemporáneo (Fase 5)"
+        aria-label="Inscribir nuevo estudiante extemporáneo"
+      >
+        <i className="ph-bold ph-user-plus"></i>
+        <span>Inscribir Estudiante</span>
+      </button>
 
       {/* Modal 1: Inscribir Estudiante Extemporáneo */}
       <EnrollStudentModal
