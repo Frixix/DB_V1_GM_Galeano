@@ -45,6 +45,17 @@ export default function FinalExamsModule({
   const [selectedTeacher, setSelectedTeacher] = useState(() => isPrivileged ? 'all' : (currentUser?.name || 'all'));
   const [curriculumTick, setCurriculumTick] = useState(0);
 
+  const availablePeriods = useMemo(() => finalExamsService.getPeriods(), []);
+  const availableGrades = useMemo(() => {
+    return finalExamsService.getGradesForUser(currentUser);
+  }, [currentUser, curriculumTick]);
+
+  const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
+  const [selectedGrade, setSelectedGrade] = useState('all'); // 'all' o grado específico
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'uploaded' | 'pending'
+  const [search, setSearch] = useState('');
+  const [currentView, setCurrentView] = useState('cards'); // 'cards' | 'table'
+
   useEffect(() => {
     if (!isPrivileged && currentUser?.name && selectedTeacher !== currentUser.name) {
       setSelectedTeacher(currentUser.name);
@@ -70,17 +81,6 @@ export default function FinalExamsModule({
       window.removeEventListener('gmg_roster_updated', handleUpdate);
     };
   }, []);
-
-  const availablePeriods = useMemo(() => finalExamsService.getPeriods(), []);
-  const availableGrades = useMemo(() => {
-    return finalExamsService.getGradesForUser(currentUser);
-  }, [currentUser, curriculumTick]);
-
-  const [selectedPeriod, setSelectedPeriod] = useState(availablePeriods[0] || '1° Periodo (25%)');
-  const [selectedGrade, setSelectedGrade] = useState('all'); // 'all' o grado específico
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'uploaded' | 'pending'
-  const [search, setSearch] = useState('');
-  const [currentView, setCurrentView] = useState('cards'); // 'cards' | 'table'
 
   // Modales
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
