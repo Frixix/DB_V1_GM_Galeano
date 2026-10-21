@@ -698,17 +698,7 @@ export default function GradesModule({
                   <p>Haga clic en el encabezado de cualquier asignatura para abrir su planilla detallada SIEE.</p>
                 </div>
               </div>
-              <div className="consolidated-header-actions">
-                <button
-                  type="button"
-                  className="grades-btn-secondary"
-                  onClick={() => alert(`Exportando sábana general consolidada de ${selectedGrade} a Excel...`)}
-                  title="Exportar sábana completa a Excel"
-                >
-                  <i className="ph-bold ph-file-xls"></i>
-                  <span>Exportar Matriz Excel</span>
-                </button>
-              </div>
+              {/* Acciones de cabecera */}
             </div>
 
             <div className="grades-table-wrapper">

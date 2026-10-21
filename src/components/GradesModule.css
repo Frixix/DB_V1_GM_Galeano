@@ -163,25 +163,25 @@
 }
 
 .grades-sidebar-period-btn:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  color: #78350f;
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
 }
 
 .grades-sidebar-period-btn:hover i {
-  color: #b45309;
+  color: #ea580c;
   transform: scale(1.15);
 }
 
 .grades-sidebar-period-btn.active {
-  background-color: #fef3c7 !important;
-  border-color: #fde68a !important;
-  color: #92400e !important;
+  background-color: #fff7ed !important;
+  border-color: #fed7aa !important;
+  color: #9a3412 !important;
   font-weight: 700 !important;
 }
 
 .grades-sidebar-period-btn.active i {
-  color: #b45309 !important;
+  color: #ea580c !important;
 }
 
 /* Base de Botones de Sábanas y Carpetas en Sidebar */
@@ -1089,17 +1089,17 @@
   font-weight: 700;
   border-radius: 8px;
   border: none;
-  background-color: #b45309;
+  background-color: #ea580c;
   color: #ffffff;
   cursor: pointer;
   transition: all 0.18s ease;
-  box-shadow: 0 2px 5px rgba(180, 83, 9, 0.2);
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
 }
 
 .grades-btn-primary:hover {
-  background-color: #92400e;
+  background-color: #c2410c;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.35);
 }
 
 .grades-btn-primary.btn-view-only {
@@ -1958,18 +1958,18 @@
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.82rem;
-  background-color: #eef2ff;
-  border: 1.5px solid #c7d2fe;
-  color: #4338ca;
+  background-color: #fff7ed;
+  border: 1.5px solid #fed7aa;
+  color: #9a3412;
   cursor: pointer;
   transition: all 0.18s ease;
   font-family: inherit;
 }
 
 .btn-header-calendar-control:hover {
-  background-color: #e0e7ff;
-  border-color: #a5b4fc;
-  color: #3730a3;
+  background-color: #ffedd5;
+  border-color: #fdba74;
+  color: #7c2d12;
   transform: translateY(-1px);
 }
 

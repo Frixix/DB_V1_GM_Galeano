@@ -444,7 +444,7 @@ export const initialObservadorRecords = [
     semaforo: 'verde',
     status: 'acta_aprobada',
     description: 'En cumplimiento del Decreto 1290 y el SIEE del Gimnasio Martín Galeano, se analiza la sábana consolidada de calificaciones al 50% del primer bimestre lectivo. Se detectan 3 estudiantes con bajo desempeño en el área de Matemáticas en 2° y 3° grado.',
-    agreements: '1. Activar talleres formativos de refuerzo pedagógico antes de las evaluaciones bimestrales finales.\n2. Directores de curso remitirán reporte de alerta temprana a los acudientes respectivos.\n3. Se valida el cumplimiento de las ponderaciones 40% Cognitivo, 40% Procedimental y 20% Actitudinal en todas las planillas.',
+    agreements: '1. Activar talleres formativos de refuerzo pedagógico antes de las evaluaciones bimestrales finales.\n2. Directores de curso remitirán reporte de alerta temprana a los acudientes respectivos.\n3. Se valida el cumplimiento del modelo de evaluación continua SIEE (80% Aula Continua y 20% Evaluación Final) en todas las planillas.',
     followUpDate: '31/10/2026',
     notes: 'Participación del 100% de la planta docente institucional.',
     resolutionNotes: 'Planillas revisadas y compromisos de superación académica notificados.',
