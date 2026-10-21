@@ -42,8 +42,21 @@ export default function FinalExamsModule({
   const isPrivileged = isRectora || isAdmin || isCoordinador;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState('all');
+  const [selectedTeacher, setSelectedTeacher] = useState(() => isPrivileged ? 'all' : (currentUser?.name || 'all'));
   const [curriculumTick, setCurriculumTick] = useState(0);
+
+  useEffect(() => {
+    if (!isPrivileged && currentUser?.name && selectedTeacher !== currentUser.name) {
+      setSelectedTeacher(currentUser.name);
+    }
+  }, [isPrivileged, currentUser, selectedTeacher]);
+
+  // Si la docente cambia o tiene un grado no asignado, restablecer a 'all'
+  useEffect(() => {
+    if (!isPrivileged && selectedGrade !== 'all' && !availableGrades.includes(selectedGrade)) {
+      setSelectedGrade('all');
+    }
+  }, [isPrivileged, selectedGrade, availableGrades]);
 
   // Escuchar actualizaciones globales de evaluaciones y del roster escolar
   useEffect(() => {
@@ -83,8 +96,13 @@ export default function FinalExamsModule({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Obtener datos consolidados de control de impresión según grado y docente seleccionado
+  // Obtener datos consolidados de control de impresión según rol y asignación
   const printControlData = useMemo(() => {
+    // Si NO es directivo (es docente titular), OBLIGATORIAMENTE se restringe a sus materias a cargo
+    if (!isPrivileged && currentUser) {
+      return finalExamsService.getPrintControlForUser(selectedPeriod, selectedGrade, currentUser);
+    }
+
     if (selectedGrade === 'all') {
       if (selectedTeacher !== 'all') {
         return finalExamsService.getPrintControlForTeacher(selectedPeriod, selectedTeacher);
@@ -92,7 +110,7 @@ export default function FinalExamsModule({
       return finalExamsService.getPrintControlAll(selectedPeriod);
     }
     return finalExamsService.getPrintControlForGrade(selectedPeriod, selectedGrade);
-  }, [selectedPeriod, selectedGrade, selectedTeacher, curriculumTick]);
+  }, [selectedPeriod, selectedGrade, selectedTeacher, curriculumTick, isPrivileged, currentUser]);
 
   const { items = [], stats = {} } = printControlData;
 
@@ -196,25 +214,33 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
   };
 
   // Manejador para eliminar evaluación
-  const handleDeleteEvaluation = (grade, subj) => {
+  const handleDeleteEvaluation = async (grade, subj) => {
     if (!window.confirm(`¿Está seguro de eliminar la evaluación de "${subj}" para el grado ${grade}?\nEsta acción permitirá subir un nuevo archivo de examen.`)) {
       return;
     }
-    const ok = finalExamsService.deleteEvaluation(selectedPeriod, grade, subj);
-    if (ok) {
-      showToast(`Evaluación de ${subj} (${grade}) eliminada correctamente`);
-      if (selectedItemForView?.subject === subj && selectedItemForView?.grade === grade) {
-        setIsViewModalOpen(false);
+    try {
+      const ok = await finalExamsService.deleteEvaluation(selectedPeriod, grade, subj, currentUser);
+      if (ok) {
+        showToast(`Evaluación de ${subj} (${grade}) eliminada correctamente`);
+        if (selectedItemForView?.subject === subj && selectedItemForView?.grade === grade) {
+          setIsViewModalOpen(false);
+        }
       }
+    } catch (err) {
+      alert(err.message);
     }
   };
 
   // Manejador para actualizar el estado de fotocopiado
-  const handleUpdateCopiesStatus = (grade, subj, newStatus) => {
-    finalExamsService.updateCopiesStatus(selectedPeriod, grade, subj, newStatus);
-    showToast(`Estado de impresión actualizado a: ${newStatus}`);
-    if (selectedItemForView?.subject === subj && selectedItemForView?.grade === grade) {
-      setSelectedItemForView((prev) => prev ? { ...prev, copiesStatus: newStatus } : null);
+  const handleUpdateCopiesStatus = async (grade, subj, newStatus) => {
+    try {
+      await finalExamsService.updateCopiesStatus(selectedPeriod, grade, subj, newStatus, currentUser);
+      showToast(`Estado de impresión actualizado a: ${newStatus === 'impreso' ? 'Fotocopiado' : 'Aprobado'}`);
+      if (selectedItemForView?.subject === subj && selectedItemForView?.grade === grade) {
+        setSelectedItemForView((prev) => prev ? { ...prev, copiesStatus: newStatus } : null);
+      }
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -287,10 +313,10 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h2 className="final-banner-title">
-                    Evaluaciones Finales • {selectedGrade === 'all' ? (selectedTeacher !== 'all' ? `Docente: ${selectedTeacher}` : 'Todos los Grados') : selectedGrade}
+                    Evaluaciones Finales • {!isPrivileged ? `Mis Asignaturas (${currentUser?.name})` : (selectedGrade === 'all' ? (selectedTeacher !== 'all' ? `Docente: ${selectedTeacher}` : 'Todos los Grados') : selectedGrade)}
                   </h2>
                   <span className="final-grade-badge">
-                    {selectedTeacher !== 'all' ? `Filtro Docente: ${selectedTeacher}` : (selectedGrade === 'all' ? 'Vista Institucional Completa' : `${stats?.studentCount || 0} Estudiantes`)}
+                    {!isPrivileged ? `Mis Evaluaciones (${stats?.totalSubjects || 0} a cargo)` : (selectedTeacher !== 'all' ? `Filtro Docente: ${selectedTeacher}` : (selectedGrade === 'all' ? 'Vista Institucional Completa' : `${stats?.studentCount || 0} Estudiantes`))}
                   </span>
                 </div>
                 <p className="final-banner-desc">
@@ -394,7 +420,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                   value={selectedGrade}
                   onChange={(e) => setSelectedGrade(e.target.value)}
                 >
-                  <option value="all">Todos los grados</option>
+                  <option value="all">{isPrivileged ? 'Todos los grados' : 'Todos mis grados'}</option>
                   {availableGrades.map((g) => (
                     <option key={g} value={g}>{g}</option>
                   ))}
@@ -919,12 +945,12 @@ function UploadExamModal({
   const assignment = finalExamsService.getTeacherAssignment(grade, subject);
   const printInfo = finalExamsService.getPrintingCopiesSuggestion(grade);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      finalExamsService.uploadEvaluation({
+      await finalExamsService.uploadEvaluation({
         period,
         grade,
         subject,
@@ -1256,10 +1282,10 @@ function DeadlinesModal({ isOpen, currentUser, onClose, onSaved }) {
 
   if (!isOpen) return null;
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     try {
-      finalExamsService.updateDeadline(
+      await finalExamsService.updateDeadline(
         activePeriod,
         {
           deadlineDate: date,

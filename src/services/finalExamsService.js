@@ -9,6 +9,8 @@ import {
 } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
 import gradesService from './gradesService';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { uploadDocumentFile, deleteDocumentFile, getDocumentPublicUrl } from './storageService';
 
 const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v3';
 const DEADLINES_STORAGE_KEY = 'gmg_evaluaciones_deadlines_v1';
@@ -47,8 +49,6 @@ export const DEFAULT_DEADLINES = {
 /**
  * Genera el repositorio inicial de evaluaciones para impresión.
  * Cada materia pertenece de forma única a su grado y a su docente oficial.
- * Las materias inician como pendientes y solo unas pocas de demostración
- * están subidas con radicados y nombres de archivo totalmente diferenciados.
  */
 const createInitialEvaluationsData = () => {
   const initialData = {};
@@ -71,10 +71,11 @@ const createInitialEvaluationsData = () => {
           fileName: null,
           fileSize: null,
           fileType: null,
+          storageKey: null,
           uploadedAt: null,
           uploadedBy: assign.teacherName,
           teacherId: assign.docente_id,
-          copiesNeeded: studentCount,
+          copiesNeeded: studentCount + 1,
           copiesStatus: 'pendiente',
           notes: '',
           downloadUrl: null
@@ -83,17 +84,10 @@ const createInitialEvaluationsData = () => {
     });
   });
 
-  // Ejemplos institucionales diferenciados únicamente para el 1° Periodo:
-  // Reflejan la nueva distribución oficial:
-  // - Jessica: Lengua Castellana (Español)
-  // - Yuri: Ciencias Sociales
-  // - Elcy: Inglés
-  // - Profe 2: Matemáticas
-  // - Profe 3: Ciencias Naturales
-  // - Directora de Curso: Educación Artística, Religión, Educación Física
+  // Ejemplos institucionales diferenciados para el 1° Periodo:
   const p1 = '1° Periodo (25%)';
   if (initialData[p1]) {
-    // 1. Profe 1: Educación Artística en Transición (Directora de Curso)
+    // 1. Profe 1: Educación Artística en Transición
     if (initialData[p1]['Transición']?.['Educación Artística']) {
       initialData[p1]['Transición']['Educación Artística'] = {
         id: 'EVAL-TRA-01',
@@ -104,10 +98,11 @@ const createInitialEvaluationsData = () => {
         fileName: 'Evaluacion_Arte_Transicion_Profe1.pdf',
         fileSize: '1.2 MB',
         fileType: 'application/pdf',
+        storageKey: null,
         uploadedAt: '2026-03-24 10:15',
         uploadedBy: 'Profe 1',
         teacherId: 'profe1',
-        copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length,
+        copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Impresión a color de guía de trazos, motricidad fina y dactilopintura.',
         downloadUrl: null
@@ -125,10 +120,11 @@ const createInitialEvaluationsData = () => {
         fileName: 'Evaluacion_Lengua_1Primaria_Jessica.pdf',
         fileSize: '1.5 MB',
         fileType: 'application/pdf',
+        storageKey: null,
         uploadedAt: '2026-03-24 11:30',
         uploadedBy: 'Jessica',
         teacherId: 'jessica',
-        copiesNeeded: (STUDENTS_BY_GRADE['1° Primaria'] || []).length,
+        copiesNeeded: (STUDENTS_BY_GRADE['1° Primaria'] || []).length + 1,
         copiesStatus: 'impreso',
         notes: 'Evaluación de lectoescritura inicial, comprensión silábica y fonemas básicos.',
         downloadUrl: null
@@ -146,10 +142,11 @@ const createInitialEvaluationsData = () => {
         fileName: 'Evaluacion_Sociales_2Primaria_Yuri.pdf',
         fileSize: '1.3 MB',
         fileType: 'application/pdf',
+        storageKey: null,
         uploadedAt: '2026-03-24 14:20',
         uploadedBy: 'Yuri',
         teacherId: 'yuri',
-        copiesNeeded: (STUDENTS_BY_GRADE['2° Primaria'] || []).length,
+        copiesNeeded: (STUDENTS_BY_GRADE['2° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Espacios geográficos cercanos, noción de comunidad y deberes ciudadanos.',
         downloadUrl: null
@@ -167,10 +164,11 @@ const createInitialEvaluationsData = () => {
         fileName: 'Evaluacion_Matematicas_3Primaria_Profe2.pdf',
         fileSize: '1.4 MB',
         fileType: 'application/pdf',
+        storageKey: null,
         uploadedAt: '2026-03-24 16:10',
         uploadedBy: 'Profe 2',
         teacherId: 'profe2',
-        copiesNeeded: (STUDENTS_BY_GRADE['3° Primaria'] || []).length,
+        copiesNeeded: (STUDENTS_BY_GRADE['3° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Resolución de problemas con operaciones multiplicativas y tablas de datos.',
         downloadUrl: null
@@ -188,10 +186,11 @@ const createInitialEvaluationsData = () => {
         fileName: 'Evaluacion_Ingles_4Primaria_Elcy.pdf',
         fileSize: '1.8 MB',
         fileType: 'application/pdf',
+        storageKey: null,
         uploadedAt: '2026-03-24 15:45',
         uploadedBy: 'Elcy',
         teacherId: 'elcy',
-        copiesNeeded: (STUDENTS_BY_GRADE['4° Primaria'] || []).length,
+        copiesNeeded: (STUDENTS_BY_GRADE['4° Primaria'] || []).length + 1,
         copiesStatus: 'impreso',
         notes: 'Vocabulario temático en inglés, comprensión lectora y estructuras de preguntas.',
         downloadUrl: null
@@ -209,10 +208,11 @@ const createInitialEvaluationsData = () => {
         fileName: 'Evaluacion_Naturales_5Primaria_Profe3.pdf',
         fileSize: '1.6 MB',
         fileType: 'application/pdf',
+        storageKey: null,
         uploadedAt: '2026-03-24 17:00',
         uploadedBy: 'Profe 3',
         teacherId: 'profe3',
-        copiesNeeded: (STUDENTS_BY_GRADE['5° Primaria'] || []).length,
+        copiesNeeded: (STUDENTS_BY_GRADE['5° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Sistemas biológicos humanos, nutrición y ecosistemas de Colombia.',
         downloadUrl: null
@@ -227,12 +227,15 @@ class FinalExamsService {
   constructor() {
     this.evaluations = this.loadEvaluations();
     this.deadlines = this.loadDeadlines();
+    this.realtimeChannel = null;
 
     // Sincronización reactiva con novedades del roster escolar (ingresos / inhabilitaciones)
     if (typeof window !== 'undefined') {
       window.addEventListener('gmg_roster_updated', () => {
         this.notifyUpdate();
       });
+      // Inicializar fetch remoto y suscripción Realtime en Supabase
+      this.initRemoteSync();
     }
   }
 
@@ -310,9 +313,12 @@ class FinalExamsService {
 
   isGradeDirector(user, grade) {
     if (!user || !grade) return false;
-    const userKey = user.key || user.role;
+    const userKey = (user.key || user.role || '').toLowerCase();
+    const userName = (user.name || '').toLowerCase();
     const director = this.getGradeDirector(grade);
-    return director.docente_id === userKey || director.teacherName === user.name;
+    const dirId = (director.docente_id || '').toLowerCase();
+    const dirName = (director.teacherName || '').toLowerCase();
+    return dirId === userKey || dirName === userName;
   }
 
   getTeacherAssignment(grade, subject) {
@@ -360,65 +366,88 @@ class FinalExamsService {
   }
 
   /**
+   * Helper estricto de coincidencia de docente (por id, key o nombre)
+   */
+  isTeacherMatch(user, assignment) {
+    if (!user || !assignment) return false;
+    const userKey = (user.key || user.role || '').toLowerCase();
+    const userName = (user.name || '').toLowerCase();
+    const assignId = (assignment.docente_id || assignment.teacherId || '').toLowerCase();
+    const assignName = (assignment.teacherName || assignment.teacher || '').toLowerCase();
+
+    if (assignId && userKey && assignId === userKey) return true;
+    if (assignName && userName && assignName === userName) return true;
+    if (userKey && assignName && assignName.includes(userKey)) return true;
+    if (assignId && userName && userName.includes(assignId)) return true;
+    return false;
+  }
+
+  /**
+   * Determina si el usuario tiene rol de supervisión global directiva
+   */
+  isPrivilegedUser(user) {
+    if (!user) return false;
+    return ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(user.role);
+  }
+
+  /**
    * Obtiene la lista de grados accesibles para el usuario
+   * Para docentes, estrictamente los grados donde dicta asignaturas a su cargo
    */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
-    const role = user.role;
-    if (['admin', 'rectora', 'induccion_rectora', 'coordinador', 'induccion'].includes(role)) {
+    if (this.isPrivilegedUser(user)) {
       return GRADES_LIST;
     }
-    // Docente: todos los grados donde tenga asignaturas asignadas o sea directora de curso
-    const userKey = user.key || role;
+
     const myGrades = GRADES_LIST.filter(g => {
-      if (this.isGradeDirector(user, g)) return true;
       const subjectsInGrade = this.getSubjectsForGrade(g);
       return subjectsInGrade.some(subj => {
         const assign = this.getTeacherAssignment(g, subj);
-        return assign.docente_id === userKey || assign.teacherName === user.name;
+        return this.isTeacherMatch(user, assign);
       });
     });
 
-    return myGrades.length > 0 ? myGrades : GRADES_LIST;
+    return myGrades.length > 0 ? myGrades : [GRADES_LIST[0]];
   }
 
   /**
    * Obtiene las materias disponibles para un grado y usuario
+   * Para docentes, restringe estrictamente a sus materias a cargo para privacidad absoluta
    */
   getSubjectsForGradeAndUser(grade, user) {
     const validAll = this.getSubjectsForGrade(grade);
 
     if (!user) return validAll;
-    const role = user.role;
-    const userKey = user.key || role;
-
-    if (['admin', 'rectora', 'induccion_rectora', 'coordinador', 'induccion'].includes(role)) {
+    if (this.isPrivilegedUser(user)) {
       return validAll;
     }
 
-    if (this.isGradeDirector(user, grade)) {
-      return validAll;
-    }
-
+    // Docente: estrictamente sus materias asignadas (no ve exámenes de otras docentes)
     const mySubjects = validAll.filter(subj => {
       const assignment = this.getTeacherAssignment(grade, subj);
-      return assignment.docente_id === userKey || assignment.teacherName === user.name;
+      return this.isTeacherMatch(user, assignment);
     });
 
-    return mySubjects.length > 0 ? mySubjects : validAll;
+    return mySubjects;
   }
 
+  /**
+   * Determina si el usuario puede cargar / sustituir la evaluación de una materia
+   */
   canUploadForSubject(user, grade, subject) {
     if (!user) return false;
-    if (['admin', 'rectora', 'coordinador'].includes(user.role)) return true;
-    const userKey = user.key || user.role;
+    if (this.isPrivilegedUser(user)) return true;
     const assignment = this.getTeacherAssignment(grade, subject);
-    return assignment.docente_id === userKey || assignment.teacherName === user.name;
+    return this.isTeacherMatch(user, assignment);
   }
 
+  /**
+   * Permisos para configurar el calendario de fechas límite
+   */
   canManageDeadlines(user) {
     if (!user) return false;
-    return ['coordinador', 'admin', 'rectora'].includes(user.role);
+    return ['coordinador', 'admin', 'rectora', 'induccion_rectora'].includes(user.role);
   }
 
   /**
@@ -446,6 +475,7 @@ class FinalExamsService {
           fileName: null,
           fileSize: null,
           fileType: null,
+          storageKey: null,
           uploadedAt: null,
           uploadedBy: teacher.teacherName,
           teacherId: teacher.docente_id,
@@ -456,7 +486,6 @@ class FinalExamsService {
         };
         this.evaluations[period][grade][subj] = evalData;
       } else {
-        // Sincronizar dinámicamente según el roster actual (N + 1)
         evalData.copiesNeeded = copiesNeededDynamic;
         if (!evalData.uploaded) {
           evalData.teacherId = teacher.docente_id;
@@ -580,58 +609,142 @@ class FinalExamsService {
   }
 
   /**
-   * Sube o actualiza la evaluación de una materia para impresión
+   * Obtiene los datos de control de impresión según el ROL del usuario
+   * Blindaje Estricto de Privacidad: Docentes nunca ven materias de otras docentes
    */
-  uploadEvaluation({ period, grade, subject, file, notes, copiesStatus = 'aprobado', user }) {
+  getPrintControlForUser(period = '1° Periodo (25%)', grade = 'all', user = null) {
+    const isPrivileged = this.isPrivilegedUser(user);
+
+    if (isPrivileged || !user) {
+      if (grade === 'all') {
+        return this.getPrintControlAll(period);
+      }
+      return this.getPrintControlForGrade(period, grade);
+    }
+
+    // Docente titular: filtrado estricto
+    const allPeriodData = this.getPrintControlAll(period);
+    const myItems = allPeriodData.items.filter(item => this.isTeacherMatch(user, item));
+
+    const items = (grade === 'all') 
+      ? myItems 
+      : myItems.filter(item => item.grade === grade);
+
+    const totalSubjects = items.length;
+    const uploadedCount = items.filter(i => i.uploaded).length;
+    const pendingCount = totalSubjects - uploadedCount;
+    const totalCopiesNeeded = items.reduce((acc, i) => acc + (i.copiesNeeded || 0), 0);
+    const readyCopies = items.filter(i => i.uploaded).reduce((acc, i) => acc + (i.copiesNeeded || 0), 0);
+    const progressPercent = totalSubjects > 0 ? Math.round((uploadedCount / totalSubjects) * 100) : 0;
+    const deadlineInfo = this.deadlines[period] || DEFAULT_DEADLINES[period] || {};
+
+    return {
+      period,
+      grade,
+      teacher: user.name,
+      items,
+      stats: {
+        totalSubjects,
+        uploadedCount,
+        pendingCount,
+        studentCount: items.reduce((acc, i) => acc + (i.studentCount || 0), 0),
+        totalCopiesNeeded,
+        readyCopies,
+        progressPercent,
+        deadlineInfo
+      }
+    };
+  }
+
+  /**
+   * Sube o actualiza la evaluación de una materia para impresión (asíncrono con R2 / Supabase)
+   */
+  async uploadEvaluation({ period, grade, subject, file, notes, copiesStatus = 'aprobado', user }) {
+    if (!this.canUploadForSubject(user, grade, subject)) {
+      throw new Error(`No tienes permisos para subir la evaluación de "${subject}" en el grado ${grade}.`);
+    }
+
     if (!this.evaluations[period]) this.evaluations[period] = {};
     if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
 
     const assignment = this.getTeacherAssignment(grade, subject);
     const printInfo = this.getPrintingCopiesSuggestion(grade);
     const cleanGrade = grade.replace(/[\s°]+/g, '').slice(0, 4).toUpperCase();
-    const radicado = `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
-
     const cleanSubj = subject.replace(/[\s&]+/g, '_');
-    const cleanGrd = grade.replace(/[\s°]+/g, '');
-    let fileName = file?.name || `Evaluacion_${cleanSubj}_${cleanGrd}_${assignment.teacherName}.pdf`;
-    let fileSize = file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : '1.4 MB';
-    let fileType = file?.type || 'application/pdf';
+    const radicado = this.evaluations[period]?.[grade]?.[subject]?.id || `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
+
+    let storageKey = this.evaluations[period]?.[grade]?.[subject]?.storageKey || null;
+    let downloadUrl = this.evaluations[period]?.[grade]?.[subject]?.downloadUrl || null;
+
+    // Subida binaria a Cloudflare R2 / Supabase Storage si se suministró archivo
+    if (file) {
+      try {
+        const uploadRes = await uploadDocumentFile(file, 'evaluaciones', radicado);
+        if (!uploadRes.error && uploadRes.storageKey) {
+          storageKey = uploadRes.storageKey;
+          downloadUrl = getDocumentPublicUrl(storageKey);
+        }
+      } catch (err) {
+        console.warn('[FinalExamsService] Advertencia subiendo archivo a R2/Storage:', err);
+      }
+      if (!downloadUrl && typeof window !== 'undefined') {
+        downloadUrl = URL.createObjectURL(file);
+      }
+    }
 
     const now = new Date();
     const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    this.evaluations[period][grade][subject] = {
+    const evalData = {
       id: radicado,
       uploaded: true,
       grade,
       subject,
       title: `Evaluación de ${subject} - ${grade}`,
-      fileName,
-      fileSize,
-      fileType,
+      fileName: file ? file.name : (this.evaluations[period]?.[grade]?.[subject]?.fileName || `Evaluacion_${cleanSubj}_${cleanGrade}_${assignment.teacherName}.pdf`),
+      fileSize: file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : (this.evaluations[period]?.[grade]?.[subject]?.fileSize || '1.4 MB'),
+      fileType: file?.type || 'application/pdf',
+      storageKey,
+      downloadUrl,
       uploadedAt: formattedDate,
       uploadedBy: user?.name || assignment.teacherName,
       teacherId: assignment.docente_id,
+      teacher: assignment.teacherName,
       copiesNeeded: printInfo.suggestedCopies,
       copiesStatus: copiesStatus || 'aprobado',
-      notes: notes || `Sugerencia institucional automatizada: ${printInfo.formulaText}.`,
-      downloadUrl: file ? URL.createObjectURL(file) : null
+      notes: notes || `Sugerencia institucional automatizada: ${printInfo.formulaText}.`
     };
 
+    this.evaluations[period][grade][subject] = evalData;
     this.saveEvaluations();
     this.notifyUpdate();
-    return this.evaluations[period][grade][subject];
+
+    // Sincronización asíncrona con Supabase
+    this.syncEvaluationToSupabase(period, evalData).catch(err => {
+      console.warn('[FinalExamsService] Error persistiendo evaluación en Supabase:', err);
+    });
+
+    return evalData;
   }
 
   /**
    * Elimina o revoca una evaluación subida
    */
-  deleteEvaluation(period, grade, subject) {
+  async deleteEvaluation(period, grade, subject, user = null) {
+    if (user && !this.canUploadForSubject(user, grade, subject)) {
+      throw new Error(`No tienes permisos para eliminar la evaluación de "${subject}" en ${grade}.`);
+    }
+
     if (this.evaluations[period] && this.evaluations[period][grade] && this.evaluations[period][grade][subject]) {
+      const existing = this.evaluations[period][grade][subject];
+      if (existing.storageKey) {
+        deleteDocumentFile(existing.storageKey).catch(e => console.warn('Error eliminando archivo R2:', e));
+      }
+
       const assignment = this.getTeacherAssignment(grade, subject);
       const studentCount = this.getStudentCount(grade);
 
-      this.evaluations[period][grade][subject] = {
+      const resetData = {
         id: null,
         uploaded: false,
         grade,
@@ -640,30 +753,57 @@ class FinalExamsService {
         fileName: null,
         fileSize: null,
         fileType: null,
+        storageKey: null,
         uploadedAt: null,
         uploadedBy: assignment.teacherName,
         teacherId: assignment.docente_id,
-        copiesNeeded: studentCount,
+        copiesNeeded: studentCount + 1,
         copiesStatus: 'pendiente',
         notes: '',
         downloadUrl: null
       };
 
+      this.evaluations[period][grade][subject] = resetData;
       this.saveEvaluations();
       this.notifyUpdate();
+
+      // Sincronizar eliminación en Supabase
+      this.deleteEvaluationFromSupabase(period, grade, subject).catch(err => {
+        console.warn('[FinalExamsService] Error sincronizando eliminación en Supabase:', err);
+      });
+
       return true;
     }
     return false;
   }
 
   /**
-   * Actualiza el estado de fotocopiado/impresión de una evaluación
+   * Actualiza el estado de fotocopiado/impresión de una evaluación (exclusivo directivos)
    */
-  updateCopiesStatus(period, grade, subject, status) {
+  async updateCopiesStatus(period, grade, subject, status, user = null) {
+    if (user && !this.isPrivilegedUser(user)) {
+      throw new Error('Solo el personal directivo y de coordinación puede modificar el estado de fotocopiado.');
+    }
+
     if (this.evaluations[period]?.[grade]?.[subject]) {
       this.evaluations[period][grade][subject].copiesStatus = status;
       this.saveEvaluations();
       this.notifyUpdate();
+
+      // Persistir actualización en Supabase
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase
+            .from('evaluaciones_finales')
+            .update({ copies_status: status, updated_at: new Date().toISOString() })
+            .eq('period', period)
+            .eq('grade', grade)
+            .eq('subject', subject);
+        } catch (e) {
+          console.warn('[FinalExamsService] Error actualizando estado en Supabase:', e);
+        }
+      }
+
       return true;
     }
     return false;
@@ -673,7 +813,7 @@ class FinalExamsService {
     return this.deadlines;
   }
 
-  updateDeadline(period, data, user) {
+  async updateDeadline(period, data, user) {
     if (!this.canManageDeadlines(user)) {
       throw new Error('No tienes permisos para modificar las fechas límite de entrega.');
     }
@@ -684,6 +824,273 @@ class FinalExamsService {
     };
     this.saveDeadlines();
     this.notifyUpdate();
+
+    // Sincronizar en Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const payload = {
+          period,
+          deadline_date: data.deadlineDate,
+          delivery_time: data.deliveryTime,
+          status: data.status,
+          description: data.description || '',
+          responsible: data.responsible || 'Coordinación Académica',
+          last_modified_by: user?.name || 'Coordinación',
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+          .from('evaluaciones_deadlines')
+          .upsert([payload], { onConflict: 'period' });
+
+        if (error) {
+          // Respaldo en vault
+          await supabase.from('institutional_vault').upsert({
+            user_key: `eval_deadlines_${period}`,
+            cipher: JSON.stringify(payload),
+            default_invalidated: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_key' });
+        }
+      } catch (e) {
+        console.warn('[FinalExamsService] Error persistiendo fecha límite en Supabase:', e);
+      }
+    }
+  }
+
+  // ===========================================================================
+  // MÉTODOS DE SINCRONIZACIÓN CON SUPABASE & VAULT
+  // ===========================================================================
+
+  async syncEvaluationToSupabase(period, evalData) {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    const payload = {
+      id: evalData.id || `EVAL_${period.replace(/\s+/g, '_')}_${evalData.grade.replace(/\s+/g, '_')}_${evalData.subject.replace(/\s+/g, '_')}`,
+      period,
+      grade: evalData.grade,
+      subject: evalData.subject,
+      title: evalData.title || `Evaluación de ${evalData.subject} - ${evalData.grade}`,
+      uploaded: evalData.uploaded,
+      file_name: evalData.fileName,
+      file_size: evalData.fileSize,
+      file_type: evalData.fileType,
+      storage_key: evalData.storageKey,
+      download_url: evalData.downloadUrl,
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: evalData.uploadedBy,
+      teacher_id: evalData.teacherId,
+      teacher_name: evalData.teacher,
+      copies_needed: evalData.copiesNeeded,
+      copies_status: evalData.copiesStatus || 'aprobado',
+      notes: evalData.notes || '',
+      updated_at: new Date().toISOString()
+    };
+
+    // 1. Intentar upsert en evaluaciones_finales
+    try {
+      const { error } = await supabase
+        .from('evaluaciones_finales')
+        .upsert([payload], { onConflict: 'id' });
+
+      if (!error) return;
+    } catch {
+      // Continuar con respaldo en vault
+    }
+
+    // 2. Respaldo transparente en institutional_vault
+    try {
+      await supabase.from('institutional_vault').upsert({
+        user_key: `eval_${payload.id}`,
+        cipher: JSON.stringify(evalData),
+        default_invalidated: true,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_key' });
+    } catch (err) {
+      console.warn('[FinalExamsService] Fallo respaldo en institutional_vault:', err);
+    }
+  }
+
+  async deleteEvaluationFromSupabase(period, grade, subject) {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    try {
+      await supabase
+        .from('evaluaciones_finales')
+        .update({
+          uploaded: false,
+          file_name: null,
+          file_size: null,
+          file_type: null,
+          storage_key: null,
+          download_url: null,
+          copies_status: 'pendiente',
+          notes: '',
+          updated_at: new Date().toISOString()
+        })
+        .eq('period', period)
+        .eq('grade', grade)
+        .eq('subject', subject);
+    } catch (err) {
+      console.warn('[FinalExamsService] Error actualizando borrado en Supabase:', err);
+    }
+  }
+
+  async initRemoteSync() {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    try {
+      // 1. Cargar evaluaciones existentes en Supabase
+      const { data: remoteEvals, error: evalsErr } = await supabase
+        .from('evaluaciones_finales')
+        .select('*');
+
+      if (!evalsErr && Array.isArray(remoteEvals) && remoteEvals.length > 0) {
+        let changed = false;
+        remoteEvals.forEach(row => {
+          const { period, grade, subject } = row;
+          if (period && grade && subject) {
+            if (!this.evaluations[period]) this.evaluations[period] = {};
+            if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
+            this.evaluations[period][grade][subject] = {
+              id: row.id,
+              uploaded: row.uploaded ?? true,
+              grade: row.grade,
+              subject: row.subject,
+              title: row.title || `Evaluación de ${subject} - ${grade}`,
+              fileName: row.file_name,
+              fileSize: row.file_size,
+              fileType: row.file_type,
+              storageKey: row.storage_key,
+              downloadUrl: row.download_url,
+              uploadedAt: row.uploaded_at,
+              uploadedBy: row.uploaded_by,
+              teacherId: row.teacher_id,
+              teacher: row.teacher_name,
+              copiesNeeded: row.copies_needed,
+              copiesStatus: row.copies_status,
+              notes: row.notes
+            };
+            changed = true;
+          }
+        });
+
+        if (changed) {
+          this.saveEvaluations();
+          this.notifyUpdate();
+        }
+      }
+
+      // 2. Cargar fechas límite en Supabase
+      const { data: remoteDeadlines, error: deadErr } = await supabase
+        .from('evaluaciones_deadlines')
+        .select('*');
+
+      if (!deadErr && Array.isArray(remoteDeadlines) && remoteDeadlines.length > 0) {
+        let deadChanged = false;
+        remoteDeadlines.forEach(row => {
+          if (row.period) {
+            this.deadlines[row.period] = {
+              deadlineDate: row.deadline_date,
+              deliveryTime: row.delivery_time,
+              status: row.status,
+              description: row.description,
+              responsible: row.responsible,
+              lastModifiedBy: row.last_modified_by
+            };
+            deadChanged = true;
+          }
+        });
+
+        if (deadChanged) {
+          this.saveDeadlines();
+          this.notifyUpdate();
+        }
+      }
+
+      // 3. Suscripción a Supabase Realtime
+      this.initRealtimeSubscription();
+    } catch (e) {
+      console.warn('[FinalExamsService] Inicialización remota Supabase omitida:', e);
+    }
+  }
+
+  initRealtimeSubscription() {
+    if (!isSupabaseConfigured || !supabase || this.realtimeChannel) return;
+
+    try {
+      this.realtimeChannel = supabase
+        .channel('evaluaciones_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'evaluaciones_finales' }, (payload) => {
+          const row = payload.new || payload.old;
+          if (row && row.period && row.grade && row.subject) {
+            if (!this.evaluations[row.period]) this.evaluations[row.period] = {};
+            if (!this.evaluations[row.period][row.grade]) this.evaluations[row.period][row.grade] = {};
+
+            if (payload.eventType === 'DELETE' || (row.uploaded === false)) {
+              const assign = this.getTeacherAssignment(row.grade, row.subject);
+              this.evaluations[row.period][row.grade][row.subject] = {
+                id: null,
+                uploaded: false,
+                grade: row.grade,
+                subject: row.subject,
+                title: `Evaluación de ${row.subject} - ${row.grade}`,
+                fileName: null,
+                fileSize: null,
+                fileType: null,
+                storageKey: null,
+                uploadedAt: null,
+                uploadedBy: assign.teacherName,
+                teacherId: assign.docente_id,
+                copiesNeeded: this.getStudentCount(row.grade) + 1,
+                copiesStatus: 'pendiente',
+                notes: '',
+                downloadUrl: null
+              };
+            } else {
+              this.evaluations[row.period][row.grade][row.subject] = {
+                id: row.id,
+                uploaded: row.uploaded ?? true,
+                grade: row.grade,
+                subject: row.subject,
+                title: row.title || `Evaluación de ${row.subject} - ${row.grade}`,
+                fileName: row.file_name,
+                fileSize: row.file_size,
+                fileType: row.file_type,
+                storageKey: row.storage_key,
+                downloadUrl: row.download_url,
+                uploadedAt: row.uploaded_at,
+                uploadedBy: row.uploaded_by,
+                teacherId: row.teacher_id,
+                teacher: row.teacher_name,
+                copiesNeeded: row.copies_needed,
+                copiesStatus: row.copies_status,
+                notes: row.notes
+              };
+            }
+            this.saveEvaluations();
+            this.notifyUpdate();
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'evaluaciones_deadlines' }, (payload) => {
+          const row = payload.new;
+          if (row && row.period) {
+            this.deadlines[row.period] = {
+              deadlineDate: row.deadline_date,
+              deliveryTime: row.delivery_time,
+              status: row.status,
+              description: row.description,
+              responsible: row.responsible,
+              lastModifiedBy: row.last_modified_by
+            };
+            this.saveDeadlines();
+            this.notifyUpdate();
+          }
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('[FinalExamsService] Error en suscripción Realtime:', err);
+    }
   }
 }
 

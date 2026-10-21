@@ -55,17 +55,17 @@ export default function FinalExamsSidebar({
       <div className="sidebar-section" id="finalGradesSection">
         <div className="sidebar-header">
           <i className="ph-bold ph-graduation-cap"></i>
-          <span>Grados Escolares</span>
+          <span>{isPrivileged ? 'Grados Escolares' : 'Mis Grados Asignados'}</span>
         </div>
         <nav className="folder-list">
           <button
             type="button"
             className={`folder-btn folder-all ${selectedGrade === 'all' ? 'active' : ''}`}
             onClick={() => onSelectGrade('all')}
-            title="Ver materias de todos los grados escolares"
+            title={isPrivileged ? "Ver materias de todos los grados escolares" : "Ver todas mis materias asignadas"}
           >
             <i className="ph-bold ph-squares-four"></i>
-            <span>Todos los Grados</span>
+            <span>{isPrivileged ? 'Todos los Grados' : 'Todas Mis Materias'}</span>
           </button>
 
           {availableGrades.map((g) => {
@@ -128,7 +128,7 @@ export default function FinalExamsSidebar({
             onClick={() => onSelectStatusFilter('all')}
           >
             <i className="ph-bold ph-folders"></i>
-            <span>Todas las Materias</span>
+            <span>{isPrivileged ? 'Todas las Materias' : 'Mis Asignaturas'}</span>
             <span className="teacher-badge-count">{stats?.totalSubjects || 0}</span>
           </button>
 
