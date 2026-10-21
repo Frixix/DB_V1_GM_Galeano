@@ -22,6 +22,32 @@ function sanitizeFileName(name) {
 }
 
 /**
+ * Deduce el tipo MIME exacto a partir del nombre o tipo de archivo.
+ */
+export function getMimeType(fileName = '', fallbackType = '') {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  const mimeMap = {
+    pdf: 'application/pdf',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    jfif: 'image/jpeg',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    svg: 'image/svg+xml',
+    bmp: 'image/bmp',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    doc: 'application/msword',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    xls: 'application/vnd.ms-excel',
+    txt: 'text/plain',
+    csv: 'text/csv',
+    zip: 'application/zip',
+  };
+  return mimeMap[ext] || fallbackType || 'application/octet-stream';
+}
+
+/**
  * Sube un archivo binario directamente a Cloudflare R2 (con respaldo en Supabase Storage).
  * @param {File|Blob} file 
  * @param {string} folder 
@@ -37,6 +63,7 @@ export async function uploadDocumentFile(file, folder = 'general', radicado = 'D
   const cleanName = sanitizeFileName(rawName);
   const cleanFolder = (folder || 'general').toLowerCase();
   const filePath = `${cleanFolder}/${radicado}_${cleanName}`;
+  const resolvedContentType = getMimeType(cleanName, file.type);
 
   // 1. Prioridad: Cloudflare R2 (10 GB gratis, $0 Egress)
   if (isR2Configured && r2Client) {
@@ -46,7 +73,7 @@ export async function uploadDocumentFile(file, folder = 'general', radicado = 'D
         Bucket: R2_BUCKET_NAME,
         Key: filePath,
         Body: new Uint8Array(arrayBuffer),
-        ContentType: file.type || 'application/octet-stream',
+        ContentType: resolvedContentType,
       });
 
       await r2Client.send(command);
@@ -100,17 +127,24 @@ export async function downloadDocumentBlob(storageKey) {
 
       const response = await r2Client.send(command);
       if (response && response.Body) {
+        const effectiveType = (!response.ContentType || response.ContentType === 'application/octet-stream')
+          ? getMimeType(storageKey, response.ContentType)
+          : response.ContentType;
+
         if (response.Body instanceof Blob) {
-          return response.Body;
+          return response.Body.type && response.Body.type !== 'application/octet-stream'
+            ? response.Body
+            : new Blob([response.Body], { type: effectiveType });
         }
         if (typeof response.Body.transformToByteArray === 'function') {
           const byteArray = await response.Body.transformToByteArray();
-          return new Blob([byteArray], { type: response.ContentType || 'application/octet-stream' });
+          return new Blob([byteArray], { type: effectiveType });
         }
         // Fallback estándar de navegador con Web Streams API
         try {
           const res = new Response(response.Body);
-          return await res.blob();
+          const rawBlob = await res.blob();
+          return new Blob([rawBlob], { type: effectiveType });
         } catch {
           // Si falla Response wrapper, retornar null para que continúe
         }

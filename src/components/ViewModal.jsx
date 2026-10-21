@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { downloadDocumentBlob } from '../services/storageService';
+import { downloadDocumentBlob, getMimeType } from '../services/storageService';
 import gradesService from '../services/gradesService';
 
 export default function ViewModal({ 
@@ -70,7 +70,11 @@ export default function ViewModal({
 
     // Si ya existe un Blob en memoria (subido en la sesión actual)
     if (doc.fileBlob instanceof Blob) {
-      createdUrl = URL.createObjectURL(doc.fileBlob);
+      const mime = getMimeType(fileName, doc.fileBlob.type);
+      const readyBlob = (doc.fileBlob.type && doc.fileBlob.type !== 'application/octet-stream')
+        ? doc.fileBlob
+        : new Blob([doc.fileBlob], { type: mime });
+      createdUrl = URL.createObjectURL(readyBlob);
       setBlobUrl(createdUrl);
       return () => {
         if (createdUrl) URL.revokeObjectURL(createdUrl);

@@ -380,8 +380,8 @@ export default function App() {
   }, [documents, deleteDocument]);
 
   // Manejador para registrar nuevo documento
-  const handleUploadSuccess = useCallback((newDoc) => {
-    addDocument(newDoc);
+  const handleUploadSuccess = useCallback(async (newDoc) => {
+    return await addDocument(newDoc);
   }, [addDocument]);
 
   if (!currentUser) {
@@ -1053,7 +1053,7 @@ export default function App() {
           onClose={() => setIsUploadModalOpen(false)}
           currentUser={currentUser}
           onUploadSuccess={handleUploadSuccess}
-          existingCount={documents.length}
+          existingCount={documents}
           initialFolder="boveda"
           totalUsedBytes={totalUsedBytes}
         />
@@ -1342,7 +1342,7 @@ export default function App() {
         onClose={() => setIsUploadModalOpen(false)}
         currentUser={currentUser}
         onUploadSuccess={handleUploadSuccess}
-        existingCount={documents.length}
+        existingCount={documents}
         initialFolder={currentFolder}
         totalUsedBytes={totalUsedBytes}
       />

@@ -75,7 +75,7 @@ export function useDocuments() {
         if (fetchErr) {
           console.warn('Error al cargar de Supabase, usando locales:', fetchErr);
           setError(fetchErr.message);
-        } else if (data && data.length > 0) {
+        } else if (data) {
           const validDocs = data
             .map(mapDbToDoc)
             .filter(d => d.folder !== 'calificaciones' && d.id !== 'MG-PRI-004');
@@ -124,7 +124,7 @@ export function useDocuments() {
     // Actualización optimista local inmediata
     setDocuments(prev => [newDoc, ...prev]);
 
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!isSupabaseConfigured || !supabase) return { success: true };
 
     try {
       const dbPayload = mapDocToDb(newDoc);
@@ -140,30 +140,31 @@ export function useDocuments() {
         const persisted = mapDbToDoc(data[0]);
         setDocuments(prev => prev.map(d => d.id === newDoc.id ? { ...persisted, fileBlob: newDoc.fileBlob || null } : d));
       }
+      return { success: true };
     } catch (err) {
       console.error('Error guardando en Supabase:', err);
       setError(err.message);
+      // Revertir estado optimista si falló la persistencia en la base de datos
+      setDocuments(prev => prev.filter(d => d.id !== newDoc.id));
+      throw err;
     }
   }, []);
 
   // Eliminar documento
   const deleteDocument = useCallback(async (id) => {
-    let targetStorageKey = null;
+    let targetDoc = null;
 
     // Actualización optimista local inmediata y captura de storageKey sin depender de documents
     setDocuments(prev => {
-      const targetDoc = prev.find(doc => doc.id === id);
-      if (targetDoc?.storageKey) {
-        targetStorageKey = targetDoc.storageKey;
-      }
+      targetDoc = prev.find(doc => doc.id === id);
       return prev.filter(doc => doc.id !== id);
     });
 
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!isSupabaseConfigured || !supabase) return { success: true };
 
     try {
-      if (targetStorageKey) {
-        await deleteDocumentFile(targetStorageKey);
+      if (targetDoc?.storageKey) {
+        await deleteDocumentFile(targetDoc.storageKey);
       }
 
       const { error: deleteErr } = await supabase
@@ -172,9 +173,15 @@ export function useDocuments() {
         .eq('id', id);
 
       if (deleteErr) throw deleteErr;
+      return { success: true };
     } catch (err) {
       console.error('Error eliminando de Supabase:', err);
       setError(err.message);
+      // Revertir optimismo si falló
+      if (targetDoc) {
+        setDocuments(prev => [targetDoc, ...prev]);
+      }
+      throw err;
     }
   }, []);
 

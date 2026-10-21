@@ -17,9 +17,27 @@ export function formatDateTime(date = new Date()) {
   }).format(date);
 }
 
-export function generateRadicado(existingCount = 0) {
-  const nextNum = String(existingCount + 1).padStart(4, '0');
+export function generateRadicado(input = 0) {
   const year = new Date().getFullYear();
+  if (Array.isArray(input)) {
+    let maxNum = 0;
+    for (const item of input) {
+      const rawId = typeof item === 'string' ? item : item?.id;
+      if (!rawId) continue;
+      const match = String(rawId).match(/(\d+)$/);
+      if (match) {
+        const n = parseInt(match[1], 10);
+        if (!isNaN(n) && n > maxNum) {
+          maxNum = n;
+        }
+      }
+    }
+    const nextNum = String(maxNum + 1).padStart(4, '0');
+    return `MG-PRI-${year}-${nextNum}`;
+  }
+
+  const num = typeof input === 'number' ? input : (parseInt(input, 10) || 0);
+  const nextNum = String(num + 1).padStart(4, '0');
   return `MG-PRI-${year}-${nextNum}`;
 }
 

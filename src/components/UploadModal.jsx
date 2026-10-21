@@ -189,7 +189,7 @@ export default function UploadModal({
         fileBlob: fileToUpload,
       };
 
-      onUploadSuccess(newDoc);
+      await onUploadSuccess(newDoc);
       handleClose();
     } catch (err) {
       console.error('Error durante la subida:', err);
