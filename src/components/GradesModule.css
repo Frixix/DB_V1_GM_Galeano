@@ -213,184 +213,45 @@
   transition: color 0.18s ease, transform 0.18s ease;
 }
 
-/* 1. Sábana General Consolidada (Pastel Ámbar SIEE representativo de Notas y Calificaciones) */
+/* 1. Sábana General Consolidada (Pastel Naranja SIEE representativo de Notas y Calificaciones) */
 .grades-sidebar .folder-btn.folder-consolidada:hover i,
 .grades-sidebar .folder-btn.folder-consolidada:active i,
 .grades-sidebar .folder-btn.folder-consolidada.active i {
-  color: #b45309 !important;
-  transform: scale(1.15);
+  color: #ea580c !important;
+  transform: scale(1.12);
 }
 .grades-sidebar .folder-btn.folder-consolidada:active,
 .grades-sidebar .folder-btn.folder-consolidada.active {
-  background-color: #fef3c7 !important;
-  color: #92400e !important;
-  border-color: #fde68a !important;
-  font-weight: 700 !important;
-}
-
-/* 2. Lengua Castellana / Español (Pastel Azul Refinado) */
-.grades-sidebar .folder-btn.folder-subject-lengua:hover i,
-.grades-sidebar .folder-btn.folder-subject-lengua:active i,
-.grades-sidebar .folder-btn.folder-subject-lengua.active i {
-  color: #1d4ed8 !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-lengua:active,
-.grades-sidebar .folder-btn.folder-subject-lengua.active {
-  background-color: #eff6ff !important;
-  color: #1e40af !important;
-  border-color: #bfdbfe !important;
-  font-weight: 700 !important;
-}
-
-/* 3. Matemáticas (Pastel Ámbar Dorado) */
-.grades-sidebar .folder-btn.folder-subject-mate:hover i,
-.grades-sidebar .folder-btn.folder-subject-mate:active i,
-.grades-sidebar .folder-btn.folder-subject-mate.active i {
-  color: #b45309 !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-mate:active,
-.grades-sidebar .folder-btn.folder-subject-mate.active {
-  background-color: #fef3c7 !important;
-  color: #92400e !important;
-  border-color: #fde68a !important;
-  font-weight: 700 !important;
-}
-
-/* 4. Ciencias Naturales (Pastel Menta / Bosque) */
-.grades-sidebar .folder-btn.folder-subject-naturales:hover i,
-.grades-sidebar .folder-btn.folder-subject-naturales:active i,
-.grades-sidebar .folder-btn.folder-subject-naturales.active i {
-  color: #059669 !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-naturales:active,
-.grades-sidebar .folder-btn.folder-subject-naturales.active {
-  background-color: #ecfdf5 !important;
-  color: #064e3b !important;
-  border-color: #a7f3d0 !important;
-  font-weight: 700 !important;
-}
-
-/* 5. Ciencias Sociales (Pastel Índigo Institucional) */
-.grades-sidebar .folder-btn.folder-subject-sociales:hover i,
-.grades-sidebar .folder-btn.folder-subject-sociales:active i,
-.grades-sidebar .folder-btn.folder-subject-sociales.active i {
-  color: #4338ca !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-sociales:active,
-.grades-sidebar .folder-btn.folder-subject-sociales.active {
-  background-color: #e0e7ff !important;
-  color: #3730a3 !important;
-  border-color: #c7d2fe !important;
-  font-weight: 700 !important;
-}
-
-/* 6. Inglés / Lenguas Extranjeras (Pastel Púrpura Elegante) */
-.grades-sidebar .folder-btn.folder-subject-ingles:hover i,
-.grades-sidebar .folder-btn.folder-subject-ingles:active i,
-.grades-sidebar .folder-btn.folder-subject-ingles.active i {
-  color: #7e22ce !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-ingles:active,
-.grades-sidebar .folder-btn.folder-subject-ingles.active {
-  background-color: #f3e8ff !important;
-  color: #6b21a8 !important;
-  border-color: #e9d5ff !important;
-  font-weight: 700 !important;
-}
-
-/* 7. Educación Artística (Pastel Rosa / Magenta) */
-.grades-sidebar .folder-btn.folder-subject-arte:hover i,
-.grades-sidebar .folder-btn.folder-subject-arte:active i,
-.grades-sidebar .folder-btn.folder-subject-arte.active i {
-  color: #be185d !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-arte:active,
-.grades-sidebar .folder-btn.folder-subject-arte.active {
-  background-color: #fce7f3 !important;
-  color: #9d174d !important;
-  border-color: #fbcfe8 !important;
-  font-weight: 700 !important;
-}
-
-/* 8. Educación Física (Pastel Mandarina / Naranja Activo) */
-.grades-sidebar .folder-btn.folder-subject-fisica:hover i,
-.grades-sidebar .folder-btn.folder-subject-fisica:active i,
-.grades-sidebar .folder-btn.folder-subject-fisica.active i {
-  color: #c2410c !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-fisica:active,
-.grades-sidebar .folder-btn.folder-subject-fisica.active {
-  background-color: #ffedd5 !important;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
   color: #9a3412 !important;
   border-color: #fed7aa !important;
   font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.12);
 }
 
-/* 9. Ética y Valores (Pastel Coral Suave) */
-.grades-sidebar .folder-btn.folder-subject-etica:hover i,
-.grades-sidebar .folder-btn.folder-subject-etica:active i,
-.grades-sidebar .folder-btn.folder-subject-etica.active i {
-  color: #e11d48 !important;
-  transform: scale(1.15);
+/* 2. Todas las Asignaturas Académicas (Unificadas en Naranja Pastel Institucional) */
+.grades-sidebar .folder-btn:hover i {
+  color: #ea580c !important;
+  transform: scale(1.1);
 }
-.grades-sidebar .folder-btn.folder-subject-etica:active,
-.grades-sidebar .folder-btn.folder-subject-etica.active {
-  background-color: #ffe4e6 !important;
-  color: #9f1239 !important;
-  border-color: #fecdd3 !important;
-  font-weight: 700 !important;
+.grades-sidebar .folder-btn:hover {
+  background-color: #fffaf5 !important;
+  color: #7c2d12 !important;
 }
 
-/* 10. Tecnología e Informática (Pastel Cian Tecnológico) */
-.grades-sidebar .folder-btn.folder-subject-tecno:hover i,
-.grades-sidebar .folder-btn.folder-subject-tecno:active i,
-.grades-sidebar .folder-btn.folder-subject-tecno.active i {
-  color: #0891b2 !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-tecno:active,
-.grades-sidebar .folder-btn.folder-subject-tecno.active {
-  background-color: #cffafe !important;
-  color: #155e75 !important;
-  border-color: #a5f3fc !important;
+.grades-sidebar .folder-btn.active,
+.grades-sidebar .folder-btn:active {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%) !important;
+  color: #9a3412 !important;
+  border-color: #fed7aa !important;
   font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.12) !important;
 }
 
-/* 11. Educación Religiosa (Pastel Teal / Místico) */
-.grades-sidebar .folder-btn.folder-subject-religion:hover i,
-.grades-sidebar .folder-btn.folder-subject-religion:active i,
-.grades-sidebar .folder-btn.folder-subject-religion.active i {
-  color: #0f766e !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-religion:active,
-.grades-sidebar .folder-btn.folder-subject-religion.active {
-  background-color: #ccfbf1 !important;
-  color: #115e59 !important;
-  border-color: #99f6e4 !important;
-  font-weight: 700 !important;
-}
-
-/* 12. Asignatura Predeterminada / General */
-.grades-sidebar .folder-btn.folder-subject-default:hover i,
-.grades-sidebar .folder-btn.folder-subject-default:active i,
-.grades-sidebar .folder-btn.folder-subject-default.active i {
-  color: #059669 !important;
-  transform: scale(1.15);
-}
-.grades-sidebar .folder-btn.folder-subject-default:active,
-.grades-sidebar .folder-btn.folder-subject-default.active {
-  background-color: #ecfdf5 !important;
-  color: #064e3b !important;
-  border-color: #a7f3d0 !important;
-  font-weight: 700 !important;
+.grades-sidebar .folder-btn.active i,
+.grades-sidebar .folder-btn:active i {
+  color: #ea580c !important;
+  transform: scale(1.12);
 }
 
 /* ==========================================================================
@@ -887,12 +748,13 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #ffffff 0%, #fffaf5 100%);
+  border: 1px solid #fed7aa;
   border-radius: 12px;
   padding: 0.95rem 1.35rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.04);
   position: relative;
+  overflow: hidden;
 }
 
 .grades-table-header-compact::before {
@@ -901,8 +763,15 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background-color: #ea580c;
+  height: 3px;
+  background: linear-gradient(90deg, #ea580c 0%, #fdba74 100%);
+}
+
+.grades-module-container .portal-module-tag-pill {
+  background: #fff7ed !important;
+  color: #9a3412 !important;
+  border: 1px solid #fed7aa !important;
+  font-weight: 800 !important;
 }
 
 .grades-table-header-left {
@@ -925,7 +794,7 @@
 .grades-table-main-title {
   font-size: 1.15rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #7c2d12;
   margin: 0;
   display: flex;
   align-items: center;
@@ -950,12 +819,13 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.76rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #475569;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  border: 1px solid #fed7aa;
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(234, 88, 12, 0.03);
 }
 
 .grades-compact-metric-pill i {
@@ -965,7 +835,7 @@
 
 .grades-compact-metric-pill strong {
   color: #9a3412;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 /* ==========================================================================
@@ -1316,16 +1186,16 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background-color: #064e3b;
+  height: 3px;
+  background: linear-gradient(90deg, #ea580c 0%, #fdba74 100%);
 }
 
 /* Cabeceras de las tarjetas de sábana */
 .consolidated-header-bar,
 .subject-sheet-header-bar {
-  padding: 1.25rem 1.5rem;
-  background-color: #fafaf9;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1.15rem 1.4rem;
+  background: linear-gradient(135deg, #fffbf7 0%, #fff7ed 100%);
+  border-bottom: 1.5px solid #fed7aa;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1342,14 +1212,26 @@
 
 .consolidated-header-title i,
 .subject-icon-box i {
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   color: #ea580c;
+}
+
+.subject-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+  border: 1px solid #fdba74;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.12);
+  flex-shrink: 0;
 }
 
 .consolidated-header-title h4,
 .subject-sheet-info h4 {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #7c2d12;
   margin: 0;
 }
@@ -1419,11 +1301,23 @@
   color: #ea580c;
 }
 
-/* Encabezados Pastel por Componente de Evaluación (Naranja Pastel) */
+/* Encabezados de Tabla por Componente de Evaluación */
 .th-pastel-component {
-  background-color: #fffaf5 !important;
-  color: #7c2d12 !important;
-  border-bottom: 2px solid #fed7aa !important;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+.th-activity-name-editable {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.84rem;
+  transition: color 0.15s ease;
+}
+
+.th-activity-name-editable:hover {
+  color: #ea580c !important;
 }
 
 .th-component-header {
@@ -1447,11 +1341,26 @@
   color: #64748b;
 }
 
+.th-pastel-prom-aula {
+  background-color: #fffaf5 !important;
+  color: #9a3412 !important;
+  border-bottom: 2px solid #fdba74 !important;
+  font-weight: 700 !important;
+}
+
+.th-pastel-final-exam {
+  background-color: #fefce8 !important;
+  color: #854d0e !important;
+  border-bottom: 2px solid #fef08a !important;
+  font-weight: 700 !important;
+}
+
 .th-pastel-definitiva,
 .th-consolidated-avg {
   background-color: #ffedd5 !important;
   color: #7c2d12 !important;
-  border-bottom: 2px solid #fdba74 !important;
+  border-bottom: 2px solid #ea580c !important;
+  font-weight: 800 !important;
 }
 
 .th-badge-def {
@@ -1472,15 +1381,15 @@
 
 /* Columnas de Árbol Relacional */
 .th-pastel-docente-col {
-  background-color: #f0fdf4 !important;
-  color: #065f46 !important;
-  border-bottom: 2px solid #bbf7d0 !important;
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
 .th-badge-editable {
-  background-color: #d1fae5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
   font-size: 0.64rem;
@@ -1488,9 +1397,9 @@
 }
 
 .th-badge-director {
-  background-color: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background-color: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
   font-size: 0.64rem;
@@ -1504,9 +1413,9 @@
 }
 
 .th-badge-rectora {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
   padding: 0.1rem 0.4rem;
   font-size: 0.64rem;
@@ -2010,61 +1919,31 @@
   }
 }
 
-/* En celulares y pantallas táctiles: icono con color visible por defecto, click a pastel */
+/* En celulares y pantallas táctiles: icono con color naranja pastel identificador */
 @media (hover: none), (max-width: 900px) {
   .grades-nav-card .card-icon-wrap i {
-    color: #10b981 !important;
+    color: #ea580c !important;
   }
   .grades-btn-secondary i {
-    color: #b45309 !important;
+    color: #ea580c !important;
   }
   .grades-period-pill i {
-    color: #b45309 !important;
+    color: #ea580c !important;
   }
   .btn-header-subject-jump i {
-    color: #b45309 !important;
+    color: #ea580c !important;
   }
   .grades-sidebar .teacher-btn i {
-    color: #10b981 !important;
+    color: #ea580c !important;
   }
   .grades-sidebar .teacher-rectora-btn i {
-    color: #d97706 !important;
-  }
-  .grades-sidebar-period-btn i {
-    color: #b45309 !important;
-  }
-  .grades-sidebar .folder-btn.folder-consolidada i {
-    color: #b45309 !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-lengua i {
-    color: #1d4ed8 !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-mate i {
-    color: #b45309 !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-naturales i {
-    color: #059669 !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-sociales i {
-    color: #4338ca !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-ingles i {
-    color: #7e22ce !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-arte i {
-    color: #be185d !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-fisica i {
     color: #c2410c !important;
   }
-  .grades-sidebar .folder-btn.folder-subject-etica i {
-    color: #e11d48 !important;
+  .grades-sidebar-period-btn i {
+    color: #ea580c !important;
   }
-  .grades-sidebar .folder-btn.folder-subject-tecno i {
-    color: #0891b2 !important;
-  }
-  .grades-sidebar .folder-btn.folder-subject-religion i {
-    color: #0f766e !important;
+  .grades-sidebar .folder-btn i {
+    color: #ea580c !important;
   }
 }
 
@@ -2461,16 +2340,16 @@
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
-  background: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  color: #5b21b6;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
   border-radius: 20px;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .grades-sheet-metric-pill i {
-  color: #7c3aed;
+  color: #ea580c;
   font-size: 0.95rem;
 }
 

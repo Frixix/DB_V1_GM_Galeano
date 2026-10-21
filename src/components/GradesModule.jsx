@@ -962,18 +962,17 @@ export default function GradesModule({
                     
                     {/* Columnas dinámicas de Actividades de Aula Continua (80%) */}
                     {activities.map((act, actIdx) => (
-                      <th key={act.id} className="th-pastel-component th-activity-col" style={{ textAlign: 'center', minWidth: '100px' }}>
+                      <th key={act.id} className="th-pastel-component th-activity-col" style={{ textAlign: 'center', minWidth: '95px' }}>
                         <div className="th-component-header" style={{ position: 'relative' }}>
                           <span 
                             className={canEditScores ? "th-activity-name-editable" : ""}
                             onClick={() => canEditScores && handleRenameActivity(act.id)}
                             title={canEditScores ? `Clic para renombrar actividad "${act.name || `Actividad ${actIdx + 1}`}"` : (act.name || `Actividad ${actIdx + 1}`)}
-                            style={canEditScores ? { cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px' } : {}}
+                            style={canEditScores ? { cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' } : {}}
                           >
-                            <span>{act.name || act.label || `Act. ${actIdx + 1}`}</span>
-                            {canEditScores && <i className="ph-bold ph-pencil-simple" style={{ fontSize: '0.72rem', opacity: 0.65 }}></i>}
+                            <span style={{ fontWeight: 700, color: '#0f172a' }}>{act.name || act.label || `Act. ${actIdx + 1}`}</span>
+                            {canEditScores && <i className="ph-bold ph-pencil-simple" style={{ fontSize: '0.72rem', color: '#64748b' }}></i>}
                           </span>
-                          <span className="th-badge-weight">Aula</span>
                           {canEditScores && activities.length > 1 && (
                             <button
                               type="button"
@@ -987,7 +986,7 @@ export default function GradesModule({
                           {!canEditScores && (
                             <i 
                               className="ph-bold ph-lock-key th-lock-icon" 
-                              title={isViewingAsGradeDirector ? `Solo Lectura (Director de Curso): Asignatura a cargo de ${teacherInfo.teacherName}` : "Calificación bloqueada: Solo docente titular"}
+                              title="Calificación protegida: solo docente titular"
                             ></i>
                           )}
                         </div>
@@ -1368,17 +1367,6 @@ export default function GradesModule({
                     ? `Supervisión de Director(a) de Curso (${gradeDirector.teacherName}) • Calificación por ${teacherInfo.teacherName}`
                     : `Supervisión institucional: notas protegidas de ${teacherInfo.teacherName}`}
                 </span>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button 
-                  type="button" 
-                  className="grades-btn-secondary" 
-                  onClick={() => alert(`Exportando consolidado de calificaciones de ${selectedSubject} en Excel...`)}
-                >
-                  <i className="ph-bold ph-file-xls"></i>
-                  <span>Consolidado Excel</span>
-                </button>
               </div>
             </div>
           </section>

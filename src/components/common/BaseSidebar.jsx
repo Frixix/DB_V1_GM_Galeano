@@ -153,29 +153,26 @@ export default function BaseSidebar({
       );
     }
 
-    // Caso 2: Calificaciones (Resumen Normativo de Ponderación SIEE)
+    // Caso 2: Calificaciones (Resumen Normativo de Ponderación SIEE 80/20 en Naranja Pastel)
     if (currentModule === 'calificaciones' || currentModule === 'grades') {
       return (
-        <div className="db-summary-card" id="gradesSieeSummary" style={{ marginTop: 'auto' }}>
+        <div className="db-summary-card" id="gradesSieeSummary" style={{ marginTop: 'auto', background: '#fff7ed', border: '1px solid #fed7aa' }}>
           <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="ph-bold ph-scales"></i>
-              <span>Ponderación SIEE</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#9a3412', fontWeight: 800 }}>
+              <i className="ph-bold ph-scales" style={{ color: '#ea580c' }}></i>
+              <span>Modelo SIEE</span>
             </div>
-            <span className="storage-plan-pill" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-              100%
+            <span className="storage-plan-pill" style={{ background: '#ffedd5', color: '#9a3412', border: '1px solid #fed7aa', fontWeight: 800 }}>
+              80 / 20
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.73rem', color: '#475569', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.73rem', color: '#7c2d12', marginTop: '0.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Cognitivo:</span> <strong>40%</strong>
+              <span>Aula Continua:</span> <strong>80%</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Procedimental:</span> <strong>40%</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Actitudinal:</span> <strong>20%</strong>
+              <span>Evaluación Final:</span> <strong>20%</strong>
             </div>
           </div>
         </div>
