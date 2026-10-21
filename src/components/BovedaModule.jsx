@@ -211,16 +211,6 @@ export default function BovedaModule({
               <div className="boveda-banner-actions">
                 <button 
                   type="button" 
-                  className="boveda-btn-primary"
-                  onClick={onOpenUploadModal}
-                  title="Subir nuevo archivo de alta seguridad a la Bóveda"
-                >
-                  <i className="ph-bold ph-upload-simple"></i>
-                  <span>Subir a Bóveda</span>
-                </button>
-
-                <button 
-                  type="button" 
                   className="boveda-btn-secondary"
                   onClick={onOpenChangeBovedaModal}
                   title="Modificar o actualizar la contraseña de la Bóveda"
