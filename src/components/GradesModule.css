@@ -92,33 +92,33 @@
 }
 
 .grades-sidebar .teacher-btn:hover i {
-  color: #10b981;
+  color: #ea580c;
   transform: scale(1.15);
 }
 
 .grades-sidebar .teacher-btn:hover .teacher-avatar-mini {
-  border-color: #10b981;
+  border-color: #ea580c;
   transform: scale(1.05);
 }
 
 .grades-sidebar .teacher-btn:hover .teacher-fold-caret-btn i {
-  color: #10b981;
+  color: #ea580c;
 }
 
 .grades-sidebar .teacher-btn.active {
-  background-color: #ecfdf5 !important;
-  color: var(--primary, #064e3b) !important;
+  background-color: #fff7ed !important;
+  color: #7c2d12 !important;
   font-weight: 700 !important;
-  border-color: #a7f3d0 !important;
+  border-color: #fed7aa !important;
 }
 
 .grades-sidebar .teacher-btn.active i {
-  color: #059669 !important;
+  color: #ea580c !important;
   transform: scale(1.05);
 }
 
 .grades-sidebar .teacher-btn.active .teacher-avatar-mini {
-  border-color: #059669;
+  border-color: #ea580c;
 }
 
 /* Botón Rectora Especial */
@@ -473,9 +473,9 @@
   align-items: center;
   gap: 0.4rem;
   letter-spacing: 0.01em;
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: #ffedd5;
+  color: #7c2d12;
+  border: 1px solid #fed7aa;
 }
 
 .grades-role-mode-pill.mode-consolidada {
@@ -486,14 +486,14 @@
 }
 
 .grades-role-mode-pill.mode-director-curso {
-  background-color: #f0fdf4;
-  color: #166534;
-  border-color: #bbf7d0;
+  background-color: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
 }
 
 .grades-role-mode-pill.mode-rectora {
   background-color: #f8fafc;
-  color: #065f46;
+  color: #0f172a;
   border-color: #cbd5e1;
 }
 
@@ -511,12 +511,12 @@
 }
 
 .grades-banner-security-notice {
-  color: #065f46;
+  color: #9a3412;
   font-weight: 600;
 }
 
 .grades-banner-director-notice {
-  color: #047857;
+  color: #9a3412;
   font-weight: 600;
 }
 
@@ -542,10 +542,10 @@
 }
 
 .grades-metric-badge:hover {
-  background-color: #ecfdf5;
-  border-color: #a7f3d0;
+  background-color: #fff7ed;
+  border-color: #fed7aa;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.12);
 }
 
 .grades-metric-label {
@@ -561,17 +561,17 @@
 }
 
 .grades-metric-badge:hover .grades-metric-label {
-  color: #065f46;
+  color: #9a3412;
 }
 
 .grades-metric-badge:hover .grades-metric-label i {
-  color: #10b981;
+  color: #ea580c;
 }
 
 .grades-metric-val {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #064e3b;
+  color: #7c2d12;
   margin-top: 0.15rem;
 }
 
@@ -610,7 +610,7 @@
 
 .section-title-wrap i {
   font-size: 1.25rem;
-  color: #10b981;
+  color: #ea580c;
 }
 
 .section-title-wrap h3 {
@@ -624,9 +624,9 @@
 .section-meta-pill {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #065f46;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  color: #9a3412;
+  background-color: #ffedd5;
+  border: 1px solid #fed7aa;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
 }
@@ -828,11 +828,11 @@
 
 .grades-nav-card:hover .card-icon-wrap {
   background-color: #ffffff;
-  border-color: #a7f3d0;
+  border-color: #fed7aa;
 }
 
 .grades-nav-card:hover .card-icon-wrap i {
-  color: #10b981;
+  color: #ea580c;
   transform: scale(1.1);
 }
 
@@ -841,41 +841,41 @@
 }
 
 /* --------------------------------------------------------------------------
-   ESTADO ACTIVE (Click / Seleccionado): Fondo y bordes pastel institucional
+   ESTADO ACTIVE (Click / Seleccionado): Fondo y bordes naranja pastel
    -------------------------------------------------------------------------- */
 .grades-nav-card:active,
 .grades-nav-card.active {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+  background-color: #fff7ed !important;
+  border-color: #fed7aa !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.12) !important;
 }
 
 .grades-nav-card:active .card-icon-wrap,
 .grades-nav-card.active .card-icon-wrap {
   background-color: #ffffff !important;
-  border-color: #6ee7b7 !important;
+  border-color: #fdba74 !important;
 }
 
 .grades-nav-card:active .card-icon-wrap i,
 .grades-nav-card.active .card-icon-wrap i {
-  color: #059669 !important;
+  color: #ea580c !important;
 }
 
 .grades-nav-card:active .card-title,
 .grades-nav-card.active .card-title {
-  color: #064e3b !important;
+  color: #7c2d12 !important;
   font-weight: 700 !important;
 }
 
 .grades-nav-card:active .card-subtitle,
 .grades-nav-card.active .card-subtitle {
-  color: #047857 !important;
+  color: #9a3412 !important;
 }
 
 .grades-nav-card.active .card-general-badge {
-  background-color: #d1fae5;
-  color: #065f46;
-  border-color: #a7f3d0;
+  background-color: #ffedd5;
+  color: #7c2d12;
+  border-color: #fed7aa;
 }
 
 /* ==========================================================================
@@ -902,7 +902,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #10b981;
+  background-color: #ea580c;
 }
 
 .grades-table-header-left {
@@ -934,7 +934,7 @@
 }
 
 .grades-table-main-title i {
-  color: #10b981;
+  color: #ea580c;
   font-size: 1.35rem;
 }
 
@@ -959,12 +959,12 @@
 }
 
 .grades-compact-metric-pill i {
-  color: #10b981;
+  color: #ea580c;
   font-size: 0.9rem;
 }
 
 .grades-compact-metric-pill strong {
-  color: #065f46;
+  color: #9a3412;
   font-weight: 700;
 }
 
@@ -990,7 +990,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #10b981;
+  background-color: #ea580c;
 }
 
 .grades-tree-path-header {
@@ -1011,7 +1011,7 @@
 }
 
 .tree-badge i {
-  color: #10b981;
+  color: #ea580c;
   font-size: 1.1rem;
 }
 
@@ -1029,7 +1029,7 @@
 }
 
 .tree-security-pill i {
-  color: #10b981;
+  color: #ea580c;
 }
 
 /* Migas de pan del árbol unificadas */
@@ -1078,23 +1078,23 @@
   color: #94a3b8;
 }
 
-/* Miga activa resaltada en verde pastel */
+/* Miga activa resaltada en naranja pastel */
 .tree-crumb.crumb-active-leaf {
-  background-color: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #064e3b;
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #7c2d12;
 }
 
 .tree-crumb.crumb-active-leaf .crumb-level {
-  color: #065f46;
+  color: #9a3412;
 }
 
 .tree-crumb.crumb-active-leaf .crumb-val {
-  color: #064e3b;
+  color: #7c2d12;
 }
 
 .tree-crumb.crumb-active-leaf .crumb-val i {
-  color: #10b981;
+  color: #ea580c;
 }
 
 .tree-crumb-divider {
@@ -1126,7 +1126,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #10b981;
+  background-color: #ea580c;
 }
 
 .grades-filter-group {
@@ -1173,9 +1173,9 @@
 }
 
 .grades-select-item select:focus {
-  border-color: #10b981;
+  border-color: #ea580c;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
 }
 
 .grades-search-item {
@@ -1196,9 +1196,9 @@
 }
 
 .grades-search-input:focus {
-  border-color: #10b981;
+  border-color: #ea580c;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
 }
 
 .grades-filter-actions {
@@ -1266,21 +1266,21 @@
 }
 
 .grades-btn-secondary:hover i {
-  color: #10b981;
+  color: #ea580c;
   transform: scale(1.1);
 }
 
 .grades-btn-secondary:active,
 .grades-btn-secondary.active {
-  background-color: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #064e3b !important;
+  background-color: #fff7ed !important;
+  border-color: #fed7aa !important;
+  color: #7c2d12 !important;
   font-weight: 700;
 }
 
 .grades-btn-secondary:active i,
 .grades-btn-secondary.active i {
-  color: #059669 !important;
+  color: #ea580c !important;
 }
 
 .btn-novedades-admin {
@@ -1343,14 +1343,14 @@
 .consolidated-header-title i,
 .subject-icon-box i {
   font-size: 1.5rem;
-  color: #10b981;
+  color: #ea580c;
 }
 
 .consolidated-header-title h4,
 .subject-sheet-info h4 {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #064e3b;
+  color: #7c2d12;
   margin: 0;
 }
 
@@ -1410,20 +1410,20 @@
 }
 
 .btn-header-subject-jump:hover {
-  background-color: #ffffff;
-  border-color: #a7f3d0;
-  color: #064e3b;
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #7c2d12;
 }
 
 .btn-header-subject-jump:hover i {
-  color: #10b981;
+  color: #ea580c;
 }
 
-/* Encabezados Pastel por Componente de Evaluación */
+/* Encabezados Pastel por Componente de Evaluación (Naranja Pastel) */
 .th-pastel-component {
-  background-color: #f8fafc !important;
-  color: #064e3b !important;
-  border-bottom: 2px solid #a7f3d0 !important;
+  background-color: #fffaf5 !important;
+  color: #7c2d12 !important;
+  border-bottom: 2px solid #fed7aa !important;
 }
 
 .th-component-header {
@@ -1433,9 +1433,9 @@
 }
 
 .th-badge-weight {
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
   border-radius: 6px;
   padding: 0.1rem 0.45rem;
   font-size: 0.68rem;
@@ -1449,15 +1449,15 @@
 
 .th-pastel-definitiva,
 .th-consolidated-avg {
-  background-color: #ecfdf5 !important;
-  color: #064e3b !important;
-  border-bottom: 2px solid #6ee7b7 !important;
+  background-color: #ffedd5 !important;
+  color: #7c2d12 !important;
+  border-bottom: 2px solid #fdba74 !important;
 }
 
 .th-badge-def {
   background: #ffffff;
-  color: #064e3b;
-  border: 1px solid #a7f3d0;
+  color: #7c2d12;
+  border: 1px solid #fed7aa;
   border-radius: 6px;
   padding: 0.1rem 0.45rem;
   font-size: 0.68rem;
@@ -1542,13 +1542,13 @@
 }
 
 .rank-pill.rank-1 {
-  background-color: #ecfdf5;
-  color: #064e3b;
-  border: 1px solid #a7f3d0;
+  background-color: #ffedd5;
+  color: #7c2d12;
+  border: 1px solid #fed7aa;
 }
 
 .rank-pill.rank-1 i {
-  color: #10b981;
+  color: #ea580c;
 }
 
 .rank-pill.rank-2,
@@ -1642,9 +1642,9 @@
   gap: 0.25rem;
   padding: 0.2rem 0.55rem;
   border-radius: 6px;
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -1686,8 +1686,8 @@
 }
 
 .grades-input-score:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.18);
   background-color: #ffffff;
 }
 
@@ -1799,13 +1799,13 @@
 }
 
 .obs-docente-input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
 }
 
 .obs-rectora-input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
 }
 
 .obs-coordinacion-input:focus {
@@ -1816,7 +1816,7 @@
 .obs-directiva-indicator {
   position: absolute;
   right: 10px;
-  color: #065f46;
+  color: #ea580c;
   font-size: 0.9rem;
 }
 
@@ -1838,13 +1838,13 @@
 }
 
 .obs-docente-readonly {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #7c2d12;
 }
 
 .obs-docente-readonly i {
-  color: #10b981;
+  color: #ea580c;
   margin-top: 1px;
 }
 
@@ -2117,8 +2117,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
-  border: 1px solid #99f6e4;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
   border-radius: 12px;
   padding: 0.65rem 1rem;
   margin-bottom: 1rem;
@@ -2133,18 +2133,18 @@
 
 .model-banner-left i {
   font-size: 1.3rem;
-  color: #0f766e;
+  color: #ea580c;
 }
 
 .model-banner-left strong {
   display: block;
   font-size: 0.85rem;
-  color: #0f766e;
+  color: #9a3412;
 }
 
 .model-banner-left span {
   font-size: 0.74rem;
-  color: #115e59;
+  color: #7c2d12;
 }
 
 .model-banner-actions {
@@ -2159,19 +2159,19 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: #0f766e;
+  background: #ea580c;
   color: #ffffff;
-  border: 1px solid #115e59;
+  border: 1px solid #c2410c;
   border-radius: 8px;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
 }
 
 .btn-mobile-micro:hover {
-  background: #115e59;
+  background: #c2410c;
   transform: translateY(-1px);
 }
 
@@ -2190,8 +2190,8 @@
   gap: 6px;
   padding: 6px 12px;
   background: #ffffff;
-  color: #0f766e;
-  border: 1.5px solid #0f766e;
+  color: #c2410c;
+  border: 1.5px solid #ea580c;
   border-radius: 8px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -2200,9 +2200,9 @@
 }
 
 .btn-add-activity:hover {
-  background: #f0fdfa;
-  border-color: #115e59;
-  color: #115e59;
+  background: #fff7ed;
+  border-color: #c2410c;
+  color: #9a3412;
 }
 
 /* Encabezados de Actividades */
@@ -2216,8 +2216,8 @@
 .th-act-idx {
   font-size: 0.65rem;
   font-weight: 800;
-  color: #0f766e;
-  background: #ccfbf1;
+  color: #9a3412;
+  background: #ffedd5;
   padding: 1px 4px;
   border-radius: 4px;
 }
@@ -2252,15 +2252,15 @@
 
 /* Columna Promedio Aula */
 .th-pastel-prom-aula {
-  background-color: #f0fdfa !important;
-  color: #0f766e !important;
-  border-bottom: 2px solid #5eead4 !important;
+  background-color: #fff7ed !important;
+  color: #9a3412 !important;
+  border-bottom: 2px solid #fdba74 !important;
 }
 
 .th-badge-prom {
-  background: #ccfbf1;
-  color: #0f766e;
-  border: 1px solid #99f6e4;
+  background: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
   border-radius: 6px;
   padding: 0.1rem 0.45rem;
   font-size: 0.68rem;
@@ -2268,7 +2268,7 @@
 }
 
 .td-prom-aula {
-  background: #fcfdfe;
+  background: #fffaf5;
 }
 
 .prom-aula-box {
@@ -2280,7 +2280,7 @@
 
 .prom-aula-box strong {
   font-size: 0.95rem;
-  color: #0f766e;
+  color: #9a3412;
 }
 
 .prom-aula-box small {

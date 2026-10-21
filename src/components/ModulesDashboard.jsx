@@ -69,16 +69,6 @@ export default function ModulesDashboard({
       return; // Módulo clausurado por directiva
     }
 
-    if (moduleId === 'grades' && !isAdmin && !isCoordinador) {
-      setDevModalInfo({
-        moduleId,
-        moduleName: 'Notas & Calificaciones',
-        icon: 'ph-bold ph-chart-line-up',
-        canEnter: false
-      });
-      return;
-    }
-
     if (moduleId === 'boveda' && isCoordinador) {
       setDevModalInfo({
         moduleId: 'boveda',
@@ -149,13 +139,11 @@ export default function ModulesDashboard({
                   type="button"
                   className={`portal-nav-item portal-nav-item-grades ${selectedNavModule === 'grades' ? 'active' : ''}`}
                   onClick={() => handleModuleClick('grades')}
-                  title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
+                  title="Acceder a Notas & Calificaciones (SIEE)"
                 >
                   <i className="ph-bold ph-chart-line-up"></i>
                   <span className="portal-nav-text">Notas & Calificaciones</span>
-                  {!isAdmin && (
-                    <span className="portal-sidebar-dev-tag">En desarrollo</span>
-                  )}
+                  <span className="portal-sidebar-active-tag" style={{ background: '#ffedd5', color: '#c2410c', borderColor: '#fed7aa' }}>Activo</span>
                 </button>
               )}
 
@@ -323,26 +311,16 @@ export default function ModulesDashboard({
                   <div className="portal-card-icon-container">
                     <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
                   </div>
-                  {isAdmin ? (
-                    <span className="portal-badge-amber">Activo Institucional</span>
-                  ) : (
-                    <span className="portal-badge-amber">En desarrollo · Fase N° 1</span>
-                  )}
+                  <span className="portal-badge-amber">Activo Institucional</span>
                 </div>
 
                 <div className="portal-card-body">
                   <h3 style={{ color: '#0f172a' }}>Notas & Calificaciones</h3>
-                  <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (40%, 40%, 20%), sábanas consolidadas y cálculo automático de promedios.</p>
+                  <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (80% Aula Continua, 20% Evaluación Final), sábanas consolidadas y cálculo automático de promedios.</p>
                 </div>
 
                 <div className="portal-card-footer">
-                  {isAdmin ? (
-                    <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
-                  ) : (
-                    <span className="portal-link-label-dev">
-                      <i className="ph-bold ph-info"></i> Fase N° 1 en Pruebas de Nube (Clic aquí) &rarr;
-                    </span>
-                  )}
+                  <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
                 </div>
               </article>
             )}

@@ -8,8 +8,9 @@ import {
   TEACHER_CURRICULUM_ASSIGNMENTS, 
   createInitialRosterForBranch,
   normalizeGrade
-} from '../data/gradesTreeData';
-import { USERS } from '../data/users';
+} from '../data/gradesTreeData.js';
+import { USERS } from '../data/users.js';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 
 const GRADES_STORAGE_KEY = 'gmg_grades_tree_v1';
 const ASSIGNMENTS_CUSTOM_KEY = 'gmg_curriculum_assignments_custom';
@@ -266,6 +267,7 @@ class GradesService {
   }
 
   loadTreeFromStorage() {
+    if (typeof localStorage === 'undefined') return {};
     try {
       const data = localStorage.getItem(GRADES_STORAGE_KEY);
       if (data) {
@@ -278,6 +280,7 @@ class GradesService {
   }
 
   loadFromStorage(key, fallback) {
+    if (typeof localStorage === 'undefined') return fallback;
     try {
       const data = localStorage.getItem(key);
       if (data) {
@@ -290,6 +293,7 @@ class GradesService {
   }
 
   persistTree() {
+    if (typeof localStorage === 'undefined') return;
     try {
       localStorage.setItem(GRADES_STORAGE_KEY, JSON.stringify(this.tree));
     } catch (e) {
@@ -298,6 +302,7 @@ class GradesService {
   }
 
   persistCustomState() {
+    if (typeof localStorage === 'undefined') return;
     try {
       localStorage.setItem(ASSIGNMENTS_CUSTOM_KEY, JSON.stringify(this.customAssignments));
       localStorage.setItem(DIRECTORS_CUSTOM_KEY, JSON.stringify(this.customDirectors));
@@ -696,8 +701,12 @@ class GradesService {
 
   canEditScores(user, grade, subject) {
     if (!user) return false;
-    // Blindaje estricto: Rectoría, Admin y Coordinación NO pueden editar notas numéricas de docentes
-    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin' || user.role === 'coordinador') {
+    // Administrador institucional cuenta con privilegios de gestión y soporte técnico
+    if (user.role === 'admin') {
+      return true;
+    }
+    // Rectoría y Coordinación supervisan y auditan institucionalmente sin alterar notas directamente
+    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'coordinador') {
       return false;
     }
     if (user.role === 'induccion') {
@@ -834,7 +843,141 @@ class GradesService {
     branch.lastUpdated = new Date().toISOString();
     branch.lastUpdatedBy = user?.name || 'Sistema';
     this.persistTree();
+
+    // Sincronización asíncrona con Supabase en segundo plano
+    this.syncBranchToSupabase(year, period, grade, subject, branch).catch(err => {
+      console.warn('[GradesService] Advertencia al respaldar en Supabase:', err);
+    });
+
     return branch;
+  }
+
+  /**
+   * Genera una clave canónica normalizada para identificar ramas en Supabase
+   */
+  getBranchCanonicalKey(year, period, grade, subject) {
+    const clean = (str = '') => String(str).toLowerCase().trim().replace(/[^a-z0-9]+/g, '_');
+    return `${clean(year)}__${clean(period)}__${clean(grade)}__${clean(subject)}`;
+  }
+
+  /**
+   * Sincroniza una rama con Supabase (tabla grades_branches con respaldo en institutional_vault)
+   */
+  async syncBranchToSupabase(year, period, grade, subject, branchData) {
+    if (!isSupabaseConfigured || !supabase) return { synced: false, reason: 'Supabase no configurado' };
+
+    const branchKey = this.getBranchCanonicalKey(year, period, grade, subject);
+    const payload = {
+      id: branchKey,
+      year: String(year),
+      period: String(period),
+      grade: String(grade),
+      subject: String(subject),
+      docente_id: branchData.docente_id || null,
+      teacher_name: branchData.teacherName || null,
+      activities: branchData.activities || [],
+      students: branchData.students || [],
+      updated_by: branchData.lastUpdatedBy || 'Docente',
+      updated_at: new Date().toISOString()
+    };
+
+    // 1. Intentar persistencia en la tabla especializada grades_branches
+    try {
+      const { data, error } = await supabase
+        .from('grades_branches')
+        .upsert([payload], { onConflict: 'id' });
+
+      if (!error) {
+        return { synced: true, provider: 'grades_branches' };
+      }
+    } catch {
+      // Continuar con respaldo
+    }
+
+    // 2. Respaldo transparente en institutional_vault
+    try {
+      const vaultPayload = {
+        user_key: `grades_branch_${branchKey}`,
+        cipher: JSON.stringify(branchData),
+        default_invalidated: true,
+        updated_at: new Date().toISOString()
+      };
+      const { error: vaultErr } = await supabase
+        .from('institutional_vault')
+        .upsert(vaultPayload, { onConflict: 'user_key' });
+
+      if (vaultErr) {
+        console.warn('[GradesService] Advertencia al sincronizar rama con Supabase:', vaultErr);
+        return { synced: false, error: vaultErr };
+      }
+      return { synced: true, provider: 'institutional_vault' };
+    } catch (err) {
+      console.warn('[GradesService] Excepción al sincronizar con Supabase:', err);
+      return { synced: false, error: err };
+    }
+  }
+
+  /**
+   * Descarga la rama desde Supabase si existe una versión remota
+   */
+  async fetchBranchFromSupabase(year, period, grade, subject) {
+    if (!isSupabaseConfigured || !supabase) return null;
+
+    const branchKey = this.getBranchCanonicalKey(year, period, grade, subject);
+
+    // 1. Intentar desde grades_branches
+    try {
+      const { data, error } = await supabase
+        .from('grades_branches')
+        .select('*')
+        .eq('id', branchKey)
+        .maybeSingle();
+
+      if (!error && data) {
+        return {
+          docente_id: data.docente_id,
+          teacherName: data.teacher_name,
+          activities: data.activities || [],
+          students: data.students || [],
+          lastUpdated: data.updated_at,
+          lastUpdatedBy: data.updated_by
+        };
+      }
+    } catch {
+      // Continuar con respaldo
+    }
+
+    // 2. Respaldo desde institutional_vault
+    try {
+      const { data, error } = await supabase
+        .from('institutional_vault')
+        .select('cipher, updated_at')
+        .eq('user_key', `grades_branch_${branchKey}`)
+        .maybeSingle();
+
+      if (!error && data?.cipher) {
+        const parsed = JSON.parse(data.cipher);
+        return parsed;
+      }
+    } catch {
+      // Ignorar
+    }
+
+    return null;
+  }
+
+  /**
+   * Actualiza el árbol local en memoria y localStorage con datos recibidos de la nube
+   */
+  updateBranchFromRemote(year, period, grade, subject, remoteBranch) {
+    if (!this.tree[year]) this.tree[year] = {};
+    if (!this.tree[year][period]) this.tree[year][period] = {};
+    if (!this.tree[year][period][grade]) this.tree[year][period][grade] = {};
+    this.tree[year][period][grade][subject] = {
+      ...this.tree[year][period][grade][subject],
+      ...remoteBranch
+    };
+    this.persistTree();
   }
 
   // =====================================================================

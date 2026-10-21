@@ -152,6 +152,7 @@ export default function GradesModule({
 
   // Sincronizar roster y actividades al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
+    let isMounted = true;
     const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
     setStudents(freshBranch.students || []);
     setActivities(freshBranch.activities || [
@@ -159,6 +160,26 @@ export default function GradesModule({
       { id: 'act_2', name: 'Quiz Rápido', type: 'Quiz' },
       { id: 'act_3', name: 'Trabajo en Clase', type: 'Clase' }
     ]);
+
+    // Consultar y sincronizar con Supabase en la nube
+    gradesService.fetchBranchFromSupabase(selectedYear, selectedPeriod, selectedGrade, selectedSubject)
+      .then(remoteBranch => {
+        if (!isMounted || !remoteBranch) return;
+        if (remoteBranch.students && remoteBranch.students.length > 0) {
+          setStudents(remoteBranch.students);
+          if (remoteBranch.activities && remoteBranch.activities.length > 0) {
+            setActivities(remoteBranch.activities);
+          }
+          gradesService.updateBranchFromRemote(selectedYear, selectedPeriod, selectedGrade, selectedSubject, remoteBranch);
+        }
+      })
+      .catch(err => {
+        console.warn('[GradesModule] Información de nube no disponible, operando local:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
 
   // Carga del Consolidado General del Grado (Vista General)
@@ -275,17 +296,44 @@ export default function GradesModule({
     }
 
     const nextIndex = activities.length + 1;
+    const inputName = window.prompt(
+      'Ingresa el nombre o título para la nueva actividad de aula (ej: Taller 2, Quiz, Tarea, Exposición):',
+      `Actividad ${nextIndex}`
+    );
+    if (inputName === null) return; // Cancelado por la docente
+
+    const trimmedName = inputName.trim() || `Actividad ${nextIndex}`;
     const newAct = {
       id: `act_${Date.now()}`,
-      name: `Actividad ${nextIndex}`,
-      type: 'Taller'
+      name: trimmedName,
+      type: 'Aula'
     };
 
     const nextActivities = [...activities, newAct];
     setActivities(nextActivities);
     gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser, nextActivities);
-    setToastMessage(`¡Nueva actividad "${newAct.name}" creada con éxito! El 80% se consolida automáticamente.`);
+    setToastMessage(`¡Nueva actividad "${trimmedName}" creada con éxito! El 80% se consolida automáticamente.`);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Renombrar actividad existente
+  const handleRenameActivity = (activityId) => {
+    if (!canEditScores) return;
+    const act = activities.find(a => a.id === activityId);
+    if (!act) return;
+
+    const currentName = act.name || act.label || 'Actividad';
+    const newName = window.prompt(`Modificar nombre de la actividad:`, currentName);
+    if (newName === null) return;
+
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === currentName) return;
+
+    const nextActivities = activities.map(a => a.id === activityId ? { ...a, name: trimmed } : a);
+    setActivities(nextActivities);
+    gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser, nextActivities);
+    setToastMessage(`Actividad renombrada a "${trimmed}".`);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   // Eliminar actividad continua de aula (mínimo 1)
@@ -907,8 +955,14 @@ export default function GradesModule({
                     {activities.map((act, actIdx) => (
                       <th key={act.id} className="th-pastel-component th-activity-col" style={{ textAlign: 'center', minWidth: '100px' }}>
                         <div className="th-component-header" style={{ position: 'relative' }}>
-                          <span title={act.name || `Actividad ${actIdx + 1}`}>
-                            {act.name || act.label || `Act. ${actIdx + 1}`}
+                          <span 
+                            className={canEditScores ? "th-activity-name-editable" : ""}
+                            onClick={() => canEditScores && handleRenameActivity(act.id)}
+                            title={canEditScores ? `Clic para renombrar actividad "${act.name || `Actividad ${actIdx + 1}`}"` : (act.name || `Actividad ${actIdx + 1}`)}
+                            style={canEditScores ? { cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px' } : {}}
+                          >
+                            <span>{act.name || act.label || `Act. ${actIdx + 1}`}</span>
+                            {canEditScores && <i className="ph-bold ph-pencil-simple" style={{ fontSize: '0.72rem', opacity: 0.65 }}></i>}
                           </span>
                           <span className="th-badge-weight">Aula</span>
                           {canEditScores && activities.length > 1 && (
@@ -1340,7 +1394,7 @@ export default function GradesModule({
           }
           style={{
             background: canEditScores
-              ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+              ? 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)'
               : canEditCoordinacion
               ? 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)'
               : canEditDirective
@@ -1349,7 +1403,7 @@ export default function GradesModule({
               ? 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)'
               : 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
             boxShadow: canEditScores
-              ? '0 10px 25px -5px rgba(5, 150, 105, 0.45), 0 8px 10px -6px rgba(5, 150, 105, 0.25)'
+              ? '0 10px 25px -5px rgba(234, 88, 12, 0.45), 0 8px 10px -6px rgba(234, 88, 12, 0.25)'
               : canEditCoordinacion
               ? '0 10px 25px -5px rgba(79, 70, 229, 0.45), 0 8px 10px -6px rgba(79, 70, 229, 0.25)'
               : canEditDirective

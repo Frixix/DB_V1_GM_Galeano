@@ -47,7 +47,7 @@
 
 /* Cabecera */
 .micro-header {
-  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
   color: #ffffff;
   padding: 1rem 1.25rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
@@ -71,7 +71,7 @@
 .micro-title-box p {
   margin: 2px 0 0;
   font-size: 0.78rem;
-  color: #ccfbf1;
+  color: #ffedd5;
 }
 
 .micro-badge-pulse {
@@ -135,7 +135,7 @@
 
 .micro-act-chip.active {
   background: #ffffff;
-  color: #0f766e;
+  color: #ea580c;
   font-weight: 800;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
@@ -157,8 +157,8 @@
 }
 
 .micro-act-chip.active .micro-act-weight {
-  background: #ccfbf1;
-  color: #0f766e;
+  background: #ffedd5;
+  color: #9a3412;
 }
 
 .final-tag {
@@ -175,7 +175,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.72rem;
-  color: #ccfbf1;
+  color: #ffedd5;
   margin-bottom: 4px;
 }
 
@@ -212,7 +212,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #ccfbf1;
+  color: #ffedd5;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -262,13 +262,13 @@
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
   color: #ffffff;
   display: grid;
   place-items: center;
   font-size: 1.35rem;
   font-weight: 800;
-  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.25);
   flex-shrink: 0;
 }
 
@@ -280,7 +280,7 @@
 .micro-student-counter {
   font-size: 0.7rem;
   font-weight: 700;
-  color: #0f766e;
+  color: #ea580c;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -379,20 +379,20 @@
 .micro-input-native {
   flex: 1;
   height: 48px;
-  border: 2px solid #0f766e;
+  border: 2px solid #ea580c;
   border-radius: 10px;
   text-align: center;
   font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.12);
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.12);
 }
 
 .micro-input-native:focus {
   outline: none;
-  border-color: #0d9488;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25);
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
 }
 
 .micro-btn-next-inline {
@@ -401,14 +401,14 @@
   gap: 6px;
   padding: 0 1.1rem;
   height: 48px;
-  background: #0f766e;
+  background: #ea580c;
   color: #ffffff;
   border: none;
   border-radius: 10px;
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.2);
 }
 
 /* Botonera de Notas Rápidas (1 TOQUE = CALIFICA Y AVANZA) */
@@ -471,9 +471,9 @@
 }
 
 .micro-quick-score-btn.selected {
-  outline: 3px solid #0f766e;
-  border-color: #0f766e;
-  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.3);
+  outline: 3px solid #ea580c;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.3);
 }
 
 /* Barra de navegación inferior */
@@ -507,7 +507,7 @@
 .micro-nav-indicator {
   font-size: 0.85rem;
   font-weight: 800;
-  color: #0f766e;
+  color: #ea580c;
 }
 
 /* ==========================================================================
@@ -523,9 +523,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f0fdfa;
-  border: 1px solid #ccfbf1;
-  color: #0f766e;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   font-size: 0.76rem;
@@ -591,7 +591,7 @@
 }
 
 .micro-list-score-input:focus {
-  border-color: #0f766e;
+  border-color: #ea580c;
   outline: none;
 }
 
@@ -623,7 +623,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  color: #059669;
+  color: #ea580c;
   font-weight: 600;
 }
 
@@ -632,14 +632,14 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
   color: #ffffff;
   border: none;
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.25);
 }
 
 @media (max-width: 480px) {
