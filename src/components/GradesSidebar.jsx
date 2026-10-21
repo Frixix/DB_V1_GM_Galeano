@@ -127,26 +127,28 @@ export default function GradesSidebar({
             <span>{isPrivileged ? `Sábanas • ${selectedGrade}` : `Sábanas • Mi Grado (${selectedGrade})`}</span>
           </div>
           <span style={{ fontSize: '0.65rem', color: '#b45309', fontWeight: 700 }}>
-            {availableSubjects.length + 1}
+            {availableSubjects.length + (isPrivileged ? 1 : 0)}
           </span>
         </div>
 
         <nav className="folder-list">
-          {/* Card: Sábana General Consolidada */}
-          <button
-            type="button"
-            className={`folder-btn folder-consolidada ${activeSheetType === 'consolidated' ? 'active' : ''}`}
-            onClick={() => onSelectSheetType('consolidated')}
-            title={`Ver Sábana General Consolidada de ${selectedGrade}`}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-              <i className="ph-bold ph-chart-bar"></i>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: activeSheetType === 'consolidated' ? 700 : 600 }}>Sábana General</span>
-                <span style={{ fontSize: '0.68rem', color: activeSheetType === 'consolidated' ? '#92400e' : '#64748b' }}>Consolidado de Grado</span>
+          {/* Card: Sábana General Consolidada (Exclusiva para Directivos y Auditoría) */}
+          {isPrivileged && (
+            <button
+              type="button"
+              className={`folder-btn folder-consolidada ${activeSheetType === 'consolidated' ? 'active' : ''}`}
+              onClick={() => onSelectSheetType('consolidated')}
+              title={`Ver Sábana General Consolidada de ${selectedGrade}`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
+                <i className="ph-bold ph-chart-bar"></i>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: activeSheetType === 'consolidated' ? 700 : 600 }}>Sábana General</span>
+                  <span style={{ fontSize: '0.68rem', color: activeSheetType === 'consolidated' ? '#92400e' : '#64748b' }}>Consolidado de Grado</span>
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+          )}
 
           {/* Subgrupo: Asignaturas Individuales */}
           <div className="obs-folder-subgroup-label" style={{ marginTop: '0.45rem', marginBottom: '0.2rem' }}>

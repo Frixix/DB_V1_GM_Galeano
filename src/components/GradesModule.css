@@ -2109,8 +2109,88 @@
 }
 
 /* ==========================================================================
-   MODELO SIEE 80% AULA CONTINUA / 20% EVALUACIÓN FINAL & MICRO-REGISTRO
+   MODELO SIEE 80% AULA CONTINUA / 20% EVALUACIÓN FINAL & BOMBILLO INFORMATIVO SUTIL
    ========================================================================== */
+
+/* Bombillo Sutil SIEE & Tiraje N+1 */
+.grades-siee-bulb-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.grades-siee-bulb-btn {
+  background: #ffedd5;
+  border: 1px solid #fdba74;
+  color: #ea580c;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.15);
+  padding: 0;
+}
+
+.grades-siee-bulb-btn:hover,
+.grades-siee-bulb-wrapper:hover .grades-siee-bulb-btn {
+  background: #ea580c;
+  color: #ffffff;
+  border-color: #c2410c;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(234, 88, 12, 0.4);
+}
+
+.grades-siee-bulb-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  box-shadow: 0 12px 28px -4px rgba(234, 88, 12, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.grades-siee-bulb-wrapper:hover .grades-siee-bulb-tooltip,
+.grades-siee-bulb-wrapper:focus-within .grades-siee-bulb-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.bulb-tooltip-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #9a3412;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed #fed7aa;
+  padding-bottom: 4px;
+}
+
+.bulb-tooltip-content p {
+  margin: 3px 0;
+  font-size: 0.73rem;
+  line-height: 1.35;
+  color: #475569;
+}
+
+.bulb-tooltip-content p strong {
+  color: #1e293b;
+}
 
 .model-banner-8020 {
   display: flex;

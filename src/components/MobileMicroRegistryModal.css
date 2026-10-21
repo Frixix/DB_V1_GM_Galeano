@@ -642,7 +642,97 @@
   box-shadow: 0 4px 10px rgba(234, 88, 12, 0.25);
 }
 
-@media (max-width: 480px) {
+/* ==========================================================================
+   ADAPTACIÓN ERGONÓMICA PARA DISPOSITIVOS MÓVILES Y CELULARES (< 640px)
+   Formato Bottom Sheet táctil optimizado para el pulgar
+   ========================================================================== */
+@media (max-width: 640px) {
+  .micro-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .micro-modal-container {
+    width: 100%;
+    max-width: 100%;
+    height: 94vh;
+    max-height: 94vh;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+    animation: microMobileSheetUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes microMobileSheetUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .micro-header {
+    padding: 0.85rem 1rem 0.65rem;
+  }
+
+  .micro-title-box h3 {
+    font-size: 1.05rem;
+  }
+
+  .micro-card-body {
+    padding: 0.85rem 1rem;
+    gap: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .micro-student-card {
+    padding: 0.85rem;
+    border-radius: 14px;
+  }
+
+  .micro-student-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
+  }
+
+  .micro-student-name {
+    font-size: 0.95rem;
+  }
+
+  .micro-quick-buttons-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .micro-quick-score-btn {
+    height: 44px;
+    font-size: 1.05rem;
+    border-radius: 8px;
+  }
+
+  .micro-input-native {
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .micro-btn-next-inline {
+    height: 44px;
+    padding: 0 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .micro-nav-btn {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+
+  .micro-footer {
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 380px) {
   .micro-quick-buttons-grid {
     grid-template-columns: repeat(3, 1fr);
   }

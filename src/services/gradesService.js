@@ -267,7 +267,7 @@ class GradesService {
   }
 
   loadTreeFromStorage() {
-    if (typeof localStorage === 'undefined') return {};
+    if (typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return {};
     try {
       const data = localStorage.getItem(GRADES_STORAGE_KEY);
       if (data) {
@@ -280,7 +280,7 @@ class GradesService {
   }
 
   loadFromStorage(key, fallback) {
-    if (typeof localStorage === 'undefined') return fallback;
+    if (typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') return fallback;
     try {
       const data = localStorage.getItem(key);
       if (data) {
@@ -293,7 +293,7 @@ class GradesService {
   }
 
   persistTree() {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return;
     try {
       localStorage.setItem(GRADES_STORAGE_KEY, JSON.stringify(this.tree));
     } catch (e) {
@@ -302,7 +302,7 @@ class GradesService {
   }
 
   persistCustomState() {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined' || typeof localStorage.setItem !== 'function') return;
     try {
       localStorage.setItem(ASSIGNMENTS_CUSTOM_KEY, JSON.stringify(this.customAssignments));
       localStorage.setItem(DIRECTORS_CUSTOM_KEY, JSON.stringify(this.customDirectors));
@@ -383,8 +383,8 @@ class GradesService {
 
   /**
    * Devuelve los Grados a los que tiene acceso el usuario según su rol RBAC
-   * - Rectora / Admin: Todos los grados
-   * - Docente: Su grado de dirección de curso y todos los grados donde dicta materias oficiales
+   * - Rectora / Admin / Coordinación: Todos los grados (supervisión y auditoría en modo visual)
+   * - Docente: ÚNICAMENTE los grados donde dicta asignaturas a su cargo (aislamiento estricto)
    */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
@@ -396,9 +396,8 @@ class GradesService {
       return GRADES_LIST;
     }
 
-    // Para docente: su grado de dirección de curso Y todos los grados donde dicta materias
+    // Para docente: ÚNICAMENTE los grados donde tiene materias asignadas a su cargo oficial
     const accessibleGrades = GRADES_LIST.filter(grade => {
-      if (this.isGradeDirector(user, grade)) return true;
       const subjectsInGrade = this.getSubjectsForGrade(grade);
       return subjectsInGrade.some(subj => {
         const assignment = this.getTeacherAssignment(grade, subj);
@@ -411,9 +410,8 @@ class GradesService {
 
   /**
    * Devuelve las Materias disponibles para un Grado específico según el rol del usuario
-   * - Rectora / Admin: Todas las materias del grado
-   * - Directora de Curso del grado: Todas las materias del grado (propias editables, ajenas en acompañamiento)
-   * - Docente visitante: Únicamente las materias que tiene a su cargo en este grado
+   * - Rectora / Admin / Coordinación: Todas las materias del grado (supervisión institucional)
+   * - Docente: ÚNICAMENTE las materias que tiene a su cargo en este grado (no ven materias ni notas de otras docentes)
    */
   getSubjectsForGradeAndUser(grade, user) {
     const allSubjectsInGrade = this.getSubjectsForGrade(grade);
@@ -427,18 +425,13 @@ class GradesService {
       return allSubjectsInGrade;
     }
 
-    // Si es Directora de Curso del grado, puede ver todas las materias del grado para acompañamiento pedagógico
-    if (this.isGradeDirector(user, grade)) {
-      return allSubjectsInGrade;
-    }
-
-    // Para docentes no directoras del grado: solo ven las materias que tienen a cargo
+    // Para docentes: ÚNICAMENTE las materias asignadas a su cargo (estricto aislamiento entre docentes)
     const teacherSubjects = allSubjectsInGrade.filter(subj => {
       const assignment = this.getTeacherAssignment(grade, subj);
       return assignment.docente_id === userKey || assignment.teacherName === user.name;
     });
 
-    return teacherSubjects.length > 0 ? teacherSubjects : (allSubjectsInGrade.slice(0, 1));
+    return teacherSubjects;
   }
 
   /**
@@ -687,26 +680,13 @@ class GradesService {
   }
 
   isViewingAsGradeDirector(user, grade, subject) {
-    if (!user) return false;
-    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'admin' || user.role === 'induccion' || user.role === 'coordinador') {
-      return false;
-    }
-    const isDirector = this.isGradeDirector(user, grade);
-    if (!isDirector) return false;
-
-    const teacherInfo = this.getTeacherAssignment(grade, subject);
-    const userKey = user.key || user.role;
-    return teacherInfo.docente_id !== userKey;
+    return false;
   }
 
   canEditScores(user, grade, subject) {
     if (!user) return false;
-    // Administrador institucional cuenta con privilegios de gestión y soporte técnico
-    if (user.role === 'admin') {
-      return true;
-    }
-    // Rectoría y Coordinación supervisan y auditan institucionalmente sin alterar notas directamente
-    if (user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'coordinador') {
+    // Administrador, Rectoría y Coordinación supervisan y auditan institucionalmente en modo exclusivamente VISUAL (sin alterar notas)
+    if (user.role === 'admin' || user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'coordinador') {
       return false;
     }
     if (user.role === 'induccion') {
@@ -727,17 +707,17 @@ class GradesService {
   }
 
   canEditAdminAudit(user) {
-    if (!user) return false;
-    return user.role === 'admin';
+    // Administrador institucional está en modo estrictamente visual de auditoría
+    return false;
   }
 
   /**
    * Permiso de edición en campo exclusivo: observacion_coordinacion
-   * Exclusivo para Coordinación y Administrador General
+   * Exclusivo para Coordinación Académica
    */
   canEditCoordinacionObservation(user) {
     if (!user) return false;
-    return user.role === 'coordinador' || user.role === 'admin';
+    return user.role === 'coordinador';
   }
 
   /**

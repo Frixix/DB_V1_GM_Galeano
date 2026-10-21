@@ -3,7 +3,6 @@ import PortalNavbar from './PortalNavbar';
 import GradesSidebar from './GradesSidebar';
 import EvaluationCalendarModal from './EvaluationCalendarModal';
 import MobileMicroRegistryModal from './MobileMicroRegistryModal';
-import EnrollStudentModal from './EnrollStudentModal';
 import RetireStudentModal from './RetireStudentModal';
 import StudentAuditDetailModal from './StudentAuditDetailModal';
 import './GradesModule.css';
@@ -145,10 +144,16 @@ export default function GradesModule({
     ];
   });
   const [isMobileMicroOpen, setIsMobileMicroOpen] = useState(false);
-  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [isRetireModalOpen, setIsRetireModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [selectedStudentForAction, setSelectedStudentForAction] = useState(null);
+
+  // Asegurar que usuarios docentes solo visualicen la sábana de sus materias y no la consolidada
+  useEffect(() => {
+    if (!isPrivileged && activeSheetType === 'consolidated') {
+      setActiveSheetType('subject');
+    }
+  }, [isPrivileged, activeSheetType]);
 
   // Sincronizar roster y actividades al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
@@ -416,14 +421,6 @@ export default function GradesModule({
   }, [students]);
   const suggestedCopies = activeStudentsCount + 1;
 
-  // FASE 5: Manejador cuando un nuevo estudiante extemporáneo es matriculado
-  const handleStudentEnrolled = (added) => {
-    setStudents(prev => [...prev, added]);
-    const nextCount = activeStudentsCount + 1;
-    setToastMessage(`¡Estudiante ${added.name} matriculado! Tiraje N+1 actualizado a ${nextCount + 1} copias.`);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
   // FASE 5: Abrir modal interactivo de inhabilitación / retiro (Soft-Disable)
   const handleOpenRetireModal = (student) => {
     if (!canManageMatricula) {
@@ -628,22 +625,27 @@ export default function GradesModule({
               ) : canEditScores ? (
                 <span className="grades-role-mode-pill mode-docente">
                   <i className="ph-bold ph-pencil-simple-line"></i>
-                  Modo Edición Docente ({currentUser?.name || teacherInfo.teacherName})
-                </span>
-              ) : isViewingAsGradeDirector ? (
-                <span className="grades-role-mode-pill mode-director-curso">
-                  <i className="ph-bold ph-shield-star"></i>
-                  Supervisión: Dir. de Curso ({gradeDirector.teacherName})
+                  Modo Calificador ({currentUser?.name || teacherInfo.teacherName})
                 </span>
               ) : isRectora ? (
                 <span className="grades-role-mode-pill mode-rectora">
-                  <i className="ph-bold ph-lock-key"></i>
-                  Supervisión Directiva • SIEE
+                  <i className="ph-bold ph-eye"></i>
+                  Supervisión Directiva • Modo Visual
+                </span>
+              ) : isCoordinador ? (
+                <span className="grades-role-mode-pill mode-coordinador">
+                  <i className="ph-bold ph-eye"></i>
+                  Supervisión Coordinación • Modo Visual
+                </span>
+              ) : isAdmin ? (
+                <span className="grades-role-mode-pill mode-admin">
+                  <i className="ph-bold ph-eye"></i>
+                  Auditoría Administrativa • Modo Visual
                 </span>
               ) : (
-                <span className="grades-role-mode-pill mode-admin">
-                  <i className="ph-bold ph-shield-check"></i>
-                  Modo Auditoría Técnica
+                <span className="grades-role-mode-pill mode-observador">
+                  <i className="ph-bold ph-eye"></i>
+                  Modo Visual (Solo Lectura)
                 </span>
               )}
 
@@ -876,7 +878,30 @@ export default function GradesModule({
                   <i className={`ph-bold ${getSubjectIcon(selectedSubject)}`}></i>
                 </div>
                 <div>
-                  <h4>Planilla Oficial de {selectedSubject} • {selectedGrade}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h4>Planilla Oficial de {selectedSubject} • {selectedGrade}</h4>
+                    {/* Bombillo Informativo Sutil SIEE & Tiraje N+1 */}
+                    <div className="grades-siee-bulb-wrapper" title="Información del Modelo SIEE y Tiraje N+1">
+                      <button 
+                        type="button" 
+                        className="grades-siee-bulb-btn"
+                        aria-label="Información del Modelo SIEE y Tiraje N+1"
+                      >
+                        <i className="ph-fill ph-lightbulb"></i>
+                      </button>
+                      <div className="grades-siee-bulb-tooltip">
+                        <div className="bulb-tooltip-title">
+                          <i className="ph-fill ph-lightbulb"></i>
+                          <span>Modelo SIEE & Impresión N+1</span>
+                        </div>
+                        <div className="bulb-tooltip-content">
+                          <p><strong>Aula Continua ({activities.length} activas):</strong> 80% (talleres, quices y tareas sin rigidez).</p>
+                          <p><strong>Evaluación Final:</strong> 20%.</p>
+                          <p><strong>Tiraje N+1:</strong> {suggestedCopies} copias sugeridas ({activeStudentsCount} alumnos activos + 1 docente).</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <p>Docente a cargo: <strong>{teacherInfo.teacherName}</strong> • {selectedPeriod}</p>
                 </div>
               </div>
@@ -885,62 +910,42 @@ export default function GradesModule({
                   <i className="ph-bold ph-printer"></i>
                   <span>Impresión N+1: <strong>{suggestedCopies} copias</strong> ({activeStudentsCount} act + 1 doc)</span>
                 </div>
-                {canManageMatricula && (
+                {/* Micro-registro Rápido Móvil (comentado temporalmente por requerimiento, adaptado exclusivamente para dispositivos celulares)
+                {canEditScores && (
                   <button
                     type="button"
-                    className="btn-add-student"
-                    onClick={() => setIsAddStudentModalOpen(true)}
-                    title="Inscribir nuevo estudiante extemporáneo a este grado (Fase 5)"
+                    className="btn-mobile-micro"
+                    onClick={() => setIsMobileMicroOpen(true)}
+                    title="Micro-registro rápido desde el móvil (teclado táctil en menos de 5 min)"
                   >
-                    <i className="ph-bold ph-user-plus"></i>
-                    <span>+ Inscribir Estudiante</span>
+                    <i className="ph-bold ph-device-mobile"></i>
+                    <span>Micro-registro Móvil</span>
                   </button>
                 )}
+                */}
                 {canEditScores && (
-                  <>
-                    <button
-                      type="button"
-                      className="btn-mobile-micro"
-                      onClick={() => setIsMobileMicroOpen(true)}
-                      title="Micro-registro rápido desde el móvil (teclado táctil en menos de 5 min)"
-                    >
-                      <i className="ph-bold ph-device-mobile"></i>
-                      <span>Micro-registro Móvil</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-add-activity"
-                      onClick={handleAddActivity}
-                      disabled={activities.length >= 10}
-                      title={activities.length >= 10 ? 'Límite de 10 actividades alcanzado' : 'Crear nueva actividad de aula (hasta 10)'}
-                    >
-                      <i className="ph-bold ph-plus-circle"></i>
-                      <span>+ Actividad ({activities.length}/10)</span>
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    className="btn-add-activity"
+                    onClick={handleAddActivity}
+                    disabled={activities.length >= 10}
+                    title={activities.length >= 10 ? 'Límite de 10 actividades alcanzado' : 'Crear nueva actividad de aula (hasta 10)'}
+                  >
+                    <i className="ph-bold ph-plus-circle"></i>
+                    <span>+ Actividad ({activities.length}/10)</span>
+                  </button>
                 )}
-                <button
-                  type="button"
-                  className="grades-btn-secondary btn-return-consolidated"
-                  onClick={() => setActiveSheetType('consolidated')}
-                  title="Volver a la sábana general consolidada del grado"
-                >
-                  <i className="ph-bold ph-chart-bar"></i>
-                  <span>Ver Sábana General</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Banner Informativo del Modelo 80% / 20% & N+1 */}
-            <div className="model-banner-8020">
-              <div className="model-badge">
-                <i className="ph-bold ph-sparkle"></i>
-                <span>Modelo Flexible 80% / 20% & N+1</span>
-              </div>
-              <div className="model-desc">
-                <strong>Actividades de Aula ({activities.length} activas = 80%):</strong> Califica talleres, quices y tareas sin rigidez. El promedio simple consolida el 80%.
-                <br />
-                <strong>Sugerencia de Impresión Automatizada ({suggestedCopies} copias):</strong> Calculada en tiempo real según el roster ({activeStudentsCount} alumnos activos + 1 copia docente calificador). Si ingresa un estudiante o se inhabilita uno, el tiraje se recalcula al instante en toda la institución.
+                {isPrivileged && (
+                  <button
+                    type="button"
+                    className="grades-btn-secondary btn-return-consolidated"
+                    onClick={() => setActiveSheetType('consolidated')}
+                    title="Volver a la sábana general consolidada del grado"
+                  >
+                    <i className="ph-bold ph-chart-bar"></i>
+                    <span>Ver Sábana General</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1377,60 +1382,21 @@ export default function GradesModule({
       </main>
       </div>
 
-      {/* Botón Flotante para Guardar Planilla / Auditoría / Observaciones (Reuso de botón flotante del módulo anterior) */}
-      {activeSheetType === 'subject' && (
+      {/* Botón Flotante para Guardar Planilla (Exclusivo Docente Titular con Permiso de Calificación) */}
+      {activeSheetType === 'subject' && canEditScores && (
         <button
           type="button"
           className="btn-floating-upload grades-floating-save-btn"
           onClick={handleSaveAction}
-          title={
-            canEditScores 
-              ? "Guardar notas y observaciones docentes" 
-              : isViewingAsGradeDirector 
-              ? `Supervisión de Director(a) de Curso (Notas de ${teacherInfo.teacherName})` 
-              : canEditCoordinacion
-              ? "Guardar observaciones de Coordinación Académica"
-              : (canEditDirective ? "Guardar sugerencias de auditoría directiva" : "Guardar auditoría técnica")
-          }
+          title="Guardar notas y actividades docentes en la nube (Supabase)"
           style={{
-            background: canEditScores
-              ? 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)'
-              : canEditCoordinacion
-              ? 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)'
-              : canEditDirective
-              ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
-              : isViewingAsGradeDirector
-              ? 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)'
-              : 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
-            boxShadow: canEditScores
-              ? '0 10px 25px -5px rgba(234, 88, 12, 0.45), 0 8px 10px -6px rgba(234, 88, 12, 0.25)'
-              : canEditCoordinacion
-              ? '0 10px 25px -5px rgba(79, 70, 229, 0.45), 0 8px 10px -6px rgba(79, 70, 229, 0.25)'
-              : canEditDirective
-              ? '0 10px 25px -5px rgba(217, 119, 6, 0.45), 0 8px 10px -6px rgba(217, 119, 6, 0.25)'
-              : '0 10px 25px -5px rgba(30, 41, 59, 0.45), 0 8px 10px -6px rgba(30, 41, 59, 0.25)',
-            cursor: isViewingAsGradeDirector ? 'default' : 'pointer'
+            background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+            boxShadow: '0 10px 25px -5px rgba(234, 88, 12, 0.45), 0 8px 10px -6px rgba(234, 88, 12, 0.25)',
+            cursor: 'pointer'
           }}
         >
-          <i className={`ph-bold ${
-            canEditScores 
-              ? 'ph-floppy-disk' 
-              : isViewingAsGradeDirector 
-              ? 'ph-eye' 
-              : canEditCoordinacion
-              ? 'ph-clipboard-text'
-              : (canEditDirective ? 'ph-crown' : 'ph-shield-check')
-          }`}></i>
-          <span>
-            {canEditScores 
-              ? 'Guardar Planilla' 
-              : isViewingAsGradeDirector 
-              ? 'Modo Director de Curso' 
-              : canEditCoordinacion
-              ? 'Guardar Observaciones'
-              : (canEditDirective ? 'Guardar Sugerencias' : 'Guardar Auditoría')
-            }
-          </span>
+          <i className="ph-bold ph-floppy-disk"></i>
+          <span>Guardar Planilla</span>
         </button>
       )}
 
@@ -1442,7 +1408,7 @@ export default function GradesModule({
         onCalendarUpdated={() => setCurriculumTick(t => t + 1)}
       />
 
-      {/* Modal de Micro-registro Rápido Móvil (Táctil con teclado numérico y auto-avance) */}
+      {/* Modal de Micro-registro Rápido Móvil (optimizado para celulares, comentado temporalmente según directiva)
       <MobileMicroRegistryModal
         isOpen={isMobileMicroOpen}
         onClose={() => setIsMobileMicroOpen(false)}
@@ -1454,15 +1420,7 @@ export default function GradesModule({
         onScoreUpdate={handleMobileScoreUpdate}
         canEdit={canEditScores}
       />
-
-      {/* Modal 3: Matricular / Inscribir Nuevo Estudiante Extemporáneo (Fase 5) */}
-      <EnrollStudentModal
-        isOpen={isAddStudentModalOpen}
-        onClose={() => setIsAddStudentModalOpen(false)}
-        initialGrade={selectedGrade}
-        currentUser={currentUser}
-        onStudentEnrolled={handleStudentEnrolled}
-      />
+      */}
 
       {/* Modal 4: Inhabilitar / Marcar Retirado (Soft-Disable) */}
       <RetireStudentModal
