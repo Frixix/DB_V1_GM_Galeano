@@ -363,6 +363,20 @@ export default function BovedaModule({
           </>
         )}
       </div>
+
+      {/* Botón Flotante para Subir Documento a la Bóveda (Inferior Derecha - Cero salto respecto a los otros módulos) */}
+      {isBovedaUnlocked && (
+        <button
+          type="button"
+          className="btn-floating-upload"
+          onClick={onOpenUploadModal}
+          title="Subir nuevo archivo de alta seguridad a la Bóveda"
+          aria-label="Subir nuevo archivo a la Bóveda"
+        >
+          <i className="ph-bold ph-upload-simple"></i>
+          <span>Subir a Bóveda</span>
+        </button>
+      )}
     </div>
   );
 }
