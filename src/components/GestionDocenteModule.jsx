@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import PortalNavbar from './PortalNavbar';
 import teacherService from '../services/teacherService';
+import committeeService from '../services/committeeService';
+import CommitteeAssignmentModal from './CommitteeAssignmentModal';
 import { getUserAvatar } from '../services/avatarService';
 import { resetUserPasswordToDefault } from '../services/authService';
 import './GestionDocenteModule.css';
@@ -33,6 +35,12 @@ export default function GestionDocenteModule({
   onOpenTour,
   onLogout
 }) {
+  const isAdmin = currentUser?.role === 'admin';
+  const isRectora = currentUser?.role === 'rectora' || currentUser?.role === 'induccion_rectora';
+  const isCoordinador = currentUser?.role === 'coordinador';
+  const canResetPassword = isAdmin || isRectora;
+  const canResetFactory = isAdmin || isRectora;
+
   const [activeTab, setActiveTab] = useState('directores'); // 'directores', 'malla', 'perfiles', 'auditoria'
   const [teachers, setTeachers] = useState([]);
   const [matrix, setMatrix] = useState([]);
@@ -40,6 +48,10 @@ export default function GestionDocenteModule({
   const [auditLogs, setAuditLogs] = useState([]);
   const [selectedMallaGrade, setSelectedMallaGrade] = useState('1° Primaria');
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Estados para asignación de comités de actas (Ley 1620 / Dec. 1290)
+  const [isCommitteeModalOpen, setIsCommitteeModalOpen] = useState(false);
+  const [committeesMap, setCommitteesMap] = useState(() => committeeService.getCommittees());
 
   // Estados para asignación masiva de materia
   const [batchSubject, setBatchSubject] = useState('Inglés');
@@ -55,6 +67,7 @@ export default function GestionDocenteModule({
     setMatrix(teacherService.getCurriculumMatrix());
     setDirectorsMap(teacherService.getGradeDirectorsMap());
     setAuditLogs(teacherService.getAuditLogs());
+    setCommitteesMap(committeeService.getCommittees());
 
     // Inicializar estado de edición de perfiles
     const profiles = {};
@@ -70,11 +83,29 @@ export default function GestionDocenteModule({
 
   useEffect(() => {
     loadData();
-    const unsubscribe = teacherService.subscribe(() => {
+    const unsubscribeTeachers = teacherService.subscribe(() => {
       loadData();
     });
-    return () => unsubscribe();
+    const handleCommitteesUpdated = () => {
+      setCommitteesMap(committeeService.getCommittees());
+    };
+    window.addEventListener('gmg_committees_updated', handleCommitteesUpdated);
+    return () => {
+      unsubscribeTeachers();
+      window.removeEventListener('gmg_committees_updated', handleCommitteesUpdated);
+    };
   }, []);
+
+  // Helper para consultar comités asignados a una docente
+  const getTeacherCommittees = (teacherKey) => {
+    const result = [];
+    Object.values(committeesMap).forEach((c) => {
+      if (c.assignedTeachers && c.assignedTeachers.includes(teacherKey)) {
+        result.push(c);
+      }
+    });
+    return result;
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -84,9 +115,9 @@ export default function GestionDocenteModule({
   };
 
   // Manejo de cambio de Director de Curso
-  const handleDirectorChange = (grade, newTeacherKey, linkDirectorSubjects = true) => {
+  const handleDirectorChange = async (grade, newTeacherKey, linkDirectorSubjects = true) => {
     try {
-      const res = teacherService.setGradeDirector(grade, newTeacherKey, {
+      const res = await teacherService.setGradeDirector(grade, newTeacherKey, {
         linkDirectorSubjects,
         adminUser: currentUser
       });
@@ -98,9 +129,9 @@ export default function GestionDocenteModule({
   };
 
   // Manejo de cambio de Docente en una materia
-  const handleSubjectTeacherChange = (grade, subject, newTeacherKey) => {
+  const handleSubjectTeacherChange = async (grade, subject, newTeacherKey) => {
     try {
-      teacherService.setSubjectTeacher(grade, subject, newTeacherKey, currentUser);
+      await teacherService.setSubjectTeacher(grade, subject, newTeacherKey, currentUser);
       loadData();
       const teacherObj = teachers.find(t => t.key === newTeacherKey);
       showToast(`¡Materia actualizada! ${subject} en ${grade} ahora está a cargo de ${teacherObj?.name || newTeacherKey}.`);
@@ -110,9 +141,9 @@ export default function GestionDocenteModule({
   };
 
   // Asignación masiva de una materia en todos los grados
-  const handleApplyBatchSubject = () => {
+  const handleApplyBatchSubject = async () => {
     try {
-      teacherService.setSubjectAcrossGrades(batchSubject, batchTeacherKey, null, currentUser);
+      await teacherService.setSubjectAcrossGrades(batchSubject, batchTeacherKey, null, currentUser);
       loadData();
       const teacherObj = teachers.find(t => t.key === batchTeacherKey);
       showToast(`¡Asignación masiva aplicada! ${batchSubject} quedó a cargo de ${teacherObj?.name} en todos los grados.`);
@@ -122,15 +153,12 @@ export default function GestionDocenteModule({
   };
 
   // Guardar perfil individual
-  const handleSaveProfile = (teacherKey) => {
+  const handleSaveProfile = async (teacherKey) => {
     const profile = editingProfiles[teacherKey];
     if (!profile) return;
     try {
-      teacherService.updateTeacherProfile(teacherKey, profile, currentUser);
-      setTeachers(teacherService.getTeachers());
-      setMatrix(teacherService.getCurriculumMatrix());
-      setDirectorsMap(teacherService.getGradeDirectorsMap());
-      setAuditLogs(teacherService.getAuditLogs());
+      await teacherService.updateTeacherProfile(teacherKey, profile, currentUser);
+      loadData();
       showToast(`¡Perfil de ${profile.name} guardado con éxito! Se sincronizó en toda la plataforma.`);
     } catch (err) {
       alert(`Error al actualizar perfil: ${err.message}`);
@@ -138,15 +166,15 @@ export default function GestionDocenteModule({
   };
 
   // Guardar todos los perfiles docentes modificados
-  const handleSaveAllProfiles = () => {
+  const handleSaveAllProfiles = async () => {
     try {
       let count = 0;
-      Object.entries(editingProfiles).forEach(([key, prof]) => {
+      for (const [key, prof] of Object.entries(editingProfiles)) {
         if (prof) {
-          teacherService.updateTeacherProfile(key, prof, currentUser);
+          await teacherService.updateTeacherProfile(key, prof, currentUser);
           count++;
         }
-      });
+      }
       loadData();
       showToast(`¡${count} perfiles docentes guardados y sincronizados en toda la plataforma!`);
     } catch (err) {
@@ -154,8 +182,12 @@ export default function GestionDocenteModule({
     }
   };
 
-  // Restablecer clave a fábrica
+  // Restablecer clave a fábrica (Solo Rectora o Administrador)
   const handleResetPassword = async (teacherKey, teacherName) => {
+    if (!canResetPassword) {
+      alert('Acción restringida: Solo Rectoría o el Administrador General tienen permisos para restablecer contraseñas.');
+      return;
+    }
     if (!window.confirm(`¿Desea restablecer la contraseña inicial por defecto de ${teacherName}?`)) {
       return;
     }
@@ -168,12 +200,12 @@ export default function GestionDocenteModule({
   };
 
   // Aplicar Preset Institucional Galeano 2026
-  const handleApplyPresetGaleano = () => {
+  const handleApplyPresetGaleano = async () => {
     if (!window.confirm('¿Desea aplicar el Preset Institucional Galeano 2026?\n\n• Elcy: Inglés (Todos los grados)\n• Jessica: Español (Todos los grados)\n• Yuri: Ciencias Naturales y Sociales (Todos los grados)\n• Profe 2: Matemáticas (1° a 5°)\n• Directoras de Curso: Artes, Religión, Educación Física y Ética')) {
       return;
     }
     try {
-      teacherService.applyGaleanoOfficialPreset(currentUser);
+      await teacherService.applyGaleanoOfficialPreset(currentUser);
       loadData();
       showToast('¡Preset Oficial Galeano 2026 aplicado con éxito en toda la plataforma!');
     } catch (err) {
@@ -182,9 +214,9 @@ export default function GestionDocenteModule({
   };
 
   // Vincular materias formativas a directoras
-  const handleBindFormativas = () => {
+  const handleBindFormativas = async () => {
     try {
-      const res = teacherService.applyDirectorSubjectsRule(currentUser);
+      const res = await teacherService.applyDirectorSubjectsRule(currentUser);
       loadData();
       showToast(`¡Materias formativas vinculadas! Se sincronizaron ${res.count} asignaturas con sus Directoras de Curso.`);
     } catch (err) {
@@ -192,13 +224,17 @@ export default function GestionDocenteModule({
     }
   };
 
-  // Restablecer valores de fábrica
-  const handleResetDefaults = () => {
+  // Restablecer valores de fábrica (Solo Rectora o Administrador)
+  const handleResetDefaults = async () => {
+    if (!canResetFactory) {
+      alert('Acción restringida: Solo Rectoría o el Administrador General pueden restablecer la configuración de fábrica.');
+      return;
+    }
     if (!window.confirm('¿Está seguro de restablecer todas las asignaciones a los valores iniciales de fábrica?')) {
       return;
     }
     try {
-      teacherService.resetToFactoryDefaults(currentUser);
+      await teacherService.resetToFactoryDefaults(currentUser);
       loadData();
       showToast('Se restablecieron todas las asignaciones a la configuración institucional de fábrica.');
     } catch (err) {
@@ -245,6 +281,16 @@ export default function GestionDocenteModule({
           <div className="gd-header-actions">
             <button 
               type="button" 
+              className="gd-btn-comites" 
+              onClick={() => setIsCommitteeModalOpen(true)}
+              title="Asignación directiva de 1 o 2 docentes por comité de actas (Ley 1620 / Dec. 1290)"
+            >
+              <i className="ph-bold ph-scales"></i>
+              <span>Comités de Actas</span>
+            </button>
+
+            <button 
+              type="button" 
               className="gd-btn-preset-galeano" 
               onClick={handleApplyPresetGaleano}
               title="Aplica la distribución oficial: Elcy Inglés, Jessica Español, Yuri Ciencias, Profe 2 Matemáticas"
@@ -263,15 +309,17 @@ export default function GestionDocenteModule({
               <span>Vincular Formativas a Directoras</span>
             </button>
 
-            <button 
-              type="button" 
-              className="gd-btn-reset" 
-              onClick={handleResetDefaults}
-              title="Restablece las asignaciones y directores por defecto"
-            >
-              <i className="ph-bold ph-arrow-counter-clockwise"></i>
-              <span>Fábrica</span>
-            </button>
+            {canResetFactory && (
+              <button 
+                type="button" 
+                className="gd-btn-reset" 
+                onClick={handleResetDefaults}
+                title="Restablece las asignaciones y directores por defecto (Exclusivo Rectoría y Admin)"
+              >
+                <i className="ph-bold ph-arrow-counter-clockwise"></i>
+                <span>Fábrica</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -603,6 +651,24 @@ export default function GestionDocenteModule({
                       </span>
                     </div>
 
+                    {/* Roles Institucionales & Comités Asignados (Ley 1620 / Dec. 1290) */}
+                    <div className="gd-teacher-roles-summary">
+                      <span className="gd-role-chip dir">
+                        <i className="ph-bold ph-chalkboard"></i>
+                        {t.directedGrade ? `Dir. ${t.directedGrade}` : 'Docente de Aula'}
+                      </span>
+                      {getTeacherCommittees(t.key).map((c) => (
+                        <span 
+                          key={c.id} 
+                          className="gd-role-chip committee" 
+                          title={`Miembro oficial asignado por Rectoría: ${c.name} (${c.legalBasis})`}
+                        >
+                          <i className={`ph-bold ${c.icon || 'ph-scales'}`}></i>
+                          {c.id === 'comite_convivencia' ? 'Com. Convivencia' : (c.id === 'comision_evaluacion' ? 'Com. Evaluación' : (c.id === 'consejo_academico' ? 'Consejo Académico' : 'Asambleas'))}
+                        </span>
+                      ))}
+                    </div>
+
                     <div className="gd-tc-form-group">
                       <label htmlFor={`edit-name-${t.key}`}>Nombre Visible Institucional:</label>
                       <input 
@@ -678,14 +744,16 @@ export default function GestionDocenteModule({
                           </button>
                         )}
 
-                        <button 
-                          type="button" 
-                          className="gd-btn-reset-pass"
-                          onClick={() => handleResetPassword(t.key, profile.name)}
-                          title="Restablece la contraseña por defecto de fábrica"
-                        >
-                          <i className="ph-bold ph-key"></i> Clave
-                        </button>
+                        {canResetPassword && (
+                          <button 
+                            type="button" 
+                            className="gd-btn-reset-pass"
+                            onClick={() => handleResetPassword(t.key, profile.name)}
+                            title="Restablece la contraseña por defecto de fábrica"
+                          >
+                            <i className="ph-bold ph-key"></i> Clave
+                          </button>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -740,6 +808,17 @@ export default function GestionDocenteModule({
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Modal de Asignación de Comités de Actas (Ley 1620 / Dec. 1290) */}
+      <CommitteeAssignmentModal 
+        isOpen={isCommitteeModalOpen}
+        onClose={() => setIsCommitteeModalOpen(false)}
+        currentUser={currentUser}
+        onAssignmentsUpdated={() => {
+          setCommitteesMap(committeeService.getCommittees());
+          showToast('¡Asignación de comités de actas actualizada y sincronizada en toda la institución!');
+        }}
+      />
     </div>
   );
 }

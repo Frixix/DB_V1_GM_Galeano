@@ -8,12 +8,18 @@ import {
   ACADEMIC_PERIODS
 } from '../data/gradesTreeData.js';
 import gradesService from './gradesService.js';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 
 const TEACHER_AUDIT_LOG_KEY = 'gmg_teacher_management_audit_v1';
 
 class TeacherService {
   constructor() {
     this.auditLogs = this.loadAuditLogs();
+    this.realtimeChannel = null;
+
+    if (typeof window !== 'undefined') {
+      this.initRemoteSync();
+    }
   }
 
   loadAuditLogs() {
@@ -48,6 +54,19 @@ class TeacherService {
     this.auditLogs.unshift(entry);
     if (this.auditLogs.length > 100) this.auditLogs.pop();
     this.persistAuditLogs();
+
+    // Sincronizar log en Supabase
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('docentes_audit_logs').insert([{
+        id: entry.id,
+        action: entry.action,
+        details: entry.details,
+        author: entry.author,
+        author_role: entry.authorRole,
+        created_at: entry.timestamp
+      }]).then(() => {}).catch(() => {});
+    }
+
     return entry;
   }
 
@@ -117,7 +136,7 @@ class TeacherService {
     return USERS[key] || null;
   }
 
-  updateTeacherProfile(key, { name, label, status }, adminUser) {
+  async updateTeacherProfile(key, { name, label, status }, adminUser) {
     if (!key || !USERS[key]) {
       throw new Error(`Docente no encontrado con clave: ${key}`);
     }
@@ -180,6 +199,37 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    // Sincronización en Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const profilePayload = {
+          user_key: key,
+          name: USERS[key].name,
+          label: USERS[key].label || '',
+          status: USERS[key].status || 'activa',
+          role: USERS[key].role || 'docente',
+          updated_at: new Date().toISOString(),
+          updated_by: adminUser?.name || 'Dirección'
+        };
+
+        const { error } = await supabase
+          .from('docentes_perfiles')
+          .upsert([profilePayload], { onConflict: 'user_key' });
+
+        if (error) {
+          await supabase.from('institutional_vault').upsert({
+            user_key: `teacher_profile_${key}`,
+            cipher: JSON.stringify(profilePayload),
+            default_invalidated: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_key' });
+        }
+      } catch (err) {
+        console.warn('[TeacherService] Error sincronizando perfil en Supabase:', err);
+      }
+    }
+
     return { success: true, teacher: USERS[key] };
   }
 
@@ -195,7 +245,7 @@ class TeacherService {
     return map;
   }
 
-  setGradeDirector(grade, newDocenteKey, { linkDirectorSubjects = true, adminUser } = {}) {
+  async setGradeDirector(grade, newDocenteKey, { linkDirectorSubjects = true, adminUser } = {}) {
     if (!GRADES_LIST.includes(grade)) {
       throw new Error(`Grado inválido: ${grade}`);
     }
@@ -257,6 +307,52 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    // Sincronización en Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const directorPayload = {
+          grade,
+          docente_id: newDocenteKey,
+          teacher_name: newTeacher.name,
+          updated_at: now,
+          updated_by: adminUser?.name || 'Dirección'
+        };
+
+        const { error } = await supabase
+          .from('directores_curso')
+          .upsert([directorPayload], { onConflict: 'grade' });
+
+        if (error) {
+          await supabase.from('institutional_vault').upsert({
+            user_key: `director_${grade.replace(/\s+/g, '_')}`,
+            cipher: JSON.stringify(directorPayload),
+            default_invalidated: true,
+            updated_at: now
+          }, { onConflict: 'user_key' });
+        }
+
+        // Sincronizar asignaciones formativas vinculadas
+        if (affectedSubjects.length > 0) {
+          const asigPayloads = affectedSubjects.map(s => ({
+            id: `${grade.replace(/\s+/g, '_')}__${s.replace(/[\s&]+/g, '_')}`,
+            grade,
+            subject: s,
+            docente_id: newDocenteKey,
+            teacher_name: newTeacher.name,
+            updated_at: now,
+            updated_by: adminUser?.name || 'Dirección'
+          }));
+
+          await supabase
+            .from('asignaciones_materias')
+            .upsert(asigPayloads, { onConflict: 'id' });
+        }
+      } catch (err) {
+        console.warn('[TeacherService] Error sincronizando director en Supabase:', err);
+      }
+    }
+
     return {
       success: true,
       grade,
@@ -273,7 +369,7 @@ class TeacherService {
     return gradesService.getCurriculumMatrix();
   }
 
-  setSubjectTeacher(grade, subject, newDocenteKey, adminUser) {
+  async setSubjectTeacher(grade, subject, newDocenteKey, adminUser) {
     if (!GRADES_LIST.includes(grade)) throw new Error(`Grado inválido: ${grade}`);
     const newTeacher = USERS[newDocenteKey];
     if (!newTeacher) throw new Error(`Docente inválido: ${newDocenteKey}`);
@@ -315,20 +411,52 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    // Sincronización en Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const id = `${grade.replace(/\s+/g, '_')}__${subject.replace(/[\s&]+/g, '_')}`;
+        const payload = {
+          id,
+          grade,
+          subject,
+          docente_id: newDocenteKey,
+          teacher_name: newTeacher.name,
+          updated_at: now,
+          updated_by: adminUser?.name || 'Dirección'
+        };
+
+        const { error } = await supabase
+          .from('asignaciones_materias')
+          .upsert([payload], { onConflict: 'id' });
+
+        if (error) {
+          await supabase.from('institutional_vault').upsert({
+            user_key: `asig_${id}`,
+            cipher: JSON.stringify(payload),
+            default_invalidated: true,
+            updated_at: now
+          }, { onConflict: 'user_key' });
+        }
+      } catch (err) {
+        console.warn('[TeacherService] Error sincronizando asignación en Supabase:', err);
+      }
+    }
+
     return { success: true, assignment: gradesService.customAssignments[grade][subject] };
   }
 
-  setSubjectAcrossGrades(subject, newDocenteKey, targetGrades = null, adminUser) {
+  async setSubjectAcrossGrades(subject, newDocenteKey, targetGrades = null, adminUser) {
     const grades = targetGrades || GRADES_LIST;
     const newTeacher = USERS[newDocenteKey];
     if (!newTeacher) throw new Error(`Docente inválido: ${newDocenteKey}`);
 
-    grades.forEach(grade => {
+    for (const grade of grades) {
       const gradeSubjects = gradesService.getSubjectsForGrade(grade);
       if (gradeSubjects.includes(subject)) {
-        this.setSubjectTeacher(grade, subject, newDocenteKey, adminUser);
+        await this.setSubjectTeacher(grade, subject, newDocenteKey, adminUser);
       }
-    });
+    }
 
     this.addAuditLog(
       'Asignación Masiva de Asignatura',
@@ -344,7 +472,7 @@ class TeacherService {
   // 4. PRESETS INSTITUCIONALES INTELIGENTES (1-CLIC)
   // =========================================================================
 
-  applyGaleanoOfficialPreset(adminUser) {
+  async applyGaleanoOfficialPreset(adminUser) {
     const now = new Date().toISOString();
 
     // 1. Asignar Directores Oficiales
@@ -377,7 +505,6 @@ class TeacherService {
       const isTransicion = grade === 'Transición';
 
       const assignments = {
-        // Reglas de Usuario:
         'Lengua Castellana': { docente_id: 'jessica', teacherName: USERS.jessica.name },
         'Inglés': { docente_id: 'elcy', teacherName: USERS.elcy.name },
         'Ciencias Sociales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
@@ -430,12 +557,41 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    // Sincronización masiva en Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const directorsPayload = Object.entries(officialDirectors).map(([grade, docKey]) => ({
+          grade,
+          docente_id: docKey,
+          teacher_name: (USERS[docKey] || {}).name || docKey,
+          updated_at: now,
+          updated_by: adminUser?.name || 'Preset Galeano'
+        }));
+        await supabase.from('directores_curso').upsert(directorsPayload, { onConflict: 'grade' });
+
+        const profilesPayload = ['profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'].map(k => ({
+          user_key: k,
+          name: USERS[k].name,
+          label: USERS[k].label,
+          status: USERS[k].status || 'activa',
+          role: USERS[k].role || 'docente',
+          updated_at: now,
+          updated_by: adminUser?.name || 'Preset Galeano'
+        }));
+        await supabase.from('docentes_perfiles').upsert(profilesPayload, { onConflict: 'user_key' });
+      } catch (err) {
+        console.warn('[TeacherService] Error sincronizando preset con Supabase:', err);
+      }
+    }
+
     return { success: true };
   }
 
-  applyDirectorSubjectsRule(adminUser) {
+  async applyDirectorSubjectsRule(adminUser) {
     const now = new Date().toISOString();
     let count = 0;
+    const formativasPayload = [];
 
     GRADES_LIST.forEach(grade => {
       const director = gradesService.getGradeDirector(grade);
@@ -450,6 +606,16 @@ class TeacherService {
             updatedAt: now
           };
           count++;
+
+          formativasPayload.push({
+            id: `${grade.replace(/\s+/g, '_')}__${subj.replace(/[\s&]+/g, '_')}`,
+            grade,
+            subject: subj,
+            docente_id: director.docente_id,
+            teacher_name: director.teacherName,
+            updated_at: now,
+            updated_by: adminUser?.name || 'Vinculación Formativas'
+          });
 
           // Sincronizar en árbol
           ACADEMIC_YEARS.forEach(y => {
@@ -475,10 +641,15 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    if (isSupabaseConfigured && supabase && formativasPayload.length > 0) {
+      supabase.from('asignaciones_materias').upsert(formativasPayload, { onConflict: 'id' }).then(() => {}).catch(() => {});
+    }
+
     return { success: true, count };
   }
 
-  resetToFactoryDefaults(adminUser) {
+  async resetToFactoryDefaults(adminUser) {
     gradesService.customAssignments = {};
     gradesService.customDirectors = {};
     resetAllUserOverrides();
@@ -493,6 +664,18 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    // Sincronizar en Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('directores_curso').delete().neq('grade', 'NONE');
+        await supabase.from('asignaciones_materias').delete().neq('id', 'NONE');
+        await supabase.from('docentes_perfiles').delete().neq('user_key', 'NONE');
+      } catch (err) {
+        console.warn('[TeacherService] Error restableciendo en Supabase:', err);
+      }
+    }
+
     return { success: true };
   }
 
@@ -550,6 +733,129 @@ class TeacherService {
     });
 
     return list;
+  }
+
+  // =========================================================================
+  // 6. SINCRONIZACIÓN REMOTA CON SUPABASE & REALTIME
+  // =========================================================================
+
+  async initRemoteSync() {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    try {
+      // 1. Cargar directores remotos
+      const { data: remoteDirs, error: dirsErr } = await supabase
+        .from('directores_curso')
+        .select('*');
+
+      if (!dirsErr && Array.isArray(remoteDirs) && remoteDirs.length > 0) {
+        remoteDirs.forEach(row => {
+          if (row.grade && row.docente_id) {
+            gradesService.customDirectors[row.grade] = {
+              docente_id: row.docente_id,
+              teacherName: row.teacher_name,
+              updatedAt: row.updated_at
+            };
+          }
+        });
+        gradesService.persistCustomState();
+      }
+
+      // 2. Cargar asignaciones de materias remotas
+      const { data: remoteAsigs, error: asigsErr } = await supabase
+        .from('asignaciones_materias')
+        .select('*');
+
+      if (!asigsErr && Array.isArray(remoteAsigs) && remoteAsigs.length > 0) {
+        remoteAsigs.forEach(row => {
+          if (row.grade && row.subject && row.docente_id) {
+            if (!gradesService.customAssignments[row.grade]) {
+              gradesService.customAssignments[row.grade] = {};
+            }
+            gradesService.customAssignments[row.grade][row.subject] = {
+              docente_id: row.docente_id,
+              teacherName: row.teacher_name,
+              updatedAt: row.updated_at
+            };
+          }
+        });
+        gradesService.persistCustomState();
+      }
+
+      // 3. Cargar perfiles docentes remotos
+      const { data: remoteProfiles, error: profsErr } = await supabase
+        .from('docentes_perfiles')
+        .select('*');
+
+      if (!profsErr && Array.isArray(remoteProfiles) && remoteProfiles.length > 0) {
+        remoteProfiles.forEach(row => {
+          if (row.user_key && USERS[row.user_key]) {
+            saveUserOverride(row.user_key, {
+              name: row.name,
+              label: row.label,
+              status: row.status
+            });
+          }
+        });
+      }
+
+      this.notifyUpdates();
+
+      // 4. Iniciar suscripción Realtime
+      this.initRealtimeSubscription();
+    } catch (e) {
+      console.warn('[TeacherService] Sincronización remota Supabase omitida:', e);
+    }
+  }
+
+  initRealtimeSubscription() {
+    if (!isSupabaseConfigured || !supabase || this.realtimeChannel) return;
+
+    try {
+      this.realtimeChannel = supabase
+        .channel('gestion_docente_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'directores_curso' }, (payload) => {
+          const row = payload.new;
+          if (row && row.grade && row.docente_id) {
+            gradesService.customDirectors[row.grade] = {
+              docente_id: row.docente_id,
+              teacherName: row.teacher_name,
+              updatedAt: row.updated_at
+            };
+            gradesService.persistCustomState();
+            this.notifyUpdates();
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'asignaciones_materias' }, (payload) => {
+          const row = payload.new;
+          if (row && row.grade && row.subject && row.docente_id) {
+            if (!gradesService.customAssignments[row.grade]) {
+              gradesService.customAssignments[row.grade] = {};
+            }
+            gradesService.customAssignments[row.grade][row.subject] = {
+              docente_id: row.docente_id,
+              teacherName: row.teacher_name,
+              updatedAt: row.updated_at
+            };
+            gradesService.persistCustomState();
+            this.notifyUpdates();
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'docentes_perfiles' }, (payload) => {
+          const row = payload.new;
+          if (row && row.user_key && USERS[row.user_key]) {
+            saveUserOverride(row.user_key, {
+              name: row.name,
+              label: row.label,
+              status: row.status
+            });
+            this.notifyUpdates();
+          }
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('[TeacherService] Error en suscripción Realtime:', err);
+    }
   }
 }
 

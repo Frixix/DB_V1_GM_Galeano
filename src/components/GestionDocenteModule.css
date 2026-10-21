@@ -80,9 +80,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: #ede9fe;
-  color: #6d28d9;
-  border: 1px solid #ddd6fe;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
   padding: 0.2rem 0.55rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -97,11 +97,32 @@
   flex-wrap: wrap;
 }
 
+.gd-btn-comites {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gd-btn-comites:hover {
+  background: #ccfbf1;
+  border-color: #5eead4;
+  color: #115e59;
+}
+
 .gd-btn-preset-galeano {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
   color: #ffffff;
   border: none;
   padding: 0.55rem 1rem;
@@ -109,14 +130,14 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 2px 4px rgba(14, 116, 144, 0.25);
   transition: all 0.2s ease;
 }
 
 .gd-btn-preset-galeano:hover {
-  background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 8px rgba(14, 116, 144, 0.35);
 }
 
 .gd-btn-bind-formativas {
@@ -191,9 +212,9 @@
 }
 
 .gd-tab-btn.active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
-  background: #f8fafc;
+  color: #0e7490;
+  border-bottom-color: #0891b2;
+  background: #f0fdfa;
 }
 
 .gd-tab-badge {
@@ -206,8 +227,8 @@
 }
 
 .gd-tab-btn.active .gd-tab-badge {
-  background: #ede9fe;
-  color: #6d28d9;
+  background: #cffafe;
+  color: #0e7490;
 }
 
 /* Contenido Principal */
@@ -372,8 +393,8 @@
 }
 
 .gd-select-styled:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: #0891b2;
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
 }
 
 .gd-dc-formativas-notice {
@@ -428,10 +449,10 @@
 }
 
 .gd-grade-btn.active {
-  background: #4f46e5;
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
   color: #ffffff;
-  border-color: #4338ca;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+  border-color: #0e7490;
+  box-shadow: 0 2px 4px rgba(8, 145, 178, 0.25);
 }
 
 /* Batch tool para asignar una materia en todos los grados */
@@ -588,7 +609,7 @@
 }
 
 .gd-perfiles-title i {
-  color: #4f46e5;
+  color: #0891b2;
   font-size: 1.3rem;
 }
 
@@ -604,7 +625,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -612,14 +633,48 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 2px 4px rgba(8, 145, 178, 0.25);
   transition: all 0.2s ease;
 }
 
 .gd-btn-save-all-profiles:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.35);
-  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+  box-shadow: 0 4px 8px rgba(8, 145, 178, 0.35);
+  background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+}
+
+.gd-teacher-roles-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.65rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.gd-role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.gd-role-chip.dir {
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  color: #0e7490;
+}
+
+.gd-role-chip.committee {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
 }
 
 .gd-teachers-grid {
@@ -754,8 +809,8 @@
 }
 
 .gd-input-styled:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: #0891b2;
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
 }
 
 .gd-tc-actions {
@@ -773,7 +828,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.95rem;
-  background: #4f46e5;
+  background: #0891b2;
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -784,7 +839,7 @@
 }
 
 .gd-btn-save-teacher:hover {
-  background: #4338ca;
+  background: #0e7490;
 }
 
 .gd-btn-edit-avatar {
@@ -859,8 +914,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: #cffafe;
+  color: #0e7490;
   display: flex;
   align-items: center;
   justify-content: center;
