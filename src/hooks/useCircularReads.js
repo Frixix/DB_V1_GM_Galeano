@@ -125,8 +125,38 @@ export function useCircularReads(currentUser) {
     }
   }, [currentUserKey]);
 
+  // Marcar múltiples circulares como leídas de forma masiva
+  const markAllAsRead = useCallback(async (documentIds = []) => {
+    if (!currentUserKey || !Array.isArray(documentIds) || !documentIds.length) return;
+
+    setReadCircularIds(prev => {
+      const merged = Array.from(new Set([...prev, ...documentIds]));
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        const parsed = stored ? JSON.parse(stored) : {};
+        parsed[currentUserKey] = merged;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      } catch {
+        // Ignorar
+      }
+      return merged;
+    });
+
+    if (!isSupabaseConfigured || !supabase) return;
+
+    try {
+      const rows = documentIds.map(id => ({ document_id: id, user_key: currentUserKey }));
+      await supabase
+        .from('circular_reads')
+        .upsert(rows, { onConflict: 'document_id,user_key' });
+    } catch (err) {
+      console.warn('Error sincronizando lecturas masivas con Supabase:', err);
+    }
+  }, [currentUserKey]);
+
   return {
     readCircularIds,
     markAsRead,
+    markAllAsRead,
   };
 }

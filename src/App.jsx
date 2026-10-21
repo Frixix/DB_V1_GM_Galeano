@@ -23,6 +23,7 @@ import ForceBovedaPasswordModal from './components/ForceBovedaPasswordModal';
 import TourSpotlight from './components/TourSpotlight';
 import ConnectionsModal from './components/ConnectionsModal';
 import LogoutConfirmModal from './components/LogoutConfirmModal';
+import NotificationCenter from './components/NotificationCenter';
 import TrialWatermark from './components/TrialWatermark';
 import { USERS } from './data/users';
 import { useDocuments } from './hooks/useDocuments';
@@ -65,6 +66,7 @@ export default function App() {
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const handleOpenProfile = useCallback((targetUserKey = null, initialTab = null) => {
     const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
@@ -77,7 +79,7 @@ export default function App() {
   }, [currentUser?.key]);
 
   const { documents, addDocument, deleteDocument } = useDocuments();
-  const { readCircularIds, markAsRead: markCircularAsRead } = useCircularReads(currentUser);
+  const { readCircularIds, markAsRead: markCircularAsRead, markAllAsRead } = useCircularReads(currentUser);
 
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
 
@@ -205,23 +207,47 @@ export default function App() {
   const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
   const totalUnreadCount = unreadDocs.length;
 
-  // Manejador para abrir novedades desde la campanita unificada (en cualquier módulo)
+  // Manejador para abrir novedades o alternar el Centro de Notificaciones (en cualquier módulo)
   const handleOpenCircularesBell = useCallback(() => {
-    setActiveModule('docs');
-    if (unreadDocs.length > 0) {
-      const target = unreadDocs[0];
-      if (target.folder === 'institucional') {
-        setCurrentFolder('institucional');
-      } else {
-        setCurrentFolder('publico');
+    setIsNotificationsOpen((prev) => !prev);
+  }, []);
+
+  const handleCloseNotifications = useCallback(() => {
+    setIsNotificationsOpen(false);
+  }, []);
+
+  // Manejador para seleccionar notificación: redirige al módulo de origen SIN marcar como leída al vuelo
+  const handleSelectNotification = useCallback((notif) => {
+    setIsNotificationsOpen(false);
+    if (notif?.module === 'docs' || notif?.doc) {
+      setActiveModule('docs');
+      const doc = notif.doc;
+      if (doc) {
+        if (doc.folder === 'institucional') {
+          setCurrentFolder('institucional');
+        } else if (doc.isPublic) {
+          setCurrentFolder('publico');
+        } else if (doc.folder) {
+          setCurrentFolder(doc.folder);
+        }
+        setSelectedDocForView(doc);
+        setIsViewModalOpen(true);
+        // REGLA ESTRICTA: NO se marca como leída al vuelo al abrir la notificación
       }
-      setSelectedDocForView(target);
-      setIsViewModalOpen(true);
-      markCircularAsRead(target.id);
-    } else {
-      setCurrentFolder('institucional');
+    } else if (notif?.module) {
+      setActiveModule(notif.module);
     }
-  }, [unreadDocs, markCircularAsRead]);
+  }, []);
+
+  // Manejador para confirmar lectura explícita desde el detalle o notificación
+  const handleConfirmRead = useCallback((documentId) => {
+    markCircularAsRead(documentId);
+  }, [markCircularAsRead]);
+
+  // Manejador para confirmar todas las lecturas explícitas
+  const handleConfirmAllReads = useCallback((documentIds) => {
+    markAllAsRead(documentIds);
+  }, [markAllAsRead]);
 
   // Manejador para abrir la guía interactiva desde la barra superior unificada
   const handleOpenTour = useCallback(() => {
@@ -237,26 +263,19 @@ export default function App() {
     setIsSidebarOpen(false); // Cierra el menú en móvil al seleccionar
   }, []);
 
-  // Manejador para ver documento (al leer una circular o compartido se apaga la notificación y el puntito)
+  // Manejador para ver documento (Regla estricta: NO se marca automáticamente al vuelo)
   const handleViewDocument = useCallback((id) => {
     const doc = documents.find(d => d.id === id);
     if (doc) {
       setSelectedDocForView(doc);
       setIsViewModalOpen(true);
-      if (doc.isPublic || doc.folder === 'institucional') {
-        markCircularAsRead(doc.id);
-      }
     }
-  }, [documents, markCircularAsRead]);
+  }, [documents]);
 
-  // Manejador para descargar archivo (también apaga la notificación y el puntito rojo)
+  // Manejador para descargar archivo (Regla estricta: NO se marca automáticamente al vuelo)
   const handleDownloadDocument = useCallback(async (docOrId) => {
     const doc = typeof docOrId === 'object' && docOrId !== null ? docOrId : documents.find(d => d.id === docOrId);
     if (!doc) return;
-
-    if (doc.isPublic || doc.folder === 'institucional') {
-      markCircularAsRead(doc.id);
-    }
 
     let downloadBlob = doc.fileBlob instanceof Blob ? doc.fileBlob : null;
 
@@ -374,6 +393,7 @@ export default function App() {
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           onlineCount={onlineCount}
           circularesCount={totalUnreadCount}
+          isNotificationsOpen={isNotificationsOpen}
           onOpenCirculares={handleOpenCircularesBell}
           onOpenTour={handleOpenTour}
           onLogout={handleLogout}
@@ -439,6 +459,16 @@ export default function App() {
             </button>
           </div>
         )}
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -462,6 +492,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
+          isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -508,6 +539,16 @@ export default function App() {
           onRefresh={refreshPresence}
           loading={presenceLoading}
         />
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -531,6 +572,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
+          isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -597,6 +639,16 @@ export default function App() {
             </button>
           </div>
         )}
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -622,6 +674,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
+          isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -688,6 +741,16 @@ export default function App() {
             </button>
           </div>
         )}
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -765,6 +828,7 @@ export default function App() {
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
+          isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -842,6 +906,8 @@ export default function App() {
             setSelectedDocForView(null);
           }}
           onDownload={handleDownloadDocument}
+          isUnread={selectedDocForView ? isDocUnread(selectedDocForView) : false}
+          onConfirmRead={handleConfirmRead}
         />
         <UploadModal 
           key={isUploadModalOpen ? `upload_modal_${currentFolder}` : 'upload_modal_closed'}
@@ -881,6 +947,16 @@ export default function App() {
             </button>
           </div>
         )}
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -904,6 +980,7 @@ export default function App() {
             onlineCount={onlineCount}
             onlineMap={onlineMap}
             circularesCount={totalUnreadCount}
+          isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -970,6 +1047,16 @@ export default function App() {
             </button>
           </div>
         )}
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
         <LogoutConfirmModal 
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -988,6 +1075,7 @@ export default function App() {
         onToggleSidebar={handleToggleSidebar}
         onOpenCirculares={handleOpenCircularesBell}
         circularesCount={totalUnreadCount}
+        isNotificationsOpen={isNotificationsOpen}
         onOpenProfile={handleOpenCurrentUserProfile}
         onOpenConnectionsModal={handleOpenConnectionsModal}
         onlineCount={onlineCount}
@@ -1097,6 +1185,8 @@ export default function App() {
           setSelectedDocForView(null);
         }}
         onDownload={handleDownloadDocument}
+        isUnread={selectedDocForView ? isDocUnread(selectedDocForView) : false}
+        onConfirmRead={handleConfirmRead}
       />
 
       {/* Modal para Subir Documento */}
@@ -1204,6 +1294,17 @@ export default function App() {
           </button>
         </div>
       )}
+
+      <NotificationCenter
+        isOpen={isNotificationsOpen}
+        onClose={handleCloseNotifications}
+        currentUser={currentUser}
+        documents={documents}
+        readCircularIds={readCircularIds}
+        onSelectNotification={handleSelectNotification}
+        onConfirmRead={handleConfirmRead}
+        onConfirmAllReads={handleConfirmAllReads}
+      />
 
       {/* Modal de Confirmación de Cierre de Sesión */}
       <LogoutConfirmModal 

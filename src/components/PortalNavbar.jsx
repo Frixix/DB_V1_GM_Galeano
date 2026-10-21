@@ -15,6 +15,7 @@ export default function PortalNavbar({
   onlineCount = 0,
   circularesCount = 0,
   onOpenCirculares = null,
+  isNotificationsOpen = false,
   onOpenTour = null,
   onOpenProfile = null,
   onLogout = null,
@@ -96,13 +97,14 @@ export default function PortalNavbar({
 
         {/* 2. Campanita de Notificaciones Institucionales (Circulares & Comunicados) */}
         <div 
-          className="nav-notification-bell" 
-          title={circularesCount > 0 ? `${circularesCount} circular(es) pendiente(s) por leer` : "Circulares institucionales al día"}
+          className={`nav-notification-bell ${isNotificationsOpen ? 'active' : ''}`}
+          title={circularesCount > 0 ? `${circularesCount} comunicado(s) pendiente(s) por revisar` : "Centro de notificaciones institucionales"}
           onClick={onOpenCirculares}
           style={{ cursor: 'pointer' }}
           role="button"
           tabIndex={0}
-          aria-label="Abrir circulares y notificaciones"
+          aria-label="Abrir centro de notificaciones institucionales"
+          aria-expanded={isNotificationsOpen}
         >
           <i className="ph-bold ph-bell"></i>
           {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}

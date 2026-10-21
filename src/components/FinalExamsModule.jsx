@@ -32,6 +32,7 @@ export default function FinalExamsModule({
   onlineCount = 0,
   circularesCount = 0,
   onOpenCirculares,
+  isNotificationsOpen = false,
   onOpenTour,
   onLogout
 }) {
@@ -227,6 +228,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
+        isNotificationsOpen={isNotificationsOpen}
         onOpenCirculares={onOpenCirculares}
         onOpenTour={onOpenTour}
         onOpenProfile={onOpenProfile}

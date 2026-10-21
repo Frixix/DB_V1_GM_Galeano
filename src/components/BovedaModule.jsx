@@ -21,6 +21,7 @@ export default function BovedaModule({
   onlineCount,
   circularesCount = 0,
   onOpenCirculares,
+  isNotificationsOpen = false,
   onOpenTour,
   onLogout,
   onViewDocument,
@@ -104,6 +105,7 @@ export default function BovedaModule({
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
+        isNotificationsOpen={isNotificationsOpen}
         onOpenCirculares={onOpenCirculares}
         onOpenTour={onOpenTour}
         onOpenProfile={onOpenProfile}

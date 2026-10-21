@@ -19,6 +19,7 @@ export default function ObservadorModule({
   onlineMap = {},
   circularesCount = 0,
   onOpenCirculares,
+  isNotificationsOpen = false,
   onOpenTour,
   onLogout
 }) {
@@ -261,6 +262,7 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
+        isNotificationsOpen={isNotificationsOpen}
         onOpenCirculares={onOpenCirculares}
         onOpenTour={onOpenTour}
         onOpenProfile={onOpenProfile}

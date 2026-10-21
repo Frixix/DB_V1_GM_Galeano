@@ -29,6 +29,7 @@ export default function GestionDocenteModule({
   onlineCount = 0,
   circularesCount = 0,
   onOpenCirculares,
+  isNotificationsOpen = false,
   onOpenTour,
   onLogout
 }) {
@@ -218,6 +219,7 @@ export default function GestionDocenteModule({
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
+        isNotificationsOpen={isNotificationsOpen}
         onOpenCirculares={onOpenCirculares}
         onOpenTour={onOpenTour}
         onOpenProfile={onOpenProfile}

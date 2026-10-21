@@ -10,6 +10,7 @@ export default function Navbar({
   onToggleSidebar, 
   onOpenCirculares, 
   circularesCount = 0,
+  isNotificationsOpen = false,
   onOpenProfile,
   onOpenConnectionsModal,
   onlineCount = 0,
@@ -26,6 +27,7 @@ export default function Navbar({
       onOpenConnectionsModal={onOpenConnectionsModal}
       onlineCount={onlineCount}
       circularesCount={circularesCount}
+      isNotificationsOpen={isNotificationsOpen}
       onOpenCirculares={onOpenCirculares}
       onOpenTour={onOpenTour}
       onOpenProfile={onOpenProfile}

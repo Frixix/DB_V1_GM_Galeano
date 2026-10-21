@@ -1,15 +1,37 @@
 import { useState, useEffect } from 'react';
 import { downloadDocumentBlob } from '../services/storageService';
 
-export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
+export default function ViewModal({ 
+  doc, 
+  isOpen, 
+  onClose, 
+  onDownload, 
+  isUnread = false, 
+  onConfirmRead = null 
+}) {
   const [blobUrl, setBlobUrl] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isLocallyConfirmed, setIsLocallyConfirmed] = useState(false);
 
   const fileName = doc?.fileName || '';
   const isImage = /\.(jpe?g|png|gif|webp|svg|bmp|jfif|pjpeg|pjp|avif|ico|tiff?)$/i.test(fileName) || fileName.toLowerCase().endsWith('.jfif');
   const isPdf = /\.pdf$/i.test(fileName);
+
+  // Reiniciar estado local de confirmación cuando cambia el documento
+  useEffect(() => {
+    setIsLocallyConfirmed(false);
+  }, [doc?.id, isOpen]);
+
+  const effectivelyUnread = isUnread && !isLocallyConfirmed;
+
+  const handleConfirmReadClick = () => {
+    setIsLocallyConfirmed(true);
+    if (onConfirmRead && doc?.id) {
+      onConfirmRead(doc.id);
+    }
+  };
 
   // Cerrar lightbox si se cierra el modal o cambia el documento
   useEffect(() => {
@@ -132,6 +154,26 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
         </div>
 
         <div className="modal-body-view" style={{ overflowY: 'auto', flex: 1, padding: '1.25rem 1.5rem' }}>
+          {effectivelyUnread && (
+            <div className="view-modal-unread-alert">
+              <div className="view-modal-unread-alert-left">
+                <i className="ph-bold ph-bell-ringing"></i>
+                <div>
+                  <strong>Comunicado pendiente de confirmación de lectura</strong>
+                  <p>Al confirmar lectura, se registrará formalmente tu revisión en la plataforma.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-confirm-read-action"
+                onClick={handleConfirmReadClick}
+                title="Confirmar lectura oficial de este documento"
+              >
+                <i className="ph-bold ph-check-circle"></i> Confirmar lectura
+              </button>
+            </div>
+          )}
+
           <div className="view-document-card">
             
             {/* Metadatos principales */}
@@ -281,13 +323,30 @@ export default function ViewModal({ doc, isOpen, onClose, onDownload }) {
           <button type="button" className="btn btn-secondary" onClick={onClose}>
             Cerrar
           </button>
-          <button 
-            type="button" 
-            className="btn btn-primary" 
-            onClick={() => onDownload(doc)}
-          >
-            <i className="ph-bold ph-download-simple"></i> Descargar Copia
-          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {effectivelyUnread ? (
+              <button 
+                type="button" 
+                className="btn btn-confirm-read-footer"
+                onClick={handleConfirmReadClick}
+                title="Marcar este comunicado como revisado y confirmar lectura"
+              >
+                <i className="ph-bold ph-check-circle"></i> Marcar como revisada
+              </button>
+            ) : (
+              <span className="badge-read-confirmed" title="Has confirmado la revisión de este comunicado">
+                <i className="ph-bold ph-check"></i> Lectura confirmada
+              </span>
+            )}
+            <button 
+              type="button" 
+              className="btn btn-primary" 
+              onClick={() => onDownload(doc)}
+            >
+              <i className="ph-bold ph-download-simple"></i> Descargar Copia
+            </button>
+          </div>
         </div>
       </div>
     </div>

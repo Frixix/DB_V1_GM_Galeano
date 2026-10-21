@@ -42,6 +42,7 @@ export default function GradesModule({
   onlineCount,
   circularesCount = 0,
   onOpenCirculares,
+  isNotificationsOpen = false,
   onOpenTour
 }) {
   // Identificación del Rol RBAC
@@ -332,6 +333,7 @@ export default function GradesModule({
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
         circularesCount={circularesCount}
+        isNotificationsOpen={isNotificationsOpen}
         onOpenCirculares={onOpenCirculares}
         onOpenTour={onOpenTour}
         onOpenProfile={onOpenProfile}
