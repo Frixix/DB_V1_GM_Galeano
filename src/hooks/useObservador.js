@@ -162,47 +162,59 @@ export function useObservador() {
 
     fetchRemoteRecords();
 
-    // B. Suscripción en Tiempo Real para actualización instantánea
-    const channel = supabase
-      .channel('observador_records_realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'observador_records' },
-        (payload) => {
-          if (!isMounted) return;
+    // B. Suscripción en Tiempo Real para actualización instantánea (Canal único por instancia)
+    let channel = null;
+    try {
+      const channelId = `obs_realtime_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'observador_records' },
+          (payload) => {
+            if (!isMounted) return;
 
-          if (payload.eventType === 'INSERT') {
-            const newRec = fromDbRecord(payload.new);
-            setRecords(prev => {
-              if (prev.some(r => r.id === newRec.id)) return prev;
-              const updated = [newRec, ...prev];
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-              return updated;
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedRec = fromDbRecord(payload.new);
-            setRecords(prev => {
-              const updated = prev.map(r => (r.id === updatedRec.id ? { ...r, ...updatedRec } : r));
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-              return updated;
-            });
-          } else if (payload.eventType === 'DELETE') {
-            const deletedId = payload.old?.id;
-            if (deletedId) {
+            if (payload.eventType === 'INSERT') {
+              const newRec = fromDbRecord(payload.new);
               setRecords(prev => {
-                const updated = prev.filter(r => r.id !== deletedId);
+                if (prev.some(r => r.id === newRec.id)) return prev;
+                const updated = [newRec, ...prev];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
                 return updated;
               });
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedRec = fromDbRecord(payload.new);
+              setRecords(prev => {
+                const updated = prev.map(r => (r.id === updatedRec.id ? { ...r, ...updatedRec } : r));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+                return updated;
+              });
+            } else if (payload.eventType === 'DELETE') {
+              const deletedId = payload.old?.id;
+              if (deletedId) {
+                setRecords(prev => {
+                  const updated = prev.filter(r => r.id !== deletedId);
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+                  return updated;
+                });
+              }
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    } catch (realtimeErr) {
+      console.warn('[useObservador] Advertencia al suscribir a Realtime:', realtimeErr);
+    }
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (cleanupErr) {
+          console.warn('[useObservador] Advertencia al remover canal:', cleanupErr);
+        }
+      }
     };
   }, []);
 

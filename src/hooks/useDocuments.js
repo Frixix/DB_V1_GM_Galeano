@@ -83,39 +83,51 @@ export function useDocuments() {
         }
       });
 
-    const channel = supabase
-      .channel('realtime:documents')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'documents' },
-        (payload) => {
-          if (!isMounted) return;
-          if (payload.eventType === 'INSERT') {
-            const newDoc = mapDbToDoc(payload.new);
-            if (newDoc.folder === 'calificaciones' || newDoc.id === 'MG-PRI-004') return;
-            setDocuments(prev => {
-              const existingIndex = prev.findIndex(d => d.id === newDoc.id);
-              if (existingIndex >= 0) {
-                const localDoc = prev[existingIndex];
-                const updatedList = [...prev];
-                updatedList[existingIndex] = { ...newDoc, fileBlob: localDoc.fileBlob || null };
-                return updatedList;
-              }
-              return [newDoc, ...prev];
-            });
-          } else if (payload.eventType === 'DELETE') {
-            setDocuments(prev => prev.filter(d => d.id !== payload.old.id));
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedDoc = mapDbToDoc(payload.new);
-            setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? { ...updatedDoc, fileBlob: d.fileBlob || null } : d));
+    let channel = null;
+    try {
+      const channelId = `docs_realtime_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'documents' },
+          (payload) => {
+            if (!isMounted) return;
+            if (payload.eventType === 'INSERT') {
+              const newDoc = mapDbToDoc(payload.new);
+              if (newDoc.folder === 'calificaciones' || newDoc.id === 'MG-PRI-004') return;
+              setDocuments(prev => {
+                const existingIndex = prev.findIndex(d => d.id === newDoc.id);
+                if (existingIndex >= 0) {
+                  const localDoc = prev[existingIndex];
+                  const updatedList = [...prev];
+                  updatedList[existingIndex] = { ...newDoc, fileBlob: localDoc.fileBlob || null };
+                  return updatedList;
+                }
+                return [newDoc, ...prev];
+              });
+            } else if (payload.eventType === 'DELETE') {
+              setDocuments(prev => prev.filter(d => d.id !== payload.old.id));
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedDoc = mapDbToDoc(payload.new);
+              setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? { ...updatedDoc, fileBlob: d.fileBlob || null } : d));
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    } catch (docsRealtimeErr) {
+      console.warn('[useDocuments] Advertencia al suscribir a Realtime:', docsRealtimeErr);
+    }
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (cleanupErr) {
+          console.warn('[useDocuments] Advertencia al remover canal:', cleanupErr);
+        }
+      }
     };
   }, []);
 

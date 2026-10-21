@@ -65,30 +65,42 @@ export function useCircularReads(currentUser) {
       });
 
     // Suscripción Realtime para reflejar lecturas en tiempo real
-    const channel = supabase
-      .channel(`realtime:circular_reads:${currentUserKey}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'circular_reads',
-          filter: `user_key=eq.${currentUserKey}`,
-        },
-        (payload) => {
-          if (!isMounted || !payload.new?.document_id) return;
-          const newDocId = payload.new.document_id;
-          setReadCircularIds(prev => {
-            if (prev.includes(newDocId)) return prev;
-            return [...prev, newDocId];
-          });
-        }
-      )
-      .subscribe();
+    let channel = null;
+    try {
+      const channelId = `circular_reads_${currentUserKey}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'circular_reads',
+            filter: `user_key=eq.${currentUserKey}`,
+          },
+          (payload) => {
+            if (!isMounted || !payload.new?.document_id) return;
+            const newDocId = payload.new.document_id;
+            setReadCircularIds(prev => {
+              if (prev.includes(newDocId)) return prev;
+              return [...prev, newDocId];
+            });
+          }
+        )
+        .subscribe();
+    } catch (circRealtimeErr) {
+      console.warn('[useCircularReads] Advertencia al suscribir a Realtime:', circRealtimeErr);
+    }
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (cleanupErr) {
+          console.warn('[useCircularReads] Advertencia al remover canal:', cleanupErr);
+        }
+      }
     };
   }, [currentUserKey]);
 

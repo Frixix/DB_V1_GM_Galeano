@@ -1135,8 +1135,9 @@ class GradesService {
     if (!isSupabaseConfigured || !supabase) return () => {};
 
     try {
+      const channelId = `matriculas_channel_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const channel = supabase
-        .channel('matriculas_estudiantes_channel')
+        .channel(channelId)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'matriculas_estudiantes' }, (payload) => {
           if (payload.new && payload.new.id) {
             const st = payload.new;
