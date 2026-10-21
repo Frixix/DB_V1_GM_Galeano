@@ -227,6 +227,13 @@ class FinalExamsService {
   constructor() {
     this.evaluations = this.loadEvaluations();
     this.deadlines = this.loadDeadlines();
+
+    // Sincronización reactiva con novedades del roster escolar (ingresos / inhabilitaciones)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gmg_roster_updated', () => {
+        this.notifyUpdate();
+      });
+    }
   }
 
   loadEvaluations() {
@@ -331,7 +338,25 @@ class FinalExamsService {
   }
 
   getStudentCount(grade) {
+    if (gradesService && gradesService.getActiveStudentsCount) {
+      return gradesService.getActiveStudentsCount(grade);
+    }
     return (STUDENTS_BY_GRADE[grade] || []).length;
+  }
+
+  getPrintingCopiesSuggestion(grade) {
+    if (gradesService && gradesService.getPrintingCopiesSuggestion) {
+      return gradesService.getPrintingCopiesSuggestion(grade);
+    }
+    const count = this.getStudentCount(grade);
+    return {
+      grade,
+      activeStudents: count,
+      docenteCopies: 1,
+      suggestedCopies: count + 1,
+      formulaText: `${count} alumnos activos + 1 copia docente calificador = ${count + 1} copias`,
+      shortText: `${count + 1} copias (${count} + 1)`
+    };
   }
 
   /**
@@ -404,7 +429,9 @@ class FinalExamsService {
     if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
 
     const subjects = this.getSubjectsForGrade(grade);
-    const studentCount = this.getStudentCount(grade);
+    const printInfo = this.getPrintingCopiesSuggestion(grade);
+    const studentCount = printInfo.activeStudents;
+    const copiesNeededDynamic = printInfo.suggestedCopies;
 
     const items = subjects.map((subj) => {
       const teacher = this.getTeacherAssignment(grade, subj);
@@ -422,13 +449,15 @@ class FinalExamsService {
           uploadedAt: null,
           uploadedBy: teacher.teacherName,
           teacherId: teacher.docente_id,
-          copiesNeeded: studentCount,
+          copiesNeeded: copiesNeededDynamic,
           copiesStatus: 'pendiente',
           notes: '',
           downloadUrl: null
         };
         this.evaluations[period][grade][subj] = evalData;
       } else {
+        // Sincronizar dinámicamente según el roster actual (N + 1)
+        evalData.copiesNeeded = copiesNeededDynamic;
         if (!evalData.uploaded) {
           evalData.teacherId = teacher.docente_id;
           evalData.uploadedBy = teacher.teacherName;
@@ -439,7 +468,11 @@ class FinalExamsService {
         grade,
         subject: subj,
         studentCount,
+        activeStudents: studentCount,
+        suggestedCopies: copiesNeededDynamic,
+        formulaText: printInfo.formulaText,
         ...evalData,
+        copiesNeeded: copiesNeededDynamic,
         teacher: teacher.teacherName,
         teacherId: teacher.docente_id,
         uploadedBy: evalData.uploaded ? (evalData.uploadedBy || teacher.teacherName) : teacher.teacherName,
@@ -450,8 +483,8 @@ class FinalExamsService {
     const totalSubjects = items.length;
     const uploadedCount = items.filter(i => i.uploaded).length;
     const pendingCount = totalSubjects - uploadedCount;
-    const totalCopiesNeeded = studentCount * totalSubjects;
-    const readyCopies = items.filter(i => i.uploaded).reduce((sum, i) => sum + (i.copiesNeeded || studentCount), 0);
+    const totalCopiesNeeded = copiesNeededDynamic * totalSubjects;
+    const readyCopies = items.filter(i => i.uploaded).reduce((sum, i) => sum + (i.copiesNeeded || copiesNeededDynamic), 0);
     const progressPercent = totalSubjects > 0 ? Math.round((uploadedCount / totalSubjects) * 100) : 0;
 
     const deadlineInfo = this.deadlines[period] || DEFAULT_DEADLINES[period] || {};
@@ -465,6 +498,8 @@ class FinalExamsService {
         uploadedCount,
         pendingCount,
         studentCount,
+        activeStudents: studentCount,
+        suggestedCopies: copiesNeededDynamic,
         totalCopiesNeeded,
         readyCopies,
         progressPercent,
@@ -552,7 +587,7 @@ class FinalExamsService {
     if (!this.evaluations[period][grade]) this.evaluations[period][grade] = {};
 
     const assignment = this.getTeacherAssignment(grade, subject);
-    const studentCount = this.getStudentCount(grade);
+    const printInfo = this.getPrintingCopiesSuggestion(grade);
     const cleanGrade = grade.replace(/[\s°]+/g, '').slice(0, 4).toUpperCase();
     const radicado = `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
 
@@ -577,9 +612,9 @@ class FinalExamsService {
       uploadedAt: formattedDate,
       uploadedBy: user?.name || assignment.teacherName,
       teacherId: assignment.docente_id,
-      copiesNeeded: studentCount,
+      copiesNeeded: printInfo.suggestedCopies,
       copiesStatus: copiesStatus || 'aprobado',
-      notes: notes || 'Listo para impresión y fotocopiado.',
+      notes: notes || `Sugerencia institucional automatizada: ${printInfo.formulaText}.`,
       downloadUrl: file ? URL.createObjectURL(file) : null
     };
 

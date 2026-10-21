@@ -38,6 +38,22 @@ export const GRADES_LIST = [
   '5° Primaria'
 ];
 
+/**
+ * Normaliza cualquier formato de grado (ej: "Primero (1°)", "1°", "primero")
+ * a la nomenclatura canónica de GRADES_LIST.
+ */
+export function normalizeGrade(grade) {
+  if (!grade) return '1° Primaria';
+  const g = grade.toString().toLowerCase().trim();
+  if (g.includes('transic')) return 'Transición';
+  if (g.includes('primero') || g.includes('1')) return '1° Primaria';
+  if (g.includes('segundo') || g.includes('2')) return '2° Primaria';
+  if (g.includes('tercero') || g.includes('3')) return '3° Primaria';
+  if (g.includes('cuarto') || g.includes('4')) return '4° Primaria';
+  if (g.includes('quinto') || g.includes('5')) return '5° Primaria';
+  return grade;
+}
+
 export const ALL_SUBJECTS = [
   'Lengua Castellana',
   'Matemáticas',
@@ -213,6 +229,8 @@ export const createInitialRosterForBranch = (grade, subject, period) => {
     return {
       id: st.id,
       name: st.name,
+      active: true,
+      status: 'activo',
       // Diccionario de actividades continuas de aula (80%)
       scores: {
         act_1: p.a1,

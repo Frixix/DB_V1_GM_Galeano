@@ -3,6 +3,7 @@ import { formatBytes, formatDateTime, generateRadicado } from '../utils/format';
 import { compressFileIfNeeded } from '../utils/compression';
 import { uploadDocumentFile } from '../services/storageService';
 import { SYSTEM_STORAGE_CAPACITY_BYTES } from '../data/users';
+import gradesService from '../services/gradesService';
 
 export default function UploadModal({ 
   isOpen, 
@@ -330,6 +331,20 @@ export default function UploadModal({
               </>
             )}
           </div>
+
+          {folder !== 'boveda' && grade !== 'General' && grade !== 'Directivo' && (() => {
+            const printInfo = gradesService.getPrintingCopiesSuggestion(grade);
+            return (
+              <div style={{ marginBottom: '1rem', padding: '0.65rem 0.9rem', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', fontSize: '0.78rem', color: '#5b21b6' }}>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
+                  <i className="ph-bold ph-printer"></i> Sugerencia de Impresión Institucional (N + 1):
+                </strong>
+                <span>
+                  <strong>{printInfo.suggestedCopies} copias sugeridas</strong> para {grade} ({printInfo.activeStudents} alumnos activos en roster + 1 copia docente calificador).
+                </span>
+              </div>
+            );
+          })()}
 
           <div className="form-grid-2">
             <div className="form-group">

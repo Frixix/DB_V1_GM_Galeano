@@ -211,7 +211,7 @@ export default function BaseSidebar({
 
           <div className="storage-labels" style={{ marginTop: '0.35rem' }}>
             <span>{stats?.uploadedCount || 0} de {stats?.totalSubjects || 0} materias</span>
-            <span>{stats?.totalCopiesNeeded || 0} copias requeridas</span>
+            <span title="Total de copias calculadas con la fórmula institucional N+1">{stats?.totalCopiesNeeded || 0} copias (N+1)</span>
           </div>
 
           <div style={{ marginTop: '0.65rem', padding: '0.55rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.72rem', color: '#475569' }}>

@@ -45,13 +45,17 @@ export default function FinalExamsModule({
   const [selectedTeacher, setSelectedTeacher] = useState('all');
   const [curriculumTick, setCurriculumTick] = useState(0);
 
-  // Escuchar actualizaciones globales de evaluaciones
+  // Escuchar actualizaciones globales de evaluaciones y del roster escolar
   useEffect(() => {
     const handleUpdate = () => {
       setCurriculumTick((t) => t + 1);
     };
     window.addEventListener('gmg_evaluaciones_updated', handleUpdate);
-    return () => window.removeEventListener('gmg_evaluaciones_updated', handleUpdate);
+    window.addEventListener('gmg_roster_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('gmg_evaluaciones_updated', handleUpdate);
+      window.removeEventListener('gmg_roster_updated', handleUpdate);
+    };
   }, []);
 
   const availablePeriods = useMemo(() => finalExamsService.getPeriods(), []);
@@ -162,14 +166,14 @@ Materia / Asignatura:${item.subject}
 Grado Escolar:      ${item.grade}
 Periodo Académico:  ${selectedPeriod}
 Docente a Cargo:    ${item.teacher}
-Copias Requeridas:  ${item.copiesNeeded || item.studentCount} copias para ${item.grade}
+Copias Requeridas:  ${item.copiesNeeded} copias para ${item.grade} (${item.activeStudents || (item.copiesNeeded - 1)} alumnos activos + 1 copia docente calificador [Fórmula N+1])
 Fecha de Carga:     ${item.uploadedAt || '2026-03-24 14:00'}
 Subido Oficial Por: ${item.uploadedBy || item.teacher}
 Estado Fotocopiado: ${item.copiesStatus?.toUpperCase() || 'APROBADO PARA IMPRESIÓN'}
 
 --------------------------------------------------------------------------------
-INSTRUCCIONES DE IMPRESIÓN & REPRODUCCIÓN:
-${item.notes || 'Impresión en tamaño carta, a doble cara, grapado en esquina superior izquierda.'}
+ESPECIFICACIÓN DE REPRODUCCIÓN (FÓRMULA N + 1):
+${item.notes || `Sugerencia institucional automatizada: ${item.copiesNeeded} ejemplares (${item.activeStudents || (item.copiesNeeded - 1)} alumnos activos + 1 docente calificador).`}
 --------------------------------------------------------------------------------
 
 [CONTENIDO COMPLETO DE LA EVALUACIÓN ACUMULATIVA]
@@ -529,7 +533,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                               <div className="copies-status-box">
                                 <div className="copies-metric">
                                   <i className="ph-bold ph-copy"></i>
-                                  <span><strong>{item.copiesNeeded}</strong> copias requeridas ({item.grade})</span>
+                                  <span><strong>{item.copiesNeeded}</strong> copias (N+1: {item.activeStudents || (item.copiesNeeded - 1)} + 1)</span>
                                 </div>
                                 <span className={`print-badge ${item.copiesStatus}`}>
                                   <i className={`ph-bold ${item.copiesStatus === 'impreso' ? 'ph-printer-check' : 'ph-stamp'}`}></i>
@@ -554,7 +558,7 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                                   Pendiente por <strong>{item.teacher}</strong>
                                 </p>
                                 <span className="pending-hint">
-                                  Requerido: {item.copiesNeeded || item.studentCount} copias para {item.grade}
+                                  Sugerencia N+1: <strong>{item.copiesNeeded || (item.studentCount + 1)}</strong> copias ({item.activeStudents || item.studentCount} alumnos + 1 docente)
                                 </span>
                               </div>
                             </div>
@@ -678,7 +682,10 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                               )}
                             </td>
                             <td>
-                              <strong>{item.copiesNeeded || item.studentCount}</strong> copias
+                              <strong>{item.copiesNeeded}</strong> copias
+                              <small style={{ display: 'block', color: '#64748b', fontSize: '0.72rem' }}>
+                                (N+1: {item.activeStudents || (item.copiesNeeded - 1)} + 1)
+                              </small>
                             </td>
                             <td>
                               {item.uploaded ? (
@@ -882,7 +889,7 @@ function UploadExamModal({
 
   const [subject, setSubject] = useState(initialSubject || availableSubjects[0] || 'Lengua Castellana');
   const [file, setFile] = useState(null);
-  const [notes, setNotes] = useState('Impresión a doble cara, tamaño carta, grapado en esquina.');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Al cambiar grado en el modal, reajustar automáticamente la materia disponible
@@ -910,7 +917,7 @@ function UploadExamModal({
   if (!isOpen) return null;
 
   const assignment = finalExamsService.getTeacherAssignment(grade, subject);
-  const studentCount = finalExamsService.getStudentCount(grade);
+  const printInfo = finalExamsService.getPrintingCopiesSuggestion(grade);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -922,12 +929,12 @@ function UploadExamModal({
         grade,
         subject,
         file,
-        notes,
+        notes: notes.trim() ? notes : `Sugerencia institucional (N + 1): ${printInfo.suggestedCopies} ejemplares (${printInfo.activeStudents} alumnos activos + 1 copia docente).`,
         copiesStatus: 'aprobado',
         user: currentUser
       });
 
-      onUploadSuccess(`✓ Evaluación de ${subject} (${grade}) guardada para ${assignment.teacherName} (${studentCount} copias).`);
+      onUploadSuccess(`✓ Evaluación de ${subject} (${grade}) guardada para ${assignment.teacherName} (${printInfo.suggestedCopies} copias - Fórmula N+1).`);
     } catch (err) {
       alert(`Error al guardar la evaluación: ${err.message}`);
     } finally {
@@ -1008,8 +1015,11 @@ function UploadExamModal({
             <div className="assignment-copies-info">
               <i className="ph-bold ph-copy"></i>
               <div>
-                <span className="info-lbl">Copias a generar:</span>
-                <strong className="info-val">{studentCount} Copias ({grade})</strong>
+                <span className="info-lbl">Sugerencia de Impresión (N + 1):</span>
+                <strong className="info-val">{printInfo.suggestedCopies} Copias ({grade})</strong>
+                <small style={{ display: 'block', color: '#64748b', fontSize: '0.72rem', marginTop: '2px' }}>
+                  {printInfo.activeStudents} alumnos activos + 1 docente calificador
+                </small>
               </div>
             </div>
           </div>
@@ -1055,7 +1065,7 @@ function UploadExamModal({
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ej: Impresión a doble cara, tamaño carta, grapado en esquina superior..."
+              placeholder="Observaciones pedagógicas adicionales para el fotocopiado (el tiraje N+1 se calcula de forma automática)..."
             />
           </div>
 
@@ -1143,9 +1153,9 @@ function ViewExamModal({
               <strong className="detail-val">{item.fileName || 'Evaluacion.pdf'} ({item.fileSize || '1.2 MB'})</strong>
             </div>
             <div className="detail-row">
-              <span className="detail-lbl">Copias Requeridas:</span>
+              <span className="detail-lbl">Sugerencia de Impresión:</span>
               <strong className="detail-val" style={{ color: '#4338ca' }}>
-                {item.copiesNeeded || item.studentCount} Copias ({item.grade})
+                {item.copiesNeeded} Copias ({item.activeStudents || (item.copiesNeeded - 1)} alumnos activos + 1 docente • Fórmula N+1)
               </strong>
             </div>
           </div>

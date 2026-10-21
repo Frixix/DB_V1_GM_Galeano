@@ -6,7 +6,8 @@ import {
   STUDENTS_BY_GRADE, 
   GRADE_DIRECTORS,
   TEACHER_CURRICULUM_ASSIGNMENTS, 
-  createInitialRosterForBranch 
+  createInitialRosterForBranch,
+  normalizeGrade
 } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
 
@@ -372,8 +373,9 @@ class GradesService {
    * Genera el consolidado general de notas de un grado y periodo (Sábana General - Vista General)
    */
   getConsolidatedGradeSheet(year = '2026', period = '1° Periodo (25%)', grade = '1° Primaria') {
-    const subjects = this.getSubjectsForGrade(grade);
-    const studentsBase = STUDENTS_BY_GRADE[grade] || STUDENTS_BY_GRADE['1° Primaria'] || [];
+    const canonicalGrade = normalizeGrade(grade);
+    const subjects = this.getSubjectsForGrade(canonicalGrade);
+    const studentsBase = this.getGradeRoster(canonicalGrade, year, period);
     
     // Obtenemos los datos de cada materia para el año, periodo y grado
     const subjectRosters = {};
@@ -645,6 +647,139 @@ class GradesService {
     branch.lastUpdatedBy = user?.name || 'Sistema';
     this.persistTree();
     return branch;
+  }
+
+  // =====================================================================
+  // CÁLCULO DINÁMICO DE IMPRESIONES INSTITUCIONALES (N + 1) & GESTIÓN DE ROSTER
+  // =====================================================================
+
+  /**
+   * Obtiene la lista de estudiantes de un grado para un periodo (desde el árbol o fallback)
+   */
+  getGradeRoster(grade, year = '2026', period = '1° Periodo (25%)') {
+    const canonicalGrade = normalizeGrade(grade);
+    const subjects = this.getSubjectsForGrade(canonicalGrade);
+    const firstSubj = subjects[0] || 'Matemáticas';
+    const branch = this.getBranch(year, period, canonicalGrade, firstSubj);
+    return branch?.students || [];
+  }
+
+  /**
+   * Obtiene la lista de estudiantes activos en el grado seleccionado (según el roster de la planilla)
+   */
+  getActiveStudents(grade, year = '2026', period = '1° Periodo (25%)') {
+    const roster = this.getGradeRoster(grade, year, period);
+    return roster.filter(s => s.active !== false && s.status !== 'inactivo' && !s.inhabilitado);
+  }
+
+  /**
+   * Cuenta la cantidad de estudiantes activos en el grado seleccionado
+   */
+  getActiveStudentsCount(grade, year = '2026', period = '1° Periodo (25%)') {
+    return this.getActiveStudents(grade, year, period).length;
+  }
+
+  /**
+   * Fórmula Institucional de Impresión: Alumnos Activos + 1 (Copia física del Docente Calificador)
+   */
+  getPrintingCopiesSuggestion(grade, year = '2026', period = '1° Periodo (25%)') {
+    const canonicalGrade = normalizeGrade(grade);
+    const activeStudents = this.getActiveStudentsCount(canonicalGrade, year, period);
+    const suggestedCopies = activeStudents + 1;
+    return {
+      grade: canonicalGrade,
+      activeStudents,
+      docenteCopies: 1,
+      suggestedCopies,
+      formulaText: `${activeStudents} alumnos activos + 1 copia docente calificador = ${suggestedCopies} copias`,
+      shortText: `${suggestedCopies} copias (${activeStudents} + 1)`
+    };
+  }
+
+  /**
+   * Agrega un nuevo estudiante a todas las asignaturas del grado en el periodo
+   */
+  addStudentToGrade(grade, studentData, user = null, year = '2026', period = '1° Periodo (25%)') {
+    const canonicalGrade = normalizeGrade(grade);
+    const subjects = this.getSubjectsForGrade(canonicalGrade);
+    const studentId = studentData.id ? studentData.id.trim() : `EST-${canonicalGrade.substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+    const studentName = studentData.name ? studentData.name.trim() : 'Nuevo Estudiante';
+
+    const newStudent = {
+      id: studentId,
+      name: studentName,
+      active: true,
+      status: 'activo',
+      inhabilitado: false,
+      scores: {},
+      evaluacionFinal: null,
+      c1: '',
+      c2: '',
+      c3: '',
+      retroalimentacionDocente: '',
+      sugerenciaDirectiva: '',
+      observacion_coordinacion: null,
+      observacionCoordinacion: null,
+      comentarioAuditoria: ''
+    };
+
+    subjects.forEach(subj => {
+      const branch = this.getBranch(year, period, canonicalGrade, subj);
+      if (branch && branch.students) {
+        if (!branch.students.some(s => s.id === studentId)) {
+          branch.students.push({ ...newStudent });
+          branch.lastUpdated = new Date().toISOString();
+          branch.lastUpdatedBy = user?.name || 'Administración';
+        }
+      }
+    });
+
+    this.persistTree();
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+        detail: { grade: canonicalGrade, action: 'add', student: newStudent, timestamp: new Date().toISOString() }
+      }));
+    }
+    this.notifyCurriculumUpdate();
+
+    return newStudent;
+  }
+
+  /**
+   * Inhabilita o reactiva a un estudiante en todas las materias del grado
+   */
+  toggleStudentStatus(grade, studentId, user = null, year = '2026', period = '1° Periodo (25%)') {
+    const canonicalGrade = normalizeGrade(grade);
+    const subjects = this.getSubjectsForGrade(canonicalGrade);
+    let updatedActiveState = true;
+
+    subjects.forEach(subj => {
+      const branch = this.getBranch(year, period, canonicalGrade, subj);
+      if (branch && branch.students) {
+        const target = branch.students.find(s => s.id === studentId);
+        if (target) {
+          const currentActive = target.active !== false && target.status !== 'inactivo' && !target.inhabilitado;
+          updatedActiveState = !currentActive;
+          target.active = updatedActiveState;
+          target.status = updatedActiveState ? 'activo' : 'inactivo';
+          target.inhabilitado = !updatedActiveState;
+          branch.lastUpdated = new Date().toISOString();
+          branch.lastUpdatedBy = user?.name || 'Administración';
+        }
+      }
+    });
+
+    this.persistTree();
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+        detail: { grade: canonicalGrade, action: 'toggle', studentId, active: updatedActiveState, timestamp: new Date().toISOString() }
+      }));
+    }
+    this.notifyCurriculumUpdate();
+
+    return updatedActiveState;
   }
 
   // =====================================================================

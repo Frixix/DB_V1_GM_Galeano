@@ -87,6 +87,16 @@ export default function App() {
 
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
 
+  // Escucha reactiva de actualizaciones del roster escolar (ingresos / inhabilitaciones N+1)
+  const [rosterTick, setRosterTick] = useState(0);
+  useEffect(() => {
+    const handleRosterUpdate = () => {
+      setRosterTick(t => t + 1);
+    };
+    window.addEventListener('gmg_roster_updated', handleRosterUpdate);
+    return () => window.removeEventListener('gmg_roster_updated', handleRosterUpdate);
+  }, []);
+
   // Control de asistencia y conexiones en tiempo real
   const {
     presenceData,
@@ -1169,7 +1179,7 @@ export default function App() {
                 <div className="cards-grid">
                   {filteredDocs.map(doc => (
                     <DocumentCard 
-                      key={doc.id} 
+                      key={`${doc.id}_${rosterTick}`} 
                       doc={doc} 
                       onView={handleViewDocument}
                       onDownload={handleDownloadDocument}
@@ -1181,6 +1191,7 @@ export default function App() {
                 </div>
               ) : (
                 <DocumentTable 
+                  key={`table_${rosterTick}`}
                   documents={filteredDocs}
                   onView={handleViewDocument}
                   onDownload={handleDownloadDocument}
@@ -1226,6 +1237,7 @@ export default function App() {
 
       {/* Modal para Ver Documento */}
       <ViewModal 
+        key={`view_${selectedDocForView?.id}_${rosterTick}`}
         isOpen={isViewModalOpen}
         doc={selectedDocForView}
         onClose={() => {
@@ -1239,7 +1251,7 @@ export default function App() {
 
       {/* Modal para Subir Documento */}
       <UploadModal 
-        key={isUploadModalOpen ? `upload_modal_${currentFolder}` : 'upload_modal_closed'}
+        key={isUploadModalOpen ? `upload_modal_${currentFolder}_${rosterTick}` : 'upload_modal_closed'}
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         currentUser={currentUser}

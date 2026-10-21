@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import gradesService from '../services/gradesService';
 
 function DocumentCard({ doc, onView, onDownload, onDelete, canDelete, isUnread = false }) {
   
@@ -27,12 +28,23 @@ function DocumentCard({ doc, onView, onDownload, onDelete, canDelete, isUnread =
     return map[key] || key;
   };
 
+  const hasGrade = doc?.grade && doc.grade !== 'General' && doc.grade !== 'Directivo';
+  const printSuggestion = hasGrade ? gradesService.getPrintingCopiesSuggestion(doc.grade) : null;
+
   return (
     <article className={`doc-card ${isUnread ? 'card-unread' : ''}`}>
       <div className="doc-card-header">
         <div className="badges-group">
           <span className={getFolderClass(doc.folder)}>{formatFolderLabel(doc.folder)}</span>
           <span className="tag-pastel-grade">{doc.grade}</span>
+          {printSuggestion && (
+            <span 
+              className="tag-pastel-copies" 
+              title={`Sugerencia de Impresión automatizada (N + 1): ${printSuggestion.formulaText}`}
+            >
+              <i className="ph-bold ph-printer"></i> {printSuggestion.suggestedCopies} copias
+            </span>
+          )}
           {doc.isPublic && <span className="tag-pastel-public"><i className="ph-bold ph-globe"></i> Público</span>}
           {isUnread && (
             <span className="tag-unread-dot" title="Circular pendiente de lectura">

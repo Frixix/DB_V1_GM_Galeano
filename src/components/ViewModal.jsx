@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { downloadDocumentBlob } from '../services/storageService';
+import gradesService from '../services/gradesService';
 
 export default function ViewModal({ 
   doc, 
@@ -199,6 +200,30 @@ export default function ViewModal({
                 <span style={{ color: 'var(--text-muted)' }}>Periodo lectivo:</span> <strong>{doc.period}</strong>
               </div>
             )}
+
+            {/* Sugerencia de Impresión Dinámica (Fórmula N + 1) */}
+            {doc.grade && doc.grade !== 'General' && doc.grade !== 'Directivo' && (() => {
+              const printSuggestion = gradesService.getPrintingCopiesSuggestion(doc.grade);
+              return (
+                <div className="view-print-suggestion-card" style={{ marginBottom: '0.85rem', padding: '0.75rem 1rem', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <strong style={{ color: '#5b21b6', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <i className="ph-bold ph-printer"></i> Sugerencia de Impresión Institucional (Fórmula N + 1)
+                    </strong>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4338ca', background: '#ede9fe', padding: '2px 8px', borderRadius: '12px' }}>
+                      {printSuggestion.suggestedCopies} Copias
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#4b5563' }}>
+                    <strong>{printSuggestion.activeStudents} alumnos activos</strong> en {doc.grade} + <strong>1 copia física de referencia</strong> para el docente calificador.
+                    <br />
+                    <span style={{ color: '#6d28d9', fontSize: '0.72rem', fontWeight: 600 }}>
+                      * El cálculo se sincroniza automáticamente con el roster de la planilla oficial de calificaciones.
+                    </span>
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Ficha del Archivo Adjunto */}
             <div className="file-attachment-badge" style={{ marginTop: '0.5rem' }}>

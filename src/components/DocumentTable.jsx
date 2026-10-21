@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import gradesService from '../services/gradesService';
 
 function DocumentTable({ documents, onView, onDownload, onDelete, canDelete, readCircularIds = [], currentUserName = '' }) {
   
@@ -63,7 +64,18 @@ function DocumentTable({ documents, onView, onDownload, onDelete, canDelete, rea
                   )}
                 </td>
               <td><i className="ph ph-user"></i> {doc.teacher}</td>
-              <td><span className="tag-pastel-grade">{doc.folder === 'boveda' ? (doc.bovedaYear || '2026') : doc.grade}</span></td>
+              <td>
+                <span className="tag-pastel-grade">{doc.folder === 'boveda' ? (doc.bovedaYear || '2026') : doc.grade}</span>
+                {doc.grade && doc.grade !== 'General' && doc.grade !== 'Directivo' && (
+                  <span 
+                    className="tag-pastel-copies-mini"
+                    title={`Sugerencia de Impresión automatizada N+1: ${gradesService.getPrintingCopiesSuggestion(doc.grade).formulaText}`}
+                    style={{ display: 'block', marginTop: '3px', fontSize: '0.68rem', color: '#6d28d9', fontWeight: 600 }}
+                  >
+                    <i className="ph-bold ph-printer"></i> {gradesService.getPrintingCopiesSuggestion(doc.grade).suggestedCopies} copias
+                  </span>
+                )}
+              </td>
               <td>{doc.folder === 'boveda' ? doc.bovedaSubfolder : doc.subject}</td>
               <td><span className={getFolderClass(doc.folder)}>{formatFolderLabel(doc.folder)}</span></td>
               <td><small><i className="ph-bold ph-clock"></i> {doc.uploadedAt || "Reciente"}</small></td>

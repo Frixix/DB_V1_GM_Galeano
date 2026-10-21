@@ -142,6 +142,9 @@ export default function GradesModule({
     ];
   });
   const [isMobileMicroOpen, setIsMobileMicroOpen] = useState(false);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentId, setNewStudentId] = useState('');
 
   // Sincronizar roster y actividades al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
@@ -349,6 +352,74 @@ export default function GradesModule({
     if (s >= 4.0) return 'def-pill-alto';
     if (s >= 3.0) return 'def-pill-basico';
     return 'def-pill-bajo';
+  };
+
+  // Cálculo de alumnos activos y copias institucionales recomendadas (N + 1)
+  const activeStudentsCount = useMemo(() => {
+    return students.filter(s => s.active !== false && s.status !== 'inactivo' && !s.inhabilitado).length;
+  }, [students]);
+  const suggestedCopies = activeStudentsCount + 1;
+
+  // Agregar nuevo estudiante al roster oficial del grado
+  const handleAddStudentSubmit = (e) => {
+    e.preventDefault();
+    if (!newStudentName.trim()) {
+      alert('Por favor digite el nombre completo del estudiante.');
+      return;
+    }
+    const added = gradesService.addStudentToGrade(
+      selectedGrade,
+      { id: newStudentId.trim() || undefined, name: newStudentName.trim() },
+      currentUser,
+      selectedYear,
+      selectedPeriod
+    );
+
+    setStudents(prev => [...prev, added]);
+    setNewStudentName('');
+    setNewStudentId('');
+    setIsAddStudentModalOpen(false);
+
+    const nextCount = activeStudentsCount + 1;
+    setToastMessage(`¡Estudiante ${added.name} matriculado! Tiraje N+1 actualizado a ${nextCount + 1} copias.`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  // Alternar estado de estudiante (Activo / Inhabilitado)
+  const handleToggleStudent = (studentId) => {
+    if (!canEditScores && !canManageCurriculum) return;
+    const target = students.find(s => s.id === studentId);
+    if (!target) return;
+
+    const willBeActive = target.active === false || target.status === 'inactivo' || target.inhabilitado;
+    const actionLabel = willBeActive ? 'reactivar' : 'inhabilitar';
+    if (!window.confirm(`¿Está seguro de ${actionLabel} a "${target.name}"?\nEl cálculo de copias N+1 se actualizará automáticamente en toda la plataforma.`)) {
+      return;
+    }
+
+    const newActiveState = gradesService.toggleStudentStatus(
+      selectedGrade,
+      studentId,
+      currentUser,
+      selectedYear,
+      selectedPeriod
+    );
+
+    setStudents(prev => prev.map(s => {
+      if (s.id === studentId) {
+        return {
+          ...s,
+          active: newActiveState,
+          status: newActiveState ? 'activo' : 'inactivo',
+          inhabilitado: !newActiveState
+        };
+      }
+      return s;
+    }));
+
+    const nextCount = willBeActive ? activeStudentsCount + 1 : Math.max(0, activeStudentsCount - 1);
+    setToastMessage(`${target.name} ${newActiveState ? 'reactivado' : 'inhabilitado'}. Sugerencia N+1 recalculada a ${nextCount + 1} copias.`);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Cálculos SIEE 80/20 y predicciones de cada estudiante
@@ -759,6 +830,21 @@ export default function GradesModule({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="grades-sheet-metric-pill" title="Sugerencia de impresión automatizada institucional (N + 1): Alumnos Activos + 1 Copia Docente Calificador">
+                  <i className="ph-bold ph-printer"></i>
+                  <span>Impresión N+1: <strong>{suggestedCopies} copias</strong> ({activeStudentsCount} act + 1 doc)</span>
+                </div>
+                {(canEditScores || canManageCurriculum) && (
+                  <button
+                    type="button"
+                    className="btn-add-student"
+                    onClick={() => setIsAddStudentModalOpen(true)}
+                    title="Ingresar nuevo estudiante al roster oficial de este grado"
+                  >
+                    <i className="ph-bold ph-user-plus"></i>
+                    <span>+ Ingresar Alumno</span>
+                  </button>
+                )}
                 {canEditScores && (
                   <>
                     <button
@@ -794,16 +880,16 @@ export default function GradesModule({
               </div>
             </div>
 
-            {/* Banner Informativo del Modelo 80% / 20% */}
+            {/* Banner Informativo del Modelo 80% / 20% & N+1 */}
             <div className="model-banner-8020">
               <div className="model-badge">
                 <i className="ph-bold ph-sparkle"></i>
-                <span>Modelo Flexible 80% / 20%</span>
+                <span>Modelo Flexible 80% / 20% & N+1</span>
               </div>
               <div className="model-desc">
-                <strong>Actividades de Aula ({activities.length} activas = 80%):</strong> Califica talleres, quices, exposiciones o trabajo en clase sin rigidez. El promedio simple consolida el 80%.
+                <strong>Actividades de Aula ({activities.length} activas = 80%):</strong> Califica talleres, quices y tareas sin rigidez. El promedio simple consolida el 80%.
                 <br />
-                <strong>Evaluación Final (20%) con Simulación Predictiva:</strong> Si el examen aún no se presenta, se proyecta con 1.0 para visualizar la definitiva real y cuánto requiere el estudiante para aprobar (3.0).
+                <strong>Sugerencia de Impresión Automatizada ({suggestedCopies} copias):</strong> Calculada en tiempo real según el roster ({activeStudentsCount} alumnos activos + 1 copia docente calificador). Si ingresa un estudiante o se inhabilita uno, el tiraje se recalcula al instante en toda la institución.
               </div>
             </div>
 
@@ -937,8 +1023,34 @@ export default function GradesModule({
                                 {student.name.charAt(0)}
                               </div>
                               <div className="grades-student-info">
-                                <span className="grades-student-name">{student.name}</span>
-                                <span className="grades-student-code">{student.id}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span 
+                                    className="grades-student-name"
+                                    style={{ opacity: student.inhabilitado || student.active === false ? 0.6 : 1 }}
+                                  >
+                                    {student.name}
+                                  </span>
+                                  {student.inhabilitado || student.active === false ? (
+                                    <span className="tag-inhabilitado" title="Estudiante inhabilitado (excluido de copias N+1)">
+                                      Inhabilitado
+                                    </span>
+                                  ) : (
+                                    <span className="dot-active-student" title="Estudiante Activo"></span>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                                  <span className="grades-student-code">{student.id}</span>
+                                  {(canEditScores || canManageCurriculum) && (
+                                    <button
+                                      type="button"
+                                      className="btn-toggle-student-status"
+                                      onClick={() => handleToggleStudent(student.id)}
+                                      title={student.inhabilitado || student.active === false ? 'Reactivar estudiante en el roster' : 'Inhabilitar estudiante (ajusta cálculo N+1)'}
+                                    >
+                                      {student.inhabilitado || student.active === false ? 'Reactivar' : 'Inhabilitar'}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>
@@ -1249,6 +1361,92 @@ export default function GradesModule({
         onScoreUpdate={handleMobileScoreUpdate}
         canEdit={canEditScores}
       />
+
+      {/* Modal 3: Matricular / Ingresar Nuevo Estudiante al Roster */}
+      {isAddStudentModalOpen && (
+        <div className="modal-add-student-overlay" onClick={() => setIsAddStudentModalOpen(false)}>
+          <div className="modal-add-student-card" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
+                  <i className="ph-bold ph-user-plus"></i>
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>Ingresar Estudiante a {selectedGrade}</h3>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>El cálculo de copias N+1 se actualizará automáticamente</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsAddStudentModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: '#64748b', cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleAddStudentSubmit}>
+              <div style={{ marginBottom: '0.85rem' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Nombre Completo del Alumno *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Sofía Gómez Pardo"
+                  value={newStudentName}
+                  onChange={(e) => setNewStudentName(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  autoFocus
+                />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Código / Identificador (Opcional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: EST-107 (se autogenera si se deja vacío)"
+                  value={newStudentId}
+                  onChange={(e) => setNewStudentId(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ padding: '0.65rem 0.85rem', background: '#f5f3ff', borderRadius: '8px', border: '1px solid #ddd6fe', marginBottom: '1.25rem', fontSize: '0.75rem', color: '#5b21b6' }}>
+                <i className="ph-bold ph-printer" style={{ marginRight: '5px' }}></i>
+                <strong>Impacto de Impresión N+1:</strong> Al matricular a este estudiante, el tiraje sugerido pasará automáticamente de <strong>{suggestedCopies}</strong> a <strong>{suggestedCopies + 1} copias</strong>.
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="grades-btn-secondary"
+                  onClick={() => setIsAddStudentModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '0.55rem 1.1rem',
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Confirmar Matrícula
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Notificación Toast Flotante */}
       {toastMessage && (
