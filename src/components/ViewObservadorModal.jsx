@@ -8,7 +8,9 @@ export default function ViewObservadorModal({
   onClose,
   onDownload,
   onUpdateStatus,
-  currentUser
+  currentUser,
+  isUnread = false,
+  onConfirmRead = null
 }) {
   const [isResolving, setIsResolving] = useState(false);
   const [resolutionText, setResolutionText] = useState('');
@@ -169,6 +171,29 @@ export default function ViewObservadorModal({
             </span>
           </div>
         </div>
+
+        {/* Alerta de Lectura Pendiente si fue abierto desde Notificaciones */}
+        {isUnread && (
+          <div className="view-modal-unread-alert" style={{ margin: '1rem 1.5rem 0' }}>
+            <div className="view-modal-unread-alert-left">
+              <i className="ph-bold ph-bell-ringing"></i>
+              <div>
+                <strong>Alerta institucional pendiente de confirmación de revisión</strong>
+                <p>Al confirmar revisión, constará formalmente tu conocimiento de este caso o acta en el sistema.</p>
+              </div>
+            </div>
+            {onConfirmRead && (
+              <button
+                type="button"
+                className="btn-confirm-read-action"
+                onClick={() => onConfirmRead(record.id)}
+                title="Confirmar revisión oficial"
+              >
+                <i className="ph-bold ph-check-circle"></i> Confirmar lectura
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Título Principal del Registro */}
         <div className="obs-modal-title-section">
@@ -523,6 +548,21 @@ export default function ViewObservadorModal({
           </div>
 
           <div className="obs-modal-footer-right">
+            {isUnread && onConfirmRead ? (
+              <button
+                type="button"
+                className="btn btn-confirm-read-footer"
+                onClick={() => onConfirmRead(record.id)}
+                title="Confirmar revisión oficial de esta alerta"
+              >
+                <i className="ph-bold ph-check-circle"></i> Confirmar lectura
+              </button>
+            ) : (
+              <span className="badge-read-confirmed" title="Has confirmado la revisión de esta alerta">
+                <i className="ph-bold ph-check"></i> Revisión confirmada
+              </span>
+            )}
+
             <button
               type="button"
               className="obs-btn-secondary"

@@ -453,6 +453,28 @@ export const initialObservadorRecords = [
     resolvedBy: 'Claudia (Rectora)'
   },
   {
+    id: 'ACT-EVAL-002',
+    route: 'comision_evaluacion',
+    title: 'Acta Extraordinaria N° 02: Superación de Riesgo Académico & Planillas Pendientes',
+    date: '12/10/2026, 02:00 p. m.',
+    period: '1° Periodo',
+    grade: 'Institucional',
+    teacher: 'Claudia (Rectora)',
+    sessionType: 'Extraordinaria',
+    attendees: 'Claudia (Rectora), Jessica (1°), Yuri (2°), Profe 2 (3°), Elcy (4°)',
+    type: 'extraordinaria',
+    semaforo: 'rojo',
+    status: 'en_seguimiento',
+    description: 'Revisión y consolidación de compromisos de nivelación académica para estudiantes con notas inferiores a 3.0 en el primer corte. Se fija plazo perentorio de entrega de evidencias.',
+    agreements: '1. Citación a padres de familia de estudiantes con 2 o más asignaturas en desempeño bajo.\n2. Radicación de talleres de superación en la plataforma pedagógica.',
+    followUpDate: '18/10/2026',
+    notes: 'Acta pendiente de verificación y firmas de cierre.',
+    resolutionNotes: '',
+    resolutionImage: null,
+    resolvedAt: null,
+    resolvedBy: null
+  },
+  {
     id: 'ACT-ACAD-001',
     route: 'consejo_academico',
     title: 'Acta N° 02: Articulación Curricular DBA y Proyectos Transversales de Primaria',

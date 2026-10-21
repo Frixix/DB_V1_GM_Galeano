@@ -28,6 +28,8 @@ import TrialWatermark from './components/TrialWatermark';
 import { USERS } from './data/users';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
+import { useObservador } from './hooks/useObservador';
+import { getDeadlineMeta } from './utils/observadorDates';
 import { useUserPresence } from './hooks/useUserPresence';
 import { downloadDocumentBlob } from './services/storageService';
 import { syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword, hasBovedaCustomPassword } from './services/authService';
@@ -67,6 +69,7 @@ export default function App() {
   const [selectedDocForView, setSelectedDocForView] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [observadorDeepLink, setObservadorDeepLink] = useState(null);
 
   const handleOpenProfile = useCallback((targetUserKey = null, initialTab = null) => {
     const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
@@ -80,6 +83,7 @@ export default function App() {
 
   const { documents, addDocument, deleteDocument } = useDocuments();
   const { readCircularIds, markAsRead: markCircularAsRead, markAllAsRead } = useCircularReads(currentUser);
+  const { records: observadorRecords } = useObservador();
 
   const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0);
 
@@ -203,9 +207,27 @@ export default function App() {
   }, [currentUser, readCircularIds]);
 
   const unreadDocs = documents.filter(isDocUnread);
-  const unreadCirculares = unreadDocs.filter(d => d.folder === 'institucional');
-  const unreadSharedDocs = unreadDocs.filter(d => d.folder !== 'institucional');
-  const totalUnreadCount = unreadDocs.length;
+  const unreadCirculares = unreadDocs.filter((d) => d.folder === 'institucional');
+  const unreadSharedDocs = unreadDocs.filter((d) => d.folder !== 'institucional');
+
+  // Conteo de alertas pendientes en Observador y Actas de Comités
+  const unreadObservadorCount = useMemo(() => {
+    if (!currentUser || !observadorRecords) return 0;
+    const isPrivileged = ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
+    return observadorRecords.filter((rec) => {
+      const isCommitteeRoute = ['comite_convivencia', 'comision_evaluacion', 'consejo_academico', 'reuniones_docentes'].includes(rec.route);
+      const isOwnCase = rec.teacher === currentUser.name;
+      if (!isPrivileged && !isCommitteeRoute && !isOwnCase) return false;
+
+      const meta = getDeadlineMeta(rec);
+      const isResolved = meta.isResolved || rec.status === 'resuelto' || rec.semaforo === 'verde';
+      if (isResolved && !meta.isOverdue) return false;
+
+      return !readCircularIds.includes(rec.id);
+    }).length;
+  }, [currentUser, observadorRecords, readCircularIds]);
+
+  const totalUnreadCount = unreadDocs.length + unreadObservadorCount;
 
   // Manejador para abrir novedades o alternar el Centro de Notificaciones (en cualquier módulo)
   const handleOpenCircularesBell = useCallback(() => {
@@ -216,28 +238,44 @@ export default function App() {
     setIsNotificationsOpen(false);
   }, []);
 
-  // Manejador para seleccionar notificación: redirige al módulo de origen SIN marcar como leída al vuelo
+  // Manejador para seleccionar alerta con DEEP-LINKING hacia el recurso específico
+  // Regla estricta: NO se marca como leída al vuelo al abrir la alerta
   const handleSelectNotification = useCallback((notif) => {
     setIsNotificationsOpen(false);
-    if (notif?.module === 'docs' || notif?.doc) {
+    if (!notif) return;
+
+    const route = notif.route || {};
+    const targetModule = route.module || notif.module;
+
+    if (targetModule === 'docs') {
       setActiveModule('docs');
-      const doc = notif.doc;
-      if (doc) {
-        if (doc.folder === 'institucional') {
-          setCurrentFolder('institucional');
-        } else if (doc.isPublic) {
-          setCurrentFolder('publico');
-        } else if (doc.folder) {
-          setCurrentFolder(doc.folder);
-        }
-        setSelectedDocForView(doc);
-        setIsViewModalOpen(true);
-        // REGLA ESTRICTA: NO se marca como leída al vuelo al abrir la notificación
+      if (route.folder) {
+        setCurrentFolder(route.folder);
       }
-    } else if (notif?.module) {
-      setActiveModule(notif.module);
+      const targetDoc = route.targetData || documents.find((d) => d.id === route.resourceId) || notif.doc;
+      if (targetDoc) {
+        setSelectedDocForView(targetDoc);
+        setIsViewModalOpen(true);
+      }
+    } else if (targetModule === 'observador') {
+      setActiveModule('observador');
+      setObservadorDeepLink({
+        routeTab: route.routeTab || 'all',
+        recordId: route.resourceId,
+        action: route.action || 'view_record',
+        targetData: route.targetData,
+        timestamp: Date.now()
+      });
+    } else if (targetModule === 'grades' || targetModule === 'calificaciones') {
+      setActiveModule('grades');
+    } else if (targetModule === 'boveda') {
+      setActiveModule('boveda');
+    } else if (targetModule === 'evaluaciones') {
+      setActiveModule('evaluaciones');
+    } else if (targetModule === 'gestion_docente' || targetModule === 'docentes') {
+      setActiveModule('gestion_docente');
     }
-  }, []);
+  }, [documents]);
 
   // Manejador para confirmar lectura explícita desde el detalle o notificación
   const handleConfirmRead = useCallback((documentId) => {
@@ -464,6 +502,7 @@ export default function App() {
           onClose={handleCloseNotifications}
           currentUser={currentUser}
           documents={documents}
+          observadorRecords={observadorRecords}
           readCircularIds={readCircularIds}
           onSelectNotification={handleSelectNotification}
           onConfirmRead={handleConfirmRead}
@@ -544,6 +583,7 @@ export default function App() {
           onClose={handleCloseNotifications}
           currentUser={currentUser}
           documents={documents}
+          observadorRecords={observadorRecords}
           readCircularIds={readCircularIds}
           onSelectNotification={handleSelectNotification}
           onConfirmRead={handleConfirmRead}
@@ -644,6 +684,7 @@ export default function App() {
           onClose={handleCloseNotifications}
           currentUser={currentUser}
           documents={documents}
+          observadorRecords={observadorRecords}
           readCircularIds={readCircularIds}
           onSelectNotification={handleSelectNotification}
           onConfirmRead={handleConfirmRead}
@@ -746,6 +787,7 @@ export default function App() {
           onClose={handleCloseNotifications}
           currentUser={currentUser}
           documents={documents}
+          observadorRecords={observadorRecords}
           readCircularIds={readCircularIds}
           onSelectNotification={handleSelectNotification}
           onConfirmRead={handleConfirmRead}
@@ -952,6 +994,7 @@ export default function App() {
           onClose={handleCloseNotifications}
           currentUser={currentUser}
           documents={documents}
+          observadorRecords={observadorRecords}
           readCircularIds={readCircularIds}
           onSelectNotification={handleSelectNotification}
           onConfirmRead={handleConfirmRead}
@@ -980,10 +1023,14 @@ export default function App() {
             onlineCount={onlineCount}
             onlineMap={onlineMap}
             circularesCount={totalUnreadCount}
-          isNotificationsOpen={isNotificationsOpen}
+            isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
+            deepLinkTarget={observadorDeepLink}
+            onClearDeepLink={() => setObservadorDeepLink(null)}
+            readCircularIds={readCircularIds}
+            onConfirmRead={handleConfirmRead}
           />
         </Suspense>
         <ProfileModal 
@@ -1052,6 +1099,7 @@ export default function App() {
           onClose={handleCloseNotifications}
           currentUser={currentUser}
           documents={documents}
+          observadorRecords={observadorRecords}
           readCircularIds={readCircularIds}
           onSelectNotification={handleSelectNotification}
           onConfirmRead={handleConfirmRead}
@@ -1300,6 +1348,7 @@ export default function App() {
         onClose={handleCloseNotifications}
         currentUser={currentUser}
         documents={documents}
+        observadorRecords={observadorRecords}
         readCircularIds={readCircularIds}
         onSelectNotification={handleSelectNotification}
         onConfirmRead={handleConfirmRead}

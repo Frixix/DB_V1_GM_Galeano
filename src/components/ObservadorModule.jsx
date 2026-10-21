@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import PortalNavbar from './PortalNavbar';
 import ObservadorSidebar from './ObservadorSidebar';
 import ObservadorCard from './ObservadorCard';
@@ -21,7 +21,11 @@ export default function ObservadorModule({
   onOpenCirculares,
   isNotificationsOpen = false,
   onOpenTour,
-  onLogout
+  onLogout,
+  deepLinkTarget = null,
+  onClearDeepLink = null,
+  readCircularIds = [],
+  onConfirmRead = null
 }) {
   const { records, addRecord, updateRecord, deleteRecord } = useObservador();
 
@@ -39,6 +43,27 @@ export default function ObservadorModule({
   const [selectedRecordForView, setSelectedRecordForView] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Deep-Linking reactivo hacia actas o registros de observador específicos
+  useEffect(() => {
+    if (!deepLinkTarget) return;
+
+    if (deepLinkTarget.routeTab && deepLinkTarget.routeTab !== 'all') {
+      setCurrentRoute(deepLinkTarget.routeTab);
+    }
+
+    if (deepLinkTarget.recordId) {
+      const found = records.find((r) => r.id === deepLinkTarget.recordId) || deepLinkTarget.targetData;
+      if (found) {
+        setSelectedRecordForView(found);
+        setIsViewModalOpen(true);
+      }
+    }
+
+    if (onClearDeepLink) {
+      onClearDeepLink();
+    }
+  }, [deepLinkTarget, records, onClearDeepLink]);
 
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
   const isCoordinador = currentUser?.role === 'coordinador';
@@ -568,6 +593,8 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         isOpen={isViewModalOpen}
         record={selectedRecordForView}
         currentUser={currentUser}
+        isUnread={selectedRecordForView ? !readCircularIds.includes(selectedRecordForView.id) : false}
+        onConfirmRead={onConfirmRead}
         onClose={() => {
           setIsViewModalOpen(false);
           setSelectedRecordForView(null);
