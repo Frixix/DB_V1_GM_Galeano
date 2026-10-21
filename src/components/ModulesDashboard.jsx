@@ -522,6 +522,51 @@ export default function ModulesDashboard({
               </div>
             </article>
 
+            {/* MÓDULO 6: GESTIÓN DOCENTE & PLANTA CURRICULAR */}
+            <article 
+              className={`portal-module-card ${canManageDocentes ? 'portal-module-card-cyan' : 'portal-module-card-disabled'}`}
+              onClick={() => handleModuleClick('docentes')}
+              role="button"
+              tabIndex={0}
+              title={canManageDocentes ? "Acceder a Gestión Docente, Directores de Curso y Malla Curricular" : "Módulo reservado para Coordinación y Dirección"}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('docentes');
+                }
+              }}
+            >
+              <div className="portal-card-header-bar">
+                <div className={`portal-card-icon-container ${canManageDocentes ? 'portal-cyan-icon' : 'portal-gray-icon'}`}>
+                  <i className="ph-bold ph-chalkboard-teacher" style={{ fontSize: '1.75rem', color: canManageDocentes ? '#0f766e' : undefined }}></i>
+                </div>
+                {canManageDocentes ? (
+                  <span className="portal-badge-cyan">Activo · Directivo & Coord.</span>
+                ) : (
+                  <span className="portal-badge-gray">Directivo Exclusivo</span>
+                )}
+              </div>
+
+              <div className="portal-card-body">
+                <h3 style={{ color: canManageDocentes ? '#0f172a' : undefined }} className={!canManageDocentes ? 'portal-text-gray-title' : undefined}>
+                  Gestión Docente & Malla Curricular
+                </h3>
+                <p style={{ color: canManageDocentes ? '#0f172a' : undefined }} className={!canManageDocentes ? 'portal-text-gray-desc' : undefined}>
+                  Administración de planta docente, directores de curso oficiales, asignaciones académicas por grado, novedades laborales y reemplazos de emergencia.
+                </p>
+              </div>
+
+              <div className={`portal-card-footer ${!canManageDocentes ? 'portal-footer-disabled' : ''}`}>
+                {canManageDocentes ? (
+                  <span className="portal-link-label-cyan">Gestionar Planta & Asignaciones &rarr;</span>
+                ) : (
+                  <span className="portal-label-muted">
+                    <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
+                  </span>
+                )}
+              </div>
+            </article>
+
             {/* MÓDULO 6: EN DESARROLLO (Matrículas & Pagos) */}
             <article className="portal-module-card portal-module-card-disabled">
               <div className="portal-card-header-bar">
