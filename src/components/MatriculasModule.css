@@ -1,0 +1,839 @@
+/* =====================================================================
+   ESTILOS INSTITUCIONALES - PANEL DE MATRICULADOS (FASE 5)
+   Gimnasio Martin Galeano • Paleta Pastel Esmeralda / Menta / Slate
+   ===================================================================== */
+
+.matriculas-module-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.matriculas-content-wrapper {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+  box-sizing: border-box;
+}
+
+/* Banner Institucional Superior */
+.matriculas-header-banner {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #ffffff 100%);
+  border: 1px solid #a7f3d0;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.banner-badge-fase {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #047857;
+  background: #d1fae5;
+  padding: 3px 9px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.banner-left h2 {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #064e3b;
+}
+
+.banner-left p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #334155;
+  max-width: 820px;
+  line-height: 1.45;
+}
+
+.btn-open-enroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1.35rem;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-open-enroll:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  box-shadow: 0 6px 10px -1px rgba(5, 150, 105, 0.4);
+  transform: translateY(-1px);
+}
+
+/* 4 Métricas KPI */
+.matriculas-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.metric-kpi-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.metric-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-icon-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.icon-total {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.icon-active {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.icon-retired {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.icon-print {
+  background: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0;
+}
+
+.kpi-sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* Banner de la Regla de Oro */
+.matriculas-golden-rule-banner {
+  background: #fffbeb;
+  border: 1px solid #fef08a;
+  border-radius: 12px;
+  padding: 0.95rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.rule-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #fde047;
+  color: #713f12;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.rule-desc {
+  font-size: 0.82rem;
+  color: #854d0e;
+  line-height: 1.45;
+}
+
+.rule-desc strong {
+  color: #713f12;
+}
+
+/* Barra de Filtros y Selector de Pestañas */
+.matriculas-toolbar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab-switcher {
+  display: flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.toolbar-select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #1e293b;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.toolbar-select:focus {
+  border-color: #059669;
+}
+
+.toolbar-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.toolbar-search-input {
+  padding: 0.45rem 2rem 0.45rem 2rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  width: 240px;
+  outline: none;
+  transition: border-color 0.15s, width 0.2s;
+}
+
+.toolbar-search-input:focus {
+  border-color: #059669;
+  width: 280px;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Tabla Principal */
+.matriculas-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.table-card-header {
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-meta h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.count-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.badge-nplusone-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f5f3ff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.badge-audit-formula {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.annual-legend-bar {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.65rem 1.5rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  color: #64748b;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.score-retired-default {
+  border: 1px dashed #fca5a5;
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.matriculas-table-wrap {
+  overflow-x: auto;
+}
+
+.matriculas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.matriculas-table th {
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #475569;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.matriculas-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.matriculas-table tr:hover {
+  background: #fcfdfe;
+}
+
+.row-retired {
+  background: #fffdfd;
+}
+
+.row-retired td {
+  opacity: 0.85;
+}
+
+.student-profile-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.avatar-cell-active {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.avatar-cell-retired {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.student-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.86rem;
+}
+
+.name-retired {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.student-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.student-code-tag {
+  font-size: 0.7rem;
+  font-family: monospace;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.tag-extemp {
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badge-grade-pastel {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.acudiente-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #334155;
+}
+
+.icon-guardian {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.date-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.pill-status-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.status-dot-active {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+.pill-status-retired {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 3px 9px;
+  border-radius: 6px;
+  cursor: help;
+}
+
+.nplus-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.nplus-included {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.nplus-excluded {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-action-retire {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.4rem 0.65rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-action-retire:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-action-reactivate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.4rem 0.65rem;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-action-reactivate:hover {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.btn-action-audit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.4rem 0.65rem;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-action-audit:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.td-empty-table {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Estilos de la tabla de consolidado anual */
+.annual-matrix-table th {
+  font-size: 0.78rem;
+}
+
+.annual-cell-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.annual-prom-overall {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.score-high-text {
+  color: #059669;
+}
+
+.score-low-text {
+  color: #dc2626;
+}
+
+/* Pantalla de Acceso Restringido */
+.matriculas-denied-container {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.matriculas-denied-card {
+  max-width: 600px;
+  margin: 4rem auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2.5rem;
+  text-align: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.denied-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.25rem;
+}
+
+.matriculas-denied-card h2 {
+  font-size: 1.3rem;
+  color: #991b1b;
+  margin: 0 0 0.85rem;
+}
+
+.matriculas-denied-card p {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.btn-matriculas-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.65rem 1.25rem;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-matriculas-back:hover {
+  background: #1e293b;
+}
+
+/* Notificación Toast */
+.matriculas-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: slideUp 0.2s ease-out;
+}
+
+.toast-check-icon {
+  font-size: 1.25rem;
+  color: #34d399;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .matriculas-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .matriculas-header-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .matriculas-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .matriculas-toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbar-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbar-search-input {
+    width: 100%;
+  }
+  .toolbar-search-input:focus {
+    width: 100%;
+  }
+}

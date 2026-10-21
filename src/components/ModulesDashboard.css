@@ -828,6 +828,69 @@
   transform: translateX(4px);
 }
 
+.portal-module-card-emerald {
+  border: 1px solid #a7f3d0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.portal-module-card-emerald::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #059669;
+  transition: height 0.2s ease;
+}
+
+.portal-module-card-emerald:hover::before {
+  height: 2px;
+}
+
+.portal-module-card-emerald .portal-card-icon-container.portal-emerald-icon {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.portal-module-card-emerald:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.14), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  border-color: #059669;
+}
+
+.portal-badge-emerald {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #047857;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.portal-link-label-emerald {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #059669;
+  transition: transform 0.15s ease;
+}
+
+.portal-module-card-emerald:hover .portal-link-label-emerald {
+  transform: translateX(4px);
+}
+
+.portal-nav-item-matriculas.active {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+  font-weight: 600;
+}
+
 .portal-nav-item-observador:hover:not(.active) {
   background-color: #f1f5f9;
   border-color: transparent;

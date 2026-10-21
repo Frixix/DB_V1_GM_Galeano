@@ -3,6 +3,9 @@ import PortalNavbar from './PortalNavbar';
 import GradesSidebar from './GradesSidebar';
 import EvaluationCalendarModal from './EvaluationCalendarModal';
 import MobileMicroRegistryModal from './MobileMicroRegistryModal';
+import EnrollStudentModal from './EnrollStudentModal';
+import RetireStudentModal from './RetireStudentModal';
+import StudentAuditDetailModal from './StudentAuditDetailModal';
 import './GradesModule.css';
 import { gradesService, calculateGrade80_20 } from '../services/gradesService';
 
@@ -143,8 +146,9 @@ export default function GradesModule({
   });
   const [isMobileMicroOpen, setIsMobileMicroOpen] = useState(false);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
-  const [newStudentName, setNewStudentName] = useState('');
-  const [newStudentId, setNewStudentId] = useState('');
+  const [isRetireModalOpen, setIsRetireModalOpen] = useState(false);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [selectedStudentForAction, setSelectedStudentForAction] = useState(null);
 
   // Sincronizar roster y actividades al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
@@ -196,6 +200,10 @@ export default function GradesModule({
 
   const canManageCalendar = useMemo(() => {
     return gradesService.canManageCalendarAndDeadlines(currentUser);
+  }, [currentUser]);
+
+  const canManageMatricula = useMemo(() => {
+    return gradesService.canManageMatricula(currentUser);
   }, [currentUser]);
 
   // Manejo de cambio en nota de actividad continua de aula (80%)
@@ -360,66 +368,61 @@ export default function GradesModule({
   }, [students]);
   const suggestedCopies = activeStudentsCount + 1;
 
-  // Agregar nuevo estudiante al roster oficial del grado
-  const handleAddStudentSubmit = (e) => {
-    e.preventDefault();
-    if (!newStudentName.trim()) {
-      alert('Por favor digite el nombre completo del estudiante.');
-      return;
-    }
-    const added = gradesService.addStudentToGrade(
-      selectedGrade,
-      { id: newStudentId.trim() || undefined, name: newStudentName.trim() },
-      currentUser,
-      selectedYear,
-      selectedPeriod
-    );
-
+  // FASE 5: Manejador cuando un nuevo estudiante extemporáneo es matriculado
+  const handleStudentEnrolled = (added) => {
     setStudents(prev => [...prev, added]);
-    setNewStudentName('');
-    setNewStudentId('');
-    setIsAddStudentModalOpen(false);
-
     const nextCount = activeStudentsCount + 1;
     setToastMessage(`¡Estudiante ${added.name} matriculado! Tiraje N+1 actualizado a ${nextCount + 1} copias.`);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Alternar estado de estudiante (Activo / Inhabilitado)
-  const handleToggleStudent = (studentId) => {
-    if (!canEditScores && !canManageCurriculum) return;
-    const target = students.find(s => s.id === studentId);
-    if (!target) return;
+  // FASE 5: Abrir modal interactivo de inhabilitación / retiro (Soft-Disable)
+  const handleOpenRetireModal = (student) => {
+    if (!canManageMatricula) {
+      alert('Solo Administrador, Rectora o Coordinación pueden inhabilitar estudiantes.');
+      return;
+    }
+    setSelectedStudentForAction(student);
+    setIsRetireModalOpen(true);
+  };
 
-    const willBeActive = target.active === false || target.status === 'inactivo' || target.inhabilitado;
-    const actionLabel = willBeActive ? 'reactivar' : 'inhabilitar';
-    if (!window.confirm(`¿Está seguro de ${actionLabel} a "${target.name}"?\nEl cálculo de copias N+1 se actualizará automáticamente en toda la plataforma.`)) {
+  // FASE 5: Reactivar a un estudiante previamente retirado
+  const handleReactivateStudent = (student) => {
+    if (!canManageMatricula) {
+      alert('Solo Administrador, Rectora o Coordinación pueden reactivar estudiantes.');
+      return;
+    }
+    if (!window.confirm(`¿Está seguro de reactivar a "${student.name}" en el roster oficial?\nEl cálculo de copias N+1 se actualizará automáticamente en toda la plataforma.`)) {
       return;
     }
 
-    const newActiveState = gradesService.toggleStudentStatus(
-      selectedGrade,
-      studentId,
-      currentUser,
-      selectedYear,
-      selectedPeriod
-    );
+    try {
+      gradesService.reactivateStudent(selectedGrade, student.id, currentUser, selectedYear);
+      setStudents(prev => prev.map(s => {
+        if (s.id === student.id) {
+          return {
+            ...s,
+            active: true,
+            status: 'activo',
+            inhabilitado: false,
+            motivoRetiro: null,
+            fechaRetiro: null
+          };
+        }
+        return s;
+      }));
 
-    setStudents(prev => prev.map(s => {
-      if (s.id === studentId) {
-        return {
-          ...s,
-          active: newActiveState,
-          status: newActiveState ? 'activo' : 'inactivo',
-          inhabilitado: !newActiveState
-        };
-      }
-      return s;
-    }));
+      const nextCount = activeStudentsCount + 1;
+      setToastMessage(`${student.name} reactivado. Sugerencia N+1 recalculada a ${nextCount + 1} copias.`);
+      setTimeout(() => setToastMessage(null), 3500);
+    } catch (err) {
+      alert(`Error al reactivar estudiante: ${err.message}`);
+    }
+  };
 
-    const nextCount = willBeActive ? activeStudentsCount + 1 : Math.max(0, activeStudentsCount - 1);
-    setToastMessage(`${target.name} ${newActiveState ? 'reactivado' : 'inhabilitado'}. Sugerencia N+1 recalculada a ${nextCount + 1} copias.`);
-    setTimeout(() => setToastMessage(null), 3500);
+  const handleOpenAuditModal = (student) => {
+    setSelectedStudentForAction(student);
+    setIsAuditModalOpen(true);
   };
 
   // Cálculos SIEE 80/20 y predicciones de cada estudiante
@@ -834,15 +837,15 @@ export default function GradesModule({
                   <i className="ph-bold ph-printer"></i>
                   <span>Impresión N+1: <strong>{suggestedCopies} copias</strong> ({activeStudentsCount} act + 1 doc)</span>
                 </div>
-                {(canEditScores || canManageCurriculum) && (
+                {canManageMatricula && (
                   <button
                     type="button"
                     className="btn-add-student"
                     onClick={() => setIsAddStudentModalOpen(true)}
-                    title="Ingresar nuevo estudiante al roster oficial de este grado"
+                    title="Inscribir nuevo estudiante extemporáneo a este grado (Fase 5)"
                   >
                     <i className="ph-bold ph-user-plus"></i>
-                    <span>+ Ingresar Alumno</span>
+                    <span>+ Inscribir Estudiante</span>
                   </button>
                 )}
                 {canEditScores && (
@@ -1038,17 +1041,41 @@ export default function GradesModule({
                                     <span className="dot-active-student" title="Estudiante Activo"></span>
                                   )}
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', flexWrap: 'wrap' }}>
                                   <span className="grades-student-code">{student.id}</span>
-                                  {(canEditScores || canManageCurriculum) && (
-                                    <button
-                                      type="button"
-                                      className="btn-toggle-student-status"
-                                      onClick={() => handleToggleStudent(student.id)}
-                                      title={student.inhabilitado || student.active === false ? 'Reactivar estudiante en el roster' : 'Inhabilitar estudiante (ajusta cálculo N+1)'}
-                                    >
-                                      {student.inhabilitado || student.active === false ? 'Reactivar' : 'Inhabilitar'}
-                                    </button>
+                                  {canManageMatricula && (
+                                    <>
+                                      {student.inhabilitado || student.active === false ? (
+                                        <button
+                                          type="button"
+                                          className="btn-toggle-student-status"
+                                          style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
+                                          onClick={() => handleReactivateStudent(student)}
+                                          title="Reactivar estudiante en el roster oficial (ajusta tiraje N+1)"
+                                        >
+                                          Reactivar
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          className="btn-toggle-student-status"
+                                          style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}
+                                          onClick={() => handleOpenRetireModal(student)}
+                                          title="Inhabilitar / Marcar Retirado (Fase 5 - Soft Disable)"
+                                        >
+                                          Marcar Retirado
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        className="btn-toggle-student-status"
+                                        style={{ background: '#f8fafc', color: '#475569', borderColor: '#cbd5e1' }}
+                                        onClick={() => handleOpenAuditModal(student)}
+                                        title="Ver ficha histórica y notas de auditoría SIEE"
+                                      >
+                                        Ficha
+                                      </button>
+                                    </>
                                   )}
                                 </div>
                               </div>
@@ -1058,6 +1085,8 @@ export default function GradesModule({
                           {/* Celdas dinámicas de Actividades de Aula */}
                           {activities.map((act) => {
                             const val = student.scores ? student.scores[act.id] : student[act.id];
+                            const isRetiredStudent = student.inhabilitado || student.active === false;
+                            const isUnpresented = isRetiredStudent && (val === undefined || val === null || val === '');
                             return (
                               <td key={act.id} style={{ textAlign: 'center' }} className="td-score-c1">
                                 <div className="score-input-wrap">
@@ -1069,15 +1098,17 @@ export default function GradesModule({
                                     inputMode="decimal"
                                     value={val !== undefined && val !== null ? val : ''}
                                     onChange={(e) => handleActivityScoreChange(student.id, act.id, e.target.value)}
-                                    className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''}`}
-                                    placeholder="—"
+                                    className={`grades-input-score input-c1 ${!canEditScores ? 'grades-input-locked' : ''} ${isUnpresented ? 'input-unpresented-retired' : ''}`}
+                                    placeholder={isUnpresented ? "1.0*" : "—"}
                                     readOnly={!canEditScores}
                                     title={
-                                      !canEditScores 
-                                        ? (isViewingAsGradeDirector 
-                                            ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                            : "Solo Lectura: SIEE") 
-                                        : `Calificar ${act.name || act.id} (1.0 a 5.0)`
+                                      isUnpresented 
+                                        ? "Evaluación no presentada por retiro: 1.0 por defecto para el consolidado SIEE"
+                                        : (!canEditScores 
+                                            ? (isViewingAsGradeDirector 
+                                                ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                                : "Solo Lectura: SIEE") 
+                                            : `Calificar ${act.name || act.id} (1.0 a 5.0)`)
                                     }
                                   />
                                   {!canEditScores && (
@@ -1110,14 +1141,16 @@ export default function GradesModule({
                                 value={student.evaluacionFinal !== undefined && student.evaluacionFinal !== null ? student.evaluacionFinal : ''}
                                 onChange={(e) => handleFinalExamChange(student.id, e.target.value)}
                                 className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''} ${gradeData.isSimulated ? 'is-simulated' : ''}`}
-                                placeholder="Pendiente"
+                                placeholder={(student.inhabilitado || student.active === false) ? "1.0* (Retirado)" : "Pendiente"}
                                 readOnly={!canEditScores}
                                 title={
-                                  !canEditScores 
-                                    ? (isViewingAsGradeDirector 
-                                        ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
-                                        : "Solo Lectura: SIEE") 
-                                    : "Calificación de la Evaluación Final (20%)"
+                                  (student.inhabilitado || student.active === false) && (student.evaluacionFinal === null || student.evaluacionFinal === undefined || student.evaluacionFinal === '')
+                                    ? "No presentada por retiro: 1.0 por defecto para consolidado anual SIEE"
+                                    : (!canEditScores 
+                                        ? (isViewingAsGradeDirector 
+                                            ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
+                                            : "Solo Lectura: SIEE") 
+                                        : "Calificación de la Evaluación Final (20%)")
                                 }
                               />
                               {!canEditScores && (
@@ -1362,91 +1395,58 @@ export default function GradesModule({
         canEdit={canEditScores}
       />
 
-      {/* Modal 3: Matricular / Ingresar Nuevo Estudiante al Roster */}
-      {isAddStudentModalOpen && (
-        <div className="modal-add-student-overlay" onClick={() => setIsAddStudentModalOpen(false)}>
-          <div className="modal-add-student-card" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
-                  <i className="ph-bold ph-user-plus"></i>
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>Ingresar Estudiante a {selectedGrade}</h3>
-                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>El cálculo de copias N+1 se actualizará automáticamente</p>
-                </div>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setIsAddStudentModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: '#64748b', cursor: 'pointer' }}
-              >
-                ×
-              </button>
-            </div>
+      {/* Modal 3: Matricular / Inscribir Nuevo Estudiante Extemporáneo (Fase 5) */}
+      <EnrollStudentModal
+        isOpen={isAddStudentModalOpen}
+        onClose={() => setIsAddStudentModalOpen(false)}
+        initialGrade={selectedGrade}
+        currentUser={currentUser}
+        onStudentEnrolled={handleStudentEnrolled}
+      />
 
-            <form onSubmit={handleAddStudentSubmit}>
-              <div style={{ marginBottom: '0.85rem' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Nombre Completo del Alumno *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Sofía Gómez Pardo"
-                  value={newStudentName}
-                  onChange={(e) => setNewStudentName(e.target.value)}
-                  style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
-                  autoFocus
-                />
-              </div>
+      {/* Modal 4: Inhabilitar / Marcar Retirado (Soft-Disable) */}
+      <RetireStudentModal
+        isOpen={isRetireModalOpen}
+        onClose={() => {
+          setIsRetireModalOpen(false);
+          setSelectedStudentForAction(null);
+        }}
+        student={selectedStudentForAction}
+        grade={selectedGrade}
+        currentUser={currentUser}
+        onStudentRetired={(result) => {
+          setStudents(prev => prev.map(s => {
+            if (s.id === result.studentId) {
+              return {
+                ...s,
+                active: false,
+                status: 'retirado',
+                inhabilitado: true,
+                motivoRetiro: result.motivoRetiro,
+                fechaRetiro: result.fechaRetiro
+              };
+            }
+            return s;
+          }));
+          const nextCount = Math.max(0, activeStudentsCount - 1);
+          setToastMessage(`${result.studentName} marcado como Retirado. Tiraje N+1 actualizado a ${nextCount + 1} copias.`);
+          setTimeout(() => setToastMessage(null), 4000);
+        }}
+      />
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Código / Identificador (Opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: EST-107 (se autogenera si se deja vacío)"
-                  value={newStudentId}
-                  onChange={(e) => setNewStudentId(e.target.value)}
-                  style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
-                />
-              </div>
-
-              <div style={{ padding: '0.65rem 0.85rem', background: '#f5f3ff', borderRadius: '8px', border: '1px solid #ddd6fe', marginBottom: '1.25rem', fontSize: '0.75rem', color: '#5b21b6' }}>
-                <i className="ph-bold ph-printer" style={{ marginRight: '5px' }}></i>
-                <strong>Impacto de Impresión N+1:</strong> Al matricular a este estudiante, el tiraje sugerido pasará automáticamente de <strong>{suggestedCopies}</strong> a <strong>{suggestedCopies + 1} copias</strong>.
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button
-                  type="button"
-                  className="grades-btn-secondary"
-                  onClick={() => setIsAddStudentModalOpen(false)}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '0.55rem 1.1rem',
-                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Confirmar Matrícula
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modal 5: Ficha Histórica y Auditoría SIEE */}
+      <StudentAuditDetailModal
+        isOpen={isAuditModalOpen}
+        onClose={() => {
+          setIsAuditModalOpen(false);
+          setSelectedStudentForAction(null);
+        }}
+        student={selectedStudentForAction}
+        grade={selectedGrade}
+        currentUser={currentUser}
+        onOpenRetireModal={handleOpenRetireModal}
+        onReactivateStudent={handleReactivateStudent}
+      />
 
       {/* Notificación Toast Flotante */}
       {toastMessage && (

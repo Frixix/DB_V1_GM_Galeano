@@ -1,0 +1,482 @@
+/* Estilos para StudentAuditDetailModal (Fase 5) */
+
+.audit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.audit-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.audit-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(to bottom, #f8fafc, #ffffff);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.audit-header-left {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.audit-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.avatar-active {
+  background: #ecfdf5;
+  color: #059669;
+  border: 2px solid #a7f3d0;
+}
+
+.avatar-retired {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 2px solid #fecaca;
+}
+
+.audit-badge-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.audit-code-pill {
+  font-size: 0.72rem;
+  font-family: monospace;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.audit-grade-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.audit-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-retired {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.audit-student-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.audit-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.audit-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.audit-close-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.audit-modal-body {
+  padding: 1.25rem 1.75rem 1.75rem;
+}
+
+.audit-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.audit-info-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.info-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.info-val {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.info-val-prom {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.prom-pass {
+  color: #059669;
+}
+
+.prom-fail {
+  color: #dc2626;
+}
+
+.audit-alert-retired {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.retired-alert-icon {
+  font-size: 1.4rem;
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.retired-alert-content strong {
+  color: #991b1b;
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.retired-alert-content p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #7f1d1d;
+  line-height: 1.4;
+}
+
+.audit-alert-active {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.active-alert-icon {
+  font-size: 1.4rem;
+  color: #16a34a;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.active-alert-content strong {
+  color: #166534;
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.active-alert-content p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #14532d;
+  line-height: 1.4;
+}
+
+.audit-table-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.audit-table-header {
+  padding: 0.85rem 1.15rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.audit-table-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.table-header-sub {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.audit-table-wrap {
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.audit-table th {
+  background: #f1f5f9;
+  padding: 0.65rem 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.audit-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.audit-table tr:last-child td {
+  border-bottom: none;
+}
+
+.td-subj-name strong {
+  color: #1e293b;
+}
+
+.td-subj-teacher {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.period-score-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.score-high {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.score-low {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.score-defaulted {
+  border: 1px dashed #fca5a5;
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.defaulted-dot {
+  font-weight: 900;
+  margin-left: 2px;
+  color: #e11d48;
+}
+
+.annual-score-badge {
+  font-size: 0.92rem;
+}
+
+.annual-pass {
+  color: #047857;
+}
+
+.annual-fail {
+  color: #b91c1c;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pass-pill {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.fail-pill {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.table-caption-note {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  background: #fffbeb;
+  border-top: 1px solid #fef08a;
+  font-size: 0.75rem;
+  color: #854d0e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audit-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.15rem 1.75rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.footer-rule-text {
+  font-size: 0.76rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.footer-right {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-audit-reactivate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.55rem 1rem;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-audit-reactivate:hover {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.btn-audit-retire {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.55rem 1rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-audit-retire:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-audit-close {
+  padding: 0.55rem 1.1rem;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-audit-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}

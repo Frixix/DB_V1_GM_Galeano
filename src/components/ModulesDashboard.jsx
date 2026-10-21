@@ -27,6 +27,7 @@ export default function ModulesDashboard({
   const isCoordinador = currentUser?.role === 'coordinador';
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
   const canManageDocentes = isPrivileged || isCoordinador;
+  const canManageMatriculas = isPrivileged || isCoordinador;
   const isDocente = !isPrivileged && !isCoordinador;
 
   // Cerrar modal con tecla Escape
@@ -42,6 +43,17 @@ export default function ModulesDashboard({
 
   // Manejo de clic en módulos con control de fase de desarrollo
   const handleModuleClick = (moduleId) => {
+    if (moduleId === 'matriculas' && !canManageMatriculas) {
+      setDevModalInfo({
+        moduleId,
+        moduleName: 'Panel de Matriculados (Fase 5)',
+        icon: 'ph-bold ph-identification-badge',
+        canEnter: false,
+        customMessage: 'El Panel de Matriculados e Histórico Blindado está reservado exclusivamente para Administrador, Rectora y Coordinación Académica.'
+      });
+      return;
+    }
+
     if (moduleId === 'docentes' && !canManageDocentes) {
       setDevModalInfo({
         moduleId,
@@ -215,6 +227,19 @@ export default function ModulesDashboard({
                   <span className="portal-sidebar-active-tag" style={{ background: '#e0e7ff', color: '#4338ca', borderColor: '#c7d2fe' }}>Directivo</span>
                 </button>
               )}
+              {canManageMatriculas && (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-matriculas ${selectedNavModule === 'matriculas' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('matriculas')}
+                  title="Panel de Matriculados e Histórico Blindado (Fase 5)"
+                  style={{ marginTop: '0.25rem' }}
+                >
+                  <i className="ph-bold ph-identification-badge"></i>
+                  <span className="portal-nav-text">Matrículas & Censo</span>
+                  <span className="portal-sidebar-active-tag" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>Fase 5</span>
+                </button>
+              )}
             </nav>
           </div>
 
@@ -224,7 +249,7 @@ export default function ModulesDashboard({
               <div className="portal-nav-item portal-nav-item-disabled">
                 <div className="portal-nav-item-disabled-left">
                   <i className="ph-bold ph-receipt portal-text-muted" style={{ fontSize: '1.2rem' }}></i>
-                  <span className="portal-nav-text">Matrículas & Pagos</span>
+                  <span className="portal-nav-text">Tesorería & Pagos</span>
                 </div>
                 <span className="portal-pill-gray">Próximamente</span>
               </div>
@@ -567,20 +592,48 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-            {/* MÓDULO 6: EN DESARROLLO (Matrículas & Pagos) */}
-            <article className="portal-module-card portal-module-card-disabled">
+            {/* MÓDULO 7: GESTIÓN DE MATRÍCULA E HISTÓRICO BLINDADO (FASE 5) */}
+            <article 
+              className={`portal-module-card ${canManageMatriculas ? 'portal-module-card-emerald' : 'portal-module-card-disabled'}`}
+              onClick={() => handleModuleClick('matriculas')}
+              role="button"
+              tabIndex={0}
+              title={canManageMatriculas ? "Acceder al Panel de Matriculados e Histórico Blindado (Fase 5)" : "Módulo reservado para Rectoría, Coordinación y Administración"}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('matriculas');
+                }
+              }}
+            >
               <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container portal-gray-icon">
-                  <i className="ph-bold ph-receipt" style={{ fontSize: '1.75rem' }}></i>
+                <div className={`portal-card-icon-container ${canManageMatriculas ? 'portal-emerald-icon' : 'portal-gray-icon'}`}>
+                  <i className="ph-bold ph-identification-badge" style={{ fontSize: '1.75rem', color: canManageMatriculas ? '#059669' : undefined }}></i>
                 </div>
-                <span className="portal-badge-gray">Próximamente</span>
+                {canManageMatriculas ? (
+                  <span className="portal-badge-emerald">Activo · Fase 5</span>
+                ) : (
+                  <span className="portal-badge-gray">Directivo & Coord.</span>
+                )}
               </div>
+
               <div className="portal-card-body">
-                <h3 className="portal-text-gray-title">Matrículas & Tesorería</h3>
-                <p className="portal-text-gray-desc">Espacio reservado para control de pensiones, paz y salvos digitales y legalización de matrículas del colegio.</p>
+                <h3 style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-title' : undefined}>
+                  Gestión de Matrícula & Censo
+                </h3>
+                <p style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-desc' : undefined}>
+                  Inscripción extemporánea de estudiantes, auditoría de censo escolar, inhabilitación por traslado o retiro (sin eliminación física) y fórmula de copias N+1.
+                </p>
               </div>
-              <div className="portal-card-footer portal-footer-disabled">
-                <span className="portal-label-muted">Próximamente disponible</span>
+
+              <div className={`portal-card-footer ${!canManageMatriculas ? 'portal-footer-disabled' : ''}`}>
+                {canManageMatriculas ? (
+                  <span className="portal-link-label-emerald">Gestionar Matrícula & Histórico &rarr;</span>
+                ) : (
+                  <span className="portal-label-muted">
+                    <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
+                  </span>
+                )}
               </div>
             </article>
           </section>

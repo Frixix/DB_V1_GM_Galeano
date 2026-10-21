@@ -64,6 +64,10 @@ const DEFAULT_EVALUATION_CALENDAR = {
  * - Promedio simple de $N$ actividades continuas de aula (80%)
  * - Evaluación Final (20%)
  * - Simulación predictiva con 1.0 si la evaluación final no se ha presentado
+ * 
+ * Regla de Auditoría Fase 5 (Estudiantes Retirados / Inhabilitados):
+ * - Sus notas previas se conservan intactas para auditoría.
+ * - Evaluaciones no presentadas o periodos futuros se registran con 1.0 por defecto para el cómputo del consolidado.
  */
 export function calculateGrade80_20(student, branchActivities = []) {
   if (!student) {
@@ -77,10 +81,85 @@ export function calculateGrade80_20(student, branchActivities = []) {
       isSimulated: true,
       notaRequerida: 3.0,
       puedeAprobar: true,
-      activeScoresCount: 0
+      activeScoresCount: 0,
+      isRetired: false
     };
   }
 
+  const isRetired = Boolean(student.inhabilitado || student.active === false || student.status === 'retirado' || student.status === 'inactivo');
+
+  // Si el estudiante está retirado / inhabilitado:
+  if (isRetired) {
+    const scoresList = [];
+    let preservedCount = 0;
+
+    if (branchActivities && branchActivities.length > 0) {
+      branchActivities.forEach((act) => {
+        let val = null;
+        if (student.scores && student.scores[act.id] !== undefined && student.scores[act.id] !== null && student.scores[act.id] !== '') {
+          val = Number(student.scores[act.id]);
+        } else if (student[act.id] !== undefined && student[act.id] !== null && student[act.id] !== '') {
+          val = Number(student[act.id]);
+        }
+
+        if (val !== null && !isNaN(val) && val >= 1.0 && val <= 5.0) {
+          scoresList.push(val);
+          preservedCount++;
+        } else {
+          // Evaluación no presentada por retiro -> 1.0 por defecto (Auditoría SIEE)
+          scoresList.push(1.0);
+        }
+      });
+    } else {
+      if (student.c1 !== undefined && student.c1 !== '' && !isNaN(Number(student.c1))) {
+        scoresList.push(Number(student.c1));
+        preservedCount++;
+      } else {
+        scoresList.push(1.0);
+      }
+      if (student.c2 !== undefined && student.c2 !== '' && !isNaN(Number(student.c2))) {
+        scoresList.push(Number(student.c2));
+        preservedCount++;
+      } else {
+        scoresList.push(1.0);
+      }
+    }
+
+    const promedioAula = scoresList.length > 0
+      ? Number((scoresList.reduce((sum, n) => sum + n, 0) / scoresList.length).toFixed(2))
+      : 1.0;
+
+    const aporteAula = Number((promedioAula * 0.80).toFixed(2));
+
+    let finalExamVal = null;
+    if (student.evaluacionFinal !== undefined && student.evaluacionFinal !== null && student.evaluacionFinal !== '') {
+      finalExamVal = Number(student.evaluacionFinal);
+    } else if (student.c3 !== undefined && student.c3 !== null && student.c3 !== '') {
+      finalExamVal = Number(student.c3);
+    }
+
+    const hasFinalExam = finalExamVal !== null && !isNaN(finalExamVal) && finalExamVal >= 1.0 && finalExamVal <= 5.0;
+    const effectiveFinalExam = hasFinalExam ? finalExamVal : 1.0;
+    const aporteFinal = Number((effectiveFinalExam * 0.20).toFixed(2));
+    const definitivaNum = Number((aporteAula + aporteFinal).toFixed(1));
+
+    return {
+      promedioAula,
+      aporteAula,
+      evaluacionFinal: hasFinalExam ? finalExamVal : 1.0,
+      aporteFinal,
+      definitiva: definitivaNum.toFixed(1),
+      definitivaNum,
+      isSimulated: !hasFinalExam,
+      notaRequerida: 3.0,
+      puedeAprobar: false,
+      activeScoresCount: preservedCount,
+      isRetired: true,
+      hasPreservedScores: preservedCount > 0
+    };
+  }
+
+  // Estudiante Activo normal:
   const validScores = [];
 
   if (branchActivities && branchActivities.length > 0) {
@@ -154,7 +233,8 @@ export function calculateGrade80_20(student, branchActivities = []) {
     isSimulated,
     notaRequerida,
     puedeAprobar,
-    activeScoresCount
+    activeScoresCount,
+    isRetired: false
   };
 }
 
@@ -391,7 +471,7 @@ class GradesService {
 
       subjects.forEach(subj => {
         const branch = subjectRosters[subj];
-        const studentRecord = branch?.students?.find(s => s.id === st.id);
+        const studentRecord = branch?.students?.find(s => s.id === st.id) || st;
         if (studentRecord) {
           const calc = calculateGrade80_20(studentRecord, branch?.activities);
           const defNum = calc.definitivaNum;
@@ -402,15 +482,32 @@ class GradesService {
             failedCount += 1;
           }
         } else {
-          subjectGrades[subj] = 0;
+          // Si está inhabilitado/retirado, 1.0 por defecto; sino 0
+          const fallbackVal = st.inhabilitado ? 1.0 : 0;
+          subjectGrades[subj] = fallbackVal;
+          if (fallbackVal > 0) {
+            totalSum += fallbackVal;
+            subjectsCount += 1;
+            failedCount += 1;
+          }
         }
       });
 
       const average = subjectsCount > 0 ? Number((totalSum / subjectsCount).toFixed(2)) : 0;
+      const isRetired = st.active === false || st.status === 'inactivo' || st.status === 'retirado' || st.inhabilitado;
 
       return {
         id: st.id,
         name: st.name,
+        grade: canonicalGrade,
+        active: !isRetired,
+        status: isRetired ? 'retirado' : 'activo',
+        inhabilitado: isRetired,
+        motivoRetiro: st.motivoRetiro || null,
+        fechaRetiro: st.fechaRetiro || null,
+        acudiente: st.acudiente || 'Acudiente registrado en secretaría',
+        fechaIngreso: st.fechaIngreso || '2026-02-02',
+        tipoIngreso: st.tipoIngreso || 'Matrícula Regular',
         subjectGrades,
         average,
         failedCount
@@ -442,6 +539,97 @@ class GradesService {
         gradeAverage,
         gradePassRate,
         topStudent
+      }
+    };
+  }
+
+  /**
+   * Genera el consolidado anual de notas de un grado (4 Periodos Lectivos)
+   * Regla de Auditoría Fase 5:
+   * - Las notas previas se conservan intactas para auditoría.
+   * - Los periodos futuros o evaluaciones no presentadas por retiro se registran con 1.0 por defecto para el cómputo del consolidado anual.
+   * - Consolidado anual por materia = P1(25%) + P2(25%) + P3(25%) + P4(25%).
+   */
+  getAnnualConsolidatedGradeSheet(year = '2026', grade = '1° Primaria') {
+    const canonicalGrade = normalizeGrade(grade);
+    const subjects = this.getSubjectsForGrade(canonicalGrade);
+    const allStudents = this.getGradeRoster(canonicalGrade, year, ACADEMIC_PERIODS[0]);
+
+    const studentReports = allStudents.map(st => {
+      const subjectAnnuals = {};
+      const subjectPeriodBreakdown = {};
+      let totalAnnualSum = 0;
+      let subjectsCount = 0;
+      let failedSubjectsCount = 0;
+
+      subjects.forEach(subj => {
+        const periodScores = [];
+        let subjectDefinitivaSum = 0;
+
+        ACADEMIC_PERIODS.forEach(period => {
+          const branch = this.getBranch(year, period, canonicalGrade, subj);
+          const studentRec = branch?.students?.find(s => s.id === st.id);
+          
+          let periodDef = 1.0;
+          if (studentRec) {
+            const calc = calculateGrade80_20(studentRec, branch?.activities);
+            periodDef = calc.definitivaNum;
+          }
+          periodScores.push(periodDef);
+          subjectDefinitivaSum += periodDef * 0.25;
+        });
+
+        const subjectAnnualDef = Number(subjectDefinitivaSum.toFixed(2));
+        subjectAnnuals[subj] = subjectAnnualDef;
+        subjectPeriodBreakdown[subj] = periodScores;
+        totalAnnualSum += subjectAnnualDef;
+        subjectsCount += 1;
+        if (subjectAnnualDef < 3.0) {
+          failedSubjectsCount += 1;
+        }
+      });
+
+      const annualAverage = subjectsCount > 0 ? Number((totalAnnualSum / subjectsCount).toFixed(2)) : 1.0;
+      const isRetired = st.active === false || st.status === 'inactivo' || st.status === 'retirado' || st.inhabilitado;
+
+      return {
+        id: st.id,
+        name: st.name,
+        grade: canonicalGrade,
+        active: !isRetired,
+        status: isRetired ? 'retirado' : 'activo',
+        inhabilitado: isRetired,
+        motivoRetiro: st.motivoRetiro || null,
+        fechaRetiro: st.fechaRetiro || null,
+        acudiente: st.acudiente || 'Acudiente registrado en secretaría',
+        fechaIngreso: st.fechaIngreso || '2026-02-02',
+        tipoIngreso: st.tipoIngreso || 'Matrícula Regular',
+        subjectAnnuals,
+        subjectPeriodBreakdown,
+        annualAverage,
+        failedSubjectsCount
+      };
+    });
+
+    const sortedStudents = [...studentReports].sort((a, b) => b.annualAverage - a.annualAverage);
+    const rankedStudents = sortedStudents.map((st, idx) => ({
+      ...st,
+      rank: idx + 1
+    }));
+
+    return {
+      year,
+      grade: canonicalGrade,
+      subjects,
+      periods: ACADEMIC_PERIODS,
+      students: rankedStudents,
+      stats: {
+        totalRegistered: rankedStudents.length,
+        activeCount: rankedStudents.filter(s => s.active).length,
+        retiredCount: rankedStudents.filter(s => !s.active).length,
+        gradeAnnualAverage: rankedStudents.length > 0
+          ? (rankedStudents.reduce((acc, s) => acc + s.annualAverage, 0) / rankedStudents.length).toFixed(2)
+          : '0.00'
       }
     };
   }
@@ -665,11 +853,58 @@ class GradesService {
   }
 
   /**
+   * Permiso para gestión de matrícula, inscripción extemporánea y control de retiros
+   * Acceso: Solo Administrador General, Rectora y Coordinación Académica
+   */
+  canManageMatricula(user) {
+    if (!user) return false;
+    const role = user.role;
+    return role === 'admin' || role === 'rectora' || role === 'induccion_rectora' || role === 'coordinador';
+  }
+
+  /**
+   * Obtiene la lista consolidada de todos los estudiantes del colegio (Censo Histórico Escolar)
+   */
+  getAllStudents(year = '2026') {
+    const list = [];
+    const seenIds = new Set();
+
+    GRADES_LIST.forEach(grade => {
+      const canonicalGrade = normalizeGrade(grade);
+      const subjects = this.getSubjectsForGrade(canonicalGrade);
+      const firstSubj = subjects[0] || 'Matemáticas';
+      const branch = this.getBranch(year, ACADEMIC_PERIODS[0], canonicalGrade, firstSubj);
+      
+      (branch.students || []).forEach(st => {
+        if (!seenIds.has(st.id)) {
+          seenIds.add(st.id);
+          const isRetired = st.active === false || st.status === 'inactivo' || st.status === 'retirado' || st.inhabilitado;
+          list.push({
+            ...st,
+            grade: canonicalGrade,
+            active: !isRetired,
+            status: isRetired ? 'retirado' : 'activo',
+            inhabilitado: isRetired,
+            acudiente: st.acudiente || 'Acudiente registrado en secretaría',
+            fechaIngreso: st.fechaIngreso || '2026-02-02',
+            tipoIngreso: st.tipoIngreso || 'Matrícula Regular',
+            motivoRetiro: st.motivoRetiro || null,
+            fechaRetiro: st.fechaRetiro || null
+          });
+        }
+      });
+    });
+
+    return list;
+  }
+
+  /**
    * Obtiene la lista de estudiantes activos en el grado seleccionado (según el roster de la planilla)
+   * Los estudiantes retirados/inhabilitados quedan excluidos automáticamente del conteo activo
    */
   getActiveStudents(grade, year = '2026', period = '1° Periodo (25%)') {
     const roster = this.getGradeRoster(grade, year, period);
-    return roster.filter(s => s.active !== false && s.status !== 'inactivo' && !s.inhabilitado);
+    return roster.filter(s => s.active !== false && s.status !== 'inactivo' && s.status !== 'retirado' && !s.inhabilitado);
   }
 
   /**
@@ -680,7 +915,8 @@ class GradesService {
   }
 
   /**
-   * Fórmula Institucional de Impresión: Alumnos Activos + 1 (Copia física del Docente Calificador)
+   * Fórmula Institucional de Impresión (Fase 4): Alumnos Activos + 1 (Copia física del Docente Calificador)
+   * Regla Fase 5: El registro histórico de retirados no altera este conteo (se basa estrictamente en activos).
    */
   getPrintingCopiesSuggestion(grade, year = '2026', period = '1° Periodo (25%)') {
     const canonicalGrade = normalizeGrade(grade);
@@ -697,20 +933,51 @@ class GradesService {
   }
 
   /**
-   * Agrega un nuevo estudiante a todas las asignaturas del grado en el periodo
+   * FASE 5: Inscribir un nuevo estudiante extemporáneo al roster institucional oficial
+   * Acceso: Solo Admin, Rectora y Coordinación
+   * Campos: Nombre, Código, Grado, Acudiente, Fecha de Ingreso
    */
-  addStudentToGrade(grade, studentData, user = null, year = '2026', period = '1° Periodo (25%)') {
+  addStudentExtemporaneo({
+    grade,
+    name,
+    id,
+    acudiente,
+    fechaIngreso,
+    tipoIngreso = 'Matrícula Extemporánea',
+    observaciones = ''
+  }, user, year = '2026') {
+    if (!this.canManageMatricula(user)) {
+      throw new Error('Acceso denegado: Solo Administrador, Rectora y Coordinación pueden inscribir nuevos estudiantes.');
+    }
+
+    if (!name || !name.trim()) {
+      throw new Error('El nombre completo del estudiante es obligatorio.');
+    }
+    if (!grade) {
+      throw new Error('El grado académico es obligatorio.');
+    }
+
     const canonicalGrade = normalizeGrade(grade);
     const subjects = this.getSubjectsForGrade(canonicalGrade);
-    const studentId = studentData.id ? studentData.id.trim() : `EST-${canonicalGrade.substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
-    const studentName = studentData.name ? studentData.name.trim() : 'Nuevo Estudiante';
+    const studentCode = id && id.trim() 
+      ? id.trim().toUpperCase() 
+      : `EST-${canonicalGrade.substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
 
     const newStudent = {
-      id: studentId,
-      name: studentName,
+      id: studentCode,
+      name: name.trim(),
+      grade: canonicalGrade,
+      acudiente: acudiente?.trim() || 'Acudiente registrado en secretaría',
+      fechaIngreso: fechaIngreso || new Date().toISOString().split('T')[0],
+      tipoIngreso: tipoIngreso || 'Matrícula Extemporánea',
+      observaciones: observaciones?.trim() || '',
       active: true,
       status: 'activo',
       inhabilitado: false,
+      motivoRetiro: null,
+      fechaRetiro: null,
+      registeredBy: user?.name || 'Administración',
+      registeredAt: new Date().toISOString(),
       scores: {},
       evaluacionFinal: null,
       c1: '',
@@ -720,18 +987,22 @@ class GradesService {
       sugerenciaDirectiva: '',
       observacion_coordinacion: null,
       observacionCoordinacion: null,
-      comentarioAuditoria: ''
+      comentarioAuditoria: `Inscripción extemporánea radicada por ${user?.name || 'Administración'}`
     };
 
-    subjects.forEach(subj => {
-      const branch = this.getBranch(year, period, canonicalGrade, subj);
-      if (branch && branch.students) {
-        if (!branch.students.some(s => s.id === studentId)) {
-          branch.students.push({ ...newStudent });
-          branch.lastUpdated = new Date().toISOString();
-          branch.lastUpdatedBy = user?.name || 'Administración';
+    // Propagar a TODAS las materias y a TODOS los periodos lectivos del grado en el árbol
+    ACADEMIC_PERIODS.forEach(period => {
+      subjects.forEach(subj => {
+        const branch = this.getBranch(year, period, canonicalGrade, subj);
+        if (branch && branch.students) {
+          const exists = branch.students.find(s => s.id === studentCode);
+          if (!exists) {
+            branch.students.push({ ...newStudent });
+            branch.lastUpdated = new Date().toISOString();
+            branch.lastUpdatedBy = user?.name || 'Administración';
+          }
         }
-      }
+      });
     });
 
     this.persistTree();
@@ -747,39 +1018,172 @@ class GradesService {
   }
 
   /**
-   * Inhabilita o reactiva a un estudiante en todas las materias del grado
+   * Wrapper retrocompatible para agregar estudiante al grado
    */
-  toggleStudentStatus(grade, studentId, user = null, year = '2026', period = '1° Periodo (25%)') {
+  addStudentToGrade(grade, studentData, user = null, year = '2026', period = '1° Periodo (25%)') {
+    return this.addStudentExtemporaneo({
+      grade,
+      name: studentData.name,
+      id: studentData.id,
+      acudiente: studentData.acudiente,
+      fechaIngreso: studentData.fechaIngreso,
+      tipoIngreso: studentData.tipoIngreso,
+      observaciones: studentData.observaciones
+    }, user, year);
+  }
+
+  /**
+   * FASE 5: REGLA DE ORO DE AUDITORÍA (SOFT-DISABLE)
+   * En caso de retiro o traslado, se marca como Retirado / Inhabilitado.
+   * Sus notas previas se conservan intactas para auditoría, y las evaluaciones
+   * no presentadas se registran con 1.0 por defecto para el cómputo consolidado.
+   */
+  markStudentAsRetired(grade, studentId, { motivoRetiro, fechaRetiro } = {}, user, year = '2026') {
+    if (!this.canManageMatricula(user)) {
+      throw new Error('Acceso denegado: Solo Administrador, Rectora y Coordinación pueden inhabilitar o retirar estudiantes.');
+    }
+
     const canonicalGrade = normalizeGrade(grade);
     const subjects = this.getSubjectsForGrade(canonicalGrade);
-    let updatedActiveState = true;
+    const withdrawalReason = motivoRetiro?.trim() || 'Retiro / Traslado escolar';
+    const withdrawalDate = fechaRetiro || new Date().toISOString().split('T')[0];
+    const nowIso = new Date().toISOString();
 
-    subjects.forEach(subj => {
-      const branch = this.getBranch(year, period, canonicalGrade, subj);
-      if (branch && branch.students) {
-        const target = branch.students.find(s => s.id === studentId);
-        if (target) {
-          const currentActive = target.active !== false && target.status !== 'inactivo' && !target.inhabilitado;
-          updatedActiveState = !currentActive;
-          target.active = updatedActiveState;
-          target.status = updatedActiveState ? 'activo' : 'inactivo';
-          target.inhabilitado = !updatedActiveState;
-          branch.lastUpdated = new Date().toISOString();
-          branch.lastUpdatedBy = user?.name || 'Administración';
+    let studentName = studentId;
+
+    // Actualizar en todas las materias y periodos manteniendo notas previas para auditoría
+    ACADEMIC_PERIODS.forEach(period => {
+      subjects.forEach(subj => {
+        const branch = this.getBranch(year, period, canonicalGrade, subj);
+        if (branch && branch.students) {
+          const target = branch.students.find(s => s.id === studentId);
+          if (target) {
+            studentName = target.name || studentName;
+            target.active = false;
+            target.status = 'retirado';
+            target.inhabilitado = true;
+            target.motivoRetiro = withdrawalReason;
+            target.fechaRetiro = withdrawalDate;
+            target.retiredBy = user?.name || 'Administración';
+            target.retiredAt = nowIso;
+            branch.lastUpdated = nowIso;
+            branch.lastUpdatedBy = `Retiro SIEE: ${user?.name || 'Administración'}`;
+          }
         }
-      }
+      });
     });
 
     this.persistTree();
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
-        detail: { grade: canonicalGrade, action: 'toggle', studentId, active: updatedActiveState, timestamp: new Date().toISOString() }
+        detail: { 
+          grade: canonicalGrade, 
+          action: 'retire', 
+          studentId, 
+          studentName, 
+          active: false, 
+          motivoRetiro: withdrawalReason, 
+          fechaRetiro: withdrawalDate,
+          timestamp: nowIso 
+        }
       }));
     }
     this.notifyCurriculumUpdate();
 
-    return updatedActiveState;
+    return {
+      success: true,
+      studentId,
+      studentName,
+      grade: canonicalGrade,
+      motivoRetiro: withdrawalReason,
+      fechaRetiro: withdrawalDate
+    };
+  }
+
+  /**
+   * FASE 5: Reactivar a un estudiante retirado si retorna a la institución
+   */
+  reactivateStudent(grade, studentId, user, year = '2026') {
+    if (!this.canManageMatricula(user)) {
+      throw new Error('Acceso denegado: Solo Administrador, Rectora y Coordinación pueden reactivar estudiantes.');
+    }
+
+    const canonicalGrade = normalizeGrade(grade);
+    const subjects = this.getSubjectsForGrade(canonicalGrade);
+    const nowIso = new Date().toISOString();
+    let studentName = studentId;
+
+    ACADEMIC_PERIODS.forEach(period => {
+      subjects.forEach(subj => {
+        const branch = this.getBranch(year, period, canonicalGrade, subj);
+        if (branch && branch.students) {
+          const target = branch.students.find(s => s.id === studentId);
+          if (target) {
+            studentName = target.name || studentName;
+            target.active = true;
+            target.status = 'activo';
+            target.inhabilitado = false;
+            target.motivoRetiro = null;
+            target.fechaRetiro = null;
+            target.reactivatedBy = user?.name || 'Administración';
+            target.reactivatedAt = nowIso;
+            branch.lastUpdated = nowIso;
+            branch.lastUpdatedBy = `Reactivación: ${user?.name || 'Administración'}`;
+          }
+        }
+      });
+    });
+
+    this.persistTree();
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+        detail: { 
+          grade: canonicalGrade, 
+          action: 'reactivate', 
+          studentId, 
+          studentName, 
+          active: true, 
+          timestamp: nowIso 
+        }
+      }));
+    }
+    this.notifyCurriculumUpdate();
+
+    return {
+      success: true,
+      studentId,
+      studentName,
+      grade: canonicalGrade
+    };
+  }
+
+  /**
+   * Alternar estado de estudiante (Activo <-> Inhabilitado/Retirado)
+   */
+  toggleStudentStatus(grade, studentId, user = null, year = '2026', period = '1° Periodo (25%)') {
+    const canonicalGrade = normalizeGrade(grade);
+    const roster = this.getGradeRoster(canonicalGrade, year, period);
+    const target = roster.find(s => s.id === studentId);
+    if (!target) return false;
+
+    const isCurrentlyActive = target.active !== false && target.status !== 'inactivo' && target.status !== 'retirado' && !target.inhabilitado;
+    if (isCurrentlyActive) {
+      this.markStudentAsRetired(canonicalGrade, studentId, { motivoRetiro: 'Inhabilitación administrativa' }, user, year);
+      return false;
+    } else {
+      this.reactivateStudent(canonicalGrade, studentId, user, year);
+      return true;
+    }
+  }
+
+  /**
+   * REGLA DE ORO DE AUDITORÍA INSTITUCIONAL:
+   * Prohibición absoluta de eliminación física de estudiantes en la base de datos o estado local.
+   */
+  deleteStudent() {
+    throw new Error('REGLA DE ORO DE AUDITORÍA SIEE (Fase 5): Queda estrictamente prohibido eliminar (DELETE) un estudiante de la base de datos o estado local. En caso de retiro o traslado, utilice la acción "Inhabilitar / Marcar Retirado".');
   }
 
   // =====================================================================

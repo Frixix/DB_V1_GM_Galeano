@@ -1,0 +1,325 @@
+/* Estilos para RetireStudentModal (Fase 5 - Soft Disable) */
+
+.retire-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.retire-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+  border: 1px solid #fee2e2;
+  display: flex;
+  flex-direction: column;
+}
+
+.retire-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #fee2e2;
+  background: linear-gradient(to bottom, #fff5f5, #ffffff);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.retire-header-left {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.retire-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  border: 1px solid #fecaca;
+  flex-shrink: 0;
+}
+
+.retire-tag-rule {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+}
+
+.retire-modal-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.retire-modal-header p {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.retire-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.retire-close-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.retire-alert-error {
+  margin: 1rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.retire-modal-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.retire-student-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 1.15rem;
+}
+
+.retire-student-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #e2e8f0;
+  color: #334155;
+  font-weight: 700;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.retire-student-info h4 {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  color: #0f172a;
+}
+
+.retire-meta-pills {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.retire-pill-code {
+  font-size: 0.72rem;
+  font-family: monospace;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.retire-pill-grade {
+  font-size: 0.72rem;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.retire-pill-active {
+  font-size: 0.72rem;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.retire-acudiente-text {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.retire-rules-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.rule-item {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: #78350f;
+}
+
+.rule-item-icon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.rule-item-icon.check-icon {
+  color: #b45309;
+}
+
+.rule-item-icon.print-icon {
+  color: #7c3aed;
+}
+
+.rule-item-text strong {
+  color: #92400e;
+  display: block;
+}
+
+.rule-item-text span {
+  display: block;
+  margin-top: 1px;
+}
+
+.retire-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.retire-field-group label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.retire-input,
+.retire-select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #1e293b;
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.retire-input:focus,
+.retire-select:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.retire-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-retire-cancel {
+  padding: 0.6rem 1.1rem;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-retire-cancel:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-retire-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem 1.35rem;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.25);
+  transition: all 0.15s;
+}
+
+.btn-retire-confirm:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  box-shadow: 0 6px 8px -1px rgba(220, 38, 38, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-retire-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

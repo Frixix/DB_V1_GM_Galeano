@@ -2454,6 +2454,23 @@
   color: #991b1b;
 }
 
+.input-unpresented-retired {
+  border: 1px dashed #fca5a5 !important;
+  background-color: #fff1f2 !important;
+  color: #e11d48 !important;
+  font-style: italic;
+}
+
+.btn-status-retire:hover {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+}
+
+.btn-status-reactivate:hover {
+  background: #d1fae5 !important;
+  color: #047857 !important;
+}
+
 /* Modal para ingresar/matricular estudiante */
 .modal-add-student-overlay {
   position: fixed;

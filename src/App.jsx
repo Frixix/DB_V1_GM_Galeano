@@ -8,6 +8,7 @@ const BovedaModule = lazy(() => import('./components/BovedaModule'));
 const ObservadorModule = lazy(() => import('./components/ObservadorModule'));
 const FinalExamsModule = lazy(() => import('./components/FinalExamsModule'));
 const GestionDocenteModule = lazy(() => import('./components/GestionDocenteModule'));
+const MatriculasModule = lazy(() => import('./components/MatriculasModule'));
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import FilterBar from './components/FilterBar';
@@ -196,6 +197,10 @@ export default function App() {
     }
     const canAccessDocentes = currentUser && ['admin', 'coordinador', 'rectora', 'induccion_rectora'].includes(currentUser.role);
     if (!canAccessDocentes && (activeModule === 'docentes' || activeModule === 'gestion_docente')) {
+      setActiveModule(null);
+    }
+    const canAccessMatriculas = currentUser && ['admin', 'coordinador', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+    if (!canAccessMatriculas && (activeModule === 'matriculas' || activeModule === 'matricula')) {
       setActiveModule(null);
     }
     if (activeModule === 'reemplazos') {
@@ -542,6 +547,87 @@ export default function App() {
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
           isNotificationsOpen={isNotificationsOpen}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+          />
+        </Suspense>
+        <ProfileModal 
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          currentUser={currentUser}
+          initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
+          onProfileUpdated={(updatedUser) => {
+            setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+          }}
+          onAvatarUpdated={(targetKey, newAvatar) => {
+            const targetName = USERS[targetKey]?.name || targetKey;
+            setCurrentUser((prev) => {
+              if (prev && (prev.key === targetKey || prev.role === targetKey)) {
+                return { ...prev, avatar: newAvatar };
+              }
+              return prev;
+            });
+            setAvatarTick((t) => t + 1);
+            setAvatarToast({ name: targetName });
+            setTimeout(() => {
+              setAvatarToast(null);
+            }, 4500);
+
+            if (typeof refreshPresence === 'function') {
+              refreshPresence();
+            }
+          }}
+        />
+        <ConnectionsModal 
+          isOpen={isConnectionsModalOpen}
+          onClose={() => setIsConnectionsModalOpen(false)}
+          presenceData={presenceData}
+          currentUser={currentUser}
+          onSelectTeacher={(teacherName) => {
+            setCurrentTeacher(teacherName);
+            setCurrentFolder('all');
+            setActiveModule('docs');
+          }}
+          onRefresh={refreshPresence}
+          loading={presenceLoading}
+        />
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          observadorRecords={observadorRecords}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
+      </>
+    );
+  }
+
+  // Módulo de Gestión de Matrícula e Histórico Blindado (Fase 5: Solo Admin, Rectora y Coordinación)
+  if (activeModule === 'matriculas' || activeModule === 'matricula') {
+    return (
+      <>
+        <Suspense fallback={<LoadingSpinner message="Cargando Panel de Matriculados (Fase 5)..." />}>
+          <MatriculasModule 
+            currentUser={currentUser}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineMap={onlineMap}
+            onlineCount={onlineCount}
+            circularesCount={totalUnreadCount}
+            isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
