@@ -276,6 +276,12 @@ export const RECORD_TYPES = {
     badgeClass: 'type-badge-danger',
     icon: 'ph-warning-octagon'
   },
+  falta_gravisima: {
+    id: 'falta_gravisima',
+    label: 'Falta Gravísima (Tipo III)',
+    badgeClass: 'type-badge-danger',
+    icon: 'ph-shield-warning'
+  },
   piar_ajuste: {
     id: 'piar_ajuste',
     label: 'Ajuste Curricular PIAR',

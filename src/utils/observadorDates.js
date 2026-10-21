@@ -228,80 +228,229 @@ export function getDeadlineMeta(record, baseDate = new Date()) {
 
 /**
  * Reglas de negocio institucionales sobre límites máximos y autollenado de fechas
- * - Casos de convivencia / citaciones: máximo 1 semana (7 días).
- * - PIAR / Seguimiento pedagógico: máximo 1 mes (30 días).
- * - Comités / Reuniones docentes: máximo 1 mes (30 días) o hasta 60 días si es reunión especial.
+ * - Falta Gravísima (Tipo III): máximo 3 días (atención inmediata / comités).
+ * - Falta Grave (Tipo II): máximo 5 días (debido proceso).
+ * - Falta Leve (Tipo I): máximo 1 semana (7 días hábiles).
+ * - Citaciones: máximo 1 semana (7 días hábiles).
+ * - Felicitaciones y PIAR: máximo 30 días.
+ * - Comités: 30 días ordinario o 60 días con ampliación especial.
  */
-export function getDateRules(route, sessionType = 'Ordinaria', isSpecialMeeting = false) {
+export function getDateRules(route, sessionType = 'Ordinaria', isSpecialMeeting = false, type = 'falta_leve') {
   const today = new Date();
   const todayISO = toISODate(today);
+  // Permitimos fechas anteriores de hasta 90 días atrás para registro de hechos retroactivos
+  const minDate = addDays(-90, today);
 
-  // 1. Casos de Convivencia y Citaciones: MÁXIMO 1 SEMANA (7 DÍAS)
-  if (route === 'observador' || route === 'citaciones') {
-    const isCitacion = route === 'citaciones';
-    const defaultDays = isCitacion ? 3 : 7;
+  // 1. Citaciones con Acudientes (Ley 1620 / Manual Convivencia)
+  if (route === 'citaciones') {
     return {
       maxDays: 7,
-      defaultDays,
-      minDate: todayISO,
+      defaultDays: 3,
+      minDate,
       maxDate: addDays(7, today),
-      defaultDate: addDays(defaultDays, today),
+      defaultDate: addDays(3, today),
       isConvivenciaRule: true,
-      ruleNotice: '⚠️ Por norma institucional de Básica Primaria, los compromisos de convivencia y citaciones tienen un plazo máximo de 1 semana (7 días).'
+      ruleNotice: 'Citaciones de Acudientes: Plazo normativo de 1 semana (7 días hábiles).',
+      badgeLabel: '⚖️ Máx. 1 semana (7 días)',
+      quickButtons: [
+        { label: 'Ayer (-1d)', days: -1, isPast: true },
+        { label: 'Hoy (0d)', days: 0 },
+        { label: '24h (1d)', days: 1 },
+        { label: '3 Días (Sugerido)', days: 3 },
+        { label: '5 Días', days: 5 },
+        { label: '1 Sem (7d Máx)', days: 7, highlight: true }
+      ]
     };
   }
 
-  // 2. Comité de Convivencia Escolar (Ley 1620)
+  // 2. Observador del Estudiante: Lógica diferenciada por Tipo de Falta / Notificación
+  if (route === 'observador') {
+    if (type === 'falta_gravisima') {
+      return {
+        maxDays: 3,
+        defaultDays: 2,
+        minDate,
+        maxDate: addDays(3, today),
+        defaultDate: addDays(2, today),
+        isConvivenciaRule: true,
+        ruleNotice: '🚨 Falta Gravísima (Tipo III): Intervención prioritaria inmediata. Plazo legal máximo de 3 días.',
+        badgeLabel: '🚨 Máx. 3 días (Tipo III)',
+        quickButtons: [
+          { label: 'Ayer (-1d)', days: -1, isPast: true },
+          { label: 'Hoy Mismo', days: 0 },
+          { label: '24h (1d)', days: 1 },
+          { label: '2 Días (Sugerido)', days: 2 },
+          { label: '3 Días (Máx)', days: 3, highlight: true }
+        ]
+      };
+    }
+
+    if (type === 'falta_grave') {
+      return {
+        maxDays: 5,
+        defaultDays: 3,
+        minDate,
+        maxDate: addDays(5, today),
+        defaultDate: addDays(3, today),
+        isConvivenciaRule: true,
+        ruleNotice: '⚠️ Falta Grave (Tipo II): Debido proceso disciplinario. Plazo máximo de verificación de 5 días.',
+        badgeLabel: '⚠️ Máx. 5 días (Tipo II)',
+        quickButtons: [
+          { label: 'Ayer (-1d)', days: -1, isPast: true },
+          { label: 'Hoy (0d)', days: 0 },
+          { label: '24h (1d)', days: 1 },
+          { label: '3 Días (Sugerido)', days: 3 },
+          { label: '5 Días (Máx)', days: 5, highlight: true }
+        ]
+      };
+    }
+
+    if (type === 'felicitacion') {
+      return {
+        maxDays: 30,
+        defaultDays: 15,
+        minDate,
+        maxDate: addDays(30, today),
+        defaultDate: addDays(15, today),
+        isConvivenciaRule: false,
+        ruleNotice: '⭐ Mérito y Felicitación: Registro formativo de reconocimiento. Plazo flexible de hasta 30 días.',
+        badgeLabel: '⭐ Hasta 30 días (Flexible)',
+        quickButtons: [
+          { label: 'Ayer (-1d)', days: -1, isPast: true },
+          { label: 'Hoy (0d)', days: 0 },
+          { label: '3 Días', days: 3 },
+          { label: '1 Sem (7d)', days: 7 },
+          { label: '15 Días (Sugerido)', days: 15 },
+          { label: '1 Mes (30d)', days: 30, highlight: true }
+        ]
+      };
+    }
+
+    if (type === 'piar_ajuste') {
+      return {
+        maxDays: 30,
+        defaultDays: 15,
+        minDate,
+        maxDate: addDays(30, today),
+        defaultDate: addDays(15, today),
+        isConvivenciaRule: false,
+        ruleNotice: '🧠 Ajuste Curricular PIAR: Acompañamiento individual pedagógico. Plazo máximo normativo de 30 días.',
+        badgeLabel: '🧠 Máx. 30 días (PIAR)',
+        quickButtons: [
+          { label: 'Ayer (-1d)', days: -1, isPast: true },
+          { label: 'Hoy (0d)', days: 0 },
+          { label: '1 Sem (7d)', days: 7 },
+          { label: '15 Días (Sugerido)', days: 15 },
+          { label: '1 Mes (30d Máx)', days: 30, highlight: true }
+        ]
+      };
+    }
+
+    // Por defecto: Falta Leve (Tipo I)
+    return {
+      maxDays: 7,
+      defaultDays: 5,
+      minDate,
+      maxDate: addDays(7, today),
+      defaultDate: addDays(5, today),
+      isConvivenciaRule: true,
+      ruleNotice: '📘 Falta Leve (Tipo I): Llamado pedagógico reflexivo en aula. Plazo máximo de 1 semana (7 días).',
+      badgeLabel: '📘 Máx. 1 semana (7 días)',
+      quickButtons: [
+        { label: 'Ayer (-1d)', days: -1, isPast: true },
+        { label: 'Hoy (0d)', days: 0 },
+        { label: '3 Días', days: 3 },
+        { label: '5 Días (Sugerido)', days: 5 },
+        { label: '1 Sem (7d Máx)', days: 7, highlight: true }
+      ]
+    };
+  }
+
+  // 3. Comité de Convivencia Escolar (Ley 1620)
   if (route === 'comite_convivencia') {
     if (sessionType === 'Extraordinaria') {
       return {
         maxDays: 7,
         defaultDays: 3,
-        minDate: todayISO,
+        minDate,
         maxDate: addDays(7, today),
         defaultDate: addDays(3, today),
         isConvivenciaRule: true,
-        ruleNotice: '⚠️ Sesión extraordinaria de convivencia: Plazo máximo normativo de 1 semana (7 días).'
+        ruleNotice: '⚠️ Sesión extraordinaria de convivencia: Plazo prioritario de 1 semana (7 días).',
+        badgeLabel: '⚡ Sesión Extraord. (Máx. 7d)',
+        quickButtons: [
+          { label: 'Ayer (-1d)', days: -1, isPast: true },
+          { label: 'Hoy (0d)', days: 0 },
+          { label: '24h (1d)', days: 1 },
+          { label: '3 Días (Sugerido)', days: 3 },
+          { label: '7 Días (Máx)', days: 7, highlight: true }
+        ]
       };
     }
     const maxDays = isSpecialMeeting ? 60 : 30;
     return {
       maxDays,
       defaultDays: 15,
-      minDate: todayISO,
+      minDate,
       maxDate: addDays(maxDays, today),
       defaultDate: addDays(15, today),
       isConvivenciaRule: false,
       ruleNotice: isSpecialMeeting
         ? 'Reunión de cronograma ampliado: Plazo extendido hasta 60 días.'
-        : 'Comité de Convivencia: Plazo estándar de 15 a 30 días.'
+        : 'Comité de Convivencia: Plazo estándar de 15 a 30 días.',
+      badgeLabel: isSpecialMeeting ? '📋 Extendido (Máx. 60d)' : '📆 Ordinario (Máx. 30d)',
+      quickButtons: [
+        { label: 'Ayer (-1d)', days: -1, isPast: true },
+        { label: 'Hoy (0d)', days: 0 },
+        { label: '1 Sem (7d)', days: 7 },
+        { label: '15 Días (Sugerido)', days: 15 },
+        { label: '1 Mes (30d)', days: 30, highlight: true },
+        ...(isSpecialMeeting ? [{ label: '60 Días (Máx)', days: 60, highlight: true }] : [])
+      ]
     };
   }
 
-  // 3. Seguimiento Pedagógico y PIAR: MÁXIMO 1 MES (30 DÍAS)
+  // 4. Seguimiento Pedagógico y PIAR
   if (route === 'piar') {
     return {
       maxDays: 30,
       defaultDays: 15,
-      minDate: todayISO,
+      minDate,
       maxDate: addDays(30, today),
       defaultDate: addDays(15, today),
       isConvivenciaRule: false,
-      ruleNotice: 'Planes PIAR y seguimiento pedagógico: Plazo máximo normativo de 1 mes (30 días).'
+      ruleNotice: 'Planes PIAR y seguimiento pedagógico: Plazo normativo de 1 mes (30 días).',
+      badgeLabel: '🧠 PIAR (Máx. 30d)',
+      quickButtons: [
+        { label: 'Ayer (-1d)', days: -1, isPast: true },
+        { label: 'Hoy (0d)', days: 0 },
+        { label: '1 Sem (7d)', days: 7 },
+        { label: '15 Días (Sugerido)', days: 15 },
+        { label: '1 Mes (30d)', days: 30, highlight: true }
+      ]
     };
   }
 
-  // 4. Comités Generales y Reuniones de Docentes (Evaluación, Académico, Docentes)
+  // 5. Comités Generales y Reuniones Docentes
   const maxDays = isSpecialMeeting ? 60 : 30;
   return {
     maxDays,
     defaultDays: 15,
-    minDate: todayISO,
+    minDate,
     maxDate: addDays(maxDays, today),
     defaultDate: addDays(15, today),
     isConvivenciaRule: false,
     ruleNotice: isSpecialMeeting
-      ? 'Reunión o asamblea especial de periodo: Plazo extendido hasta 60 días.'
-      : 'Actas de comités y jornadas: Plazo máximo normativo de 1 mes (30 días).'
+      ? 'Reunión especial de periodo: Plazo extendido hasta 60 días.'
+      : 'Actas de comités y asambleas: Plazo normativo de 1 mes (30 días).',
+    badgeLabel: isSpecialMeeting ? '📋 Extendido (Máx. 60d)' : '📆 Comités (Máx. 30d)',
+    quickButtons: [
+      { label: 'Ayer (-1d)', days: -1, isPast: true },
+      { label: 'Hoy (0d)', days: 0 },
+      { label: '1 Sem (7d)', days: 7 },
+      { label: '15 Días (Sugerido)', days: 15 },
+      { label: '1 Mes (30d)', days: 30, highlight: true },
+      ...(isSpecialMeeting ? [{ label: '60 Días (Máx)', days: 60, highlight: true }] : [])
+    ]
   };
 }

@@ -675,10 +675,12 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         currentUser={currentUser}
-        onRecordCreated={(newRec) => {
+        onRecordCreated={(newRec, shouldOpenView = false) => {
           addRecord(newRec);
-          setSelectedRecordForView(newRec);
-          setIsViewModalOpen(true);
+          if (shouldOpenView) {
+            setSelectedRecordForView(newRec);
+            setIsViewModalOpen(true);
+          }
         }}
         initialRoute={currentRoute}
       />
