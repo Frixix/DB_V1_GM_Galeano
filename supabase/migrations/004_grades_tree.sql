@@ -45,3 +45,33 @@ end $$;
 -- 4. Indice de busqueda rapida por grado y periodo
 create index if not exists idx_grades_branches_lookup 
 on grades_branches (year, period, grade, subject);
+
+-- 5. Boveda de Respaldo Institucional (institutional_vault)
+create table if not exists institutional_vault (
+  user_key text primary key,
+  cipher text,
+  default_invalidated boolean default false,
+  updated_at timestamptz default now()
+);
+
+alter table institutional_vault enable row level security;
+
+drop policy if exists "Lectura de vault" on institutional_vault;
+create policy "Lectura de vault" on institutional_vault for select using (true);
+
+drop policy if exists "Insercion de vault" on institutional_vault;
+create policy "Insercion de vault" on institutional_vault for insert with check (true);
+
+drop policy if exists "Actualizacion de vault" on institutional_vault;
+create policy "Actualizacion de vault" on institutional_vault for update using (true);
+
+drop policy if exists "Eliminacion de vault" on institutional_vault;
+create policy "Eliminacion de vault" on institutional_vault for delete using (true);
+
+do $$ 
+begin
+  alter publication supabase_realtime add table institutional_vault;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end $$;
