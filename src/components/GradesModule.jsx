@@ -748,7 +748,7 @@ export default function GradesModule({
                                   }}
                                   title={`Ver planilla de ${subj} de ${st.name}`}
                                 >
-                                  {score > 0 ? score.toFixed(1) : '—'}
+                                  {Number(score) > 0 ? Number(score).toFixed(1) : '—'}
                                 </span>
                               </td>
                             );
@@ -757,7 +757,7 @@ export default function GradesModule({
                           {/* Promedio General del Estudiante */}
                           <td style={{ textAlign: 'center' }} className="td-consolidated-avg">
                             <span className={`definitiva-pill ${defBadgeClass}`}>
-                              {st.average.toFixed(2)}
+                              {Number(st.average || 0).toFixed(2)}
                             </span>
                           </td>
 
@@ -1008,7 +1008,9 @@ export default function GradesModule({
                   ) : (
                     filteredStudents.map((student, idx) => {
                       const gradeData = calculateGrade80_20(student, activities);
-                      const defVal = gradeData.definitiva;
+                      const defVal = gradeData.definitivaNum !== undefined && gradeData.definitivaNum !== null
+                        ? Number(gradeData.definitivaNum)
+                        : (gradeData.definitiva !== null && gradeData.definitiva !== undefined ? Number(gradeData.definitiva) : null);
                       const des = getDesempeno(defVal);
                       const defBadgeClass = getDefinitiveBadgeClass(defVal);
                       const avatarColorClass = PASTEL_AVATAR_CLASSES[idx % PASTEL_AVATAR_CLASSES.length];
@@ -1125,7 +1127,9 @@ export default function GradesModule({
                           {/* Promedio Aula (80%) */}
                           <td className="td-prom-aula" style={{ textAlign: 'center' }}>
                             <span className="prom-aula-pill">
-                              {gradeData.promedioAula !== null ? gradeData.promedioAula.toFixed(1) : '—'}
+                              {gradeData.promedioAula !== null && gradeData.promedioAula !== undefined && !isNaN(Number(gradeData.promedioAula))
+                                ? Number(gradeData.promedioAula).toFixed(1)
+                                : '—'}
                             </span>
                           </td>
 
@@ -1166,14 +1170,16 @@ export default function GradesModule({
                           <td className="grades-definitiva-cell td-score-def">
                             <div className="definitiva-cell-wrap">
                               <span className={`definitiva-pill ${defBadgeClass}`}>
-                                {defVal !== null ? defVal.toFixed(1) : '—'}
+                                {defVal !== null && defVal !== undefined && !isNaN(Number(defVal))
+                                  ? Number(defVal).toFixed(1)
+                                  : '—'}
                               </span>
                               {gradeData.isSimulated && (
                                 <span 
                                   className="predictive-hint-pill" 
-                                  title={`Simulación predictiva con 1.0 en la prueba final. Requiere ${gradeData.notaRequerida !== null ? gradeData.notaRequerida.toFixed(1) : '—'} en el examen para aprobar la asignatura con 3.0`}
+                                  title={`Simulación predictiva con 1.0 en la prueba final. Requiere ${gradeData.notaRequerida !== null && gradeData.notaRequerida !== undefined && !isNaN(Number(gradeData.notaRequerida)) ? Number(gradeData.notaRequerida).toFixed(1) : '—'} en el examen para aprobar la asignatura con 3.0`}
                                 >
-                                  *Proy. 1.0 (Req: {gradeData.notaRequerida !== null ? gradeData.notaRequerida.toFixed(1) : '—'})
+                                  *Proy. 1.0 (Req: {gradeData.notaRequerida !== null && gradeData.notaRequerida !== undefined && !isNaN(Number(gradeData.notaRequerida)) ? Number(gradeData.notaRequerida).toFixed(1) : '—'})
                                 </span>
                               )}
                             </div>

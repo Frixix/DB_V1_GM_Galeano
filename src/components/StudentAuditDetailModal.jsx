@@ -147,8 +147,8 @@ export default function StudentAuditDetailModal({
             </div>
             <div className="audit-info-item">
               <span className="info-label">Promedio Anual SIEE</span>
-              <span className={`info-val-prom ${auditHistory.overallAnnualAverage >= 3.0 ? 'prom-pass' : 'prom-fail'}`}>
-                {auditHistory.overallAnnualAverage.toFixed(2)}
+              <span className={`info-val-prom ${Number(auditHistory.overallAnnualAverage || 1.0) >= 3.0 ? 'prom-pass' : 'prom-fail'}`}>
+                {Number(auditHistory.overallAnnualAverage || 1.0).toFixed(2)}
               </span>
             </div>
           </div>
@@ -213,17 +213,17 @@ export default function StudentAuditDetailModal({
                       {row.periodScores.map((ps, pIdx) => (
                         <td key={pIdx} style={{ textAlign: 'center' }}>
                           <span 
-                            className={`period-score-badge ${ps.score >= 3.0 ? 'score-high' : 'score-low'} ${ps.isDefaulted ? 'score-defaulted' : ''}`}
+                            className={`period-score-badge ${Number(ps.score || 1.0) >= 3.0 ? 'score-high' : 'score-low'} ${ps.isDefaulted ? 'score-defaulted' : ''}`}
                             title={ps.isDefaulted ? 'Evaluación no presentada por retiro: 1.0 por defecto' : (ps.isPreserved ? 'Nota previa preservada para auditoría' : 'Calificación')}
                           >
-                            {ps.score.toFixed(1)}
+                            {Number(ps.score || 1.0).toFixed(1)}
                             {ps.isDefaulted && <span className="defaulted-dot" title="1.0 por defecto">*</span>}
                           </span>
                         </td>
                       ))}
                       <td style={{ textAlign: 'center' }}>
-                        <strong className={`annual-score-badge ${row.definitiveAnnual >= 3.0 ? 'annual-pass' : 'annual-fail'}`}>
-                          {row.definitiveAnnual.toFixed(2)}
+                        <strong className={`annual-score-badge ${Number(row.definitiveAnnual || 1.0) >= 3.0 ? 'annual-pass' : 'annual-fail'}`}>
+                          {Number(row.definitiveAnnual || 1.0).toFixed(2)}
                         </strong>
                       </td>
                       <td style={{ textAlign: 'center' }}>

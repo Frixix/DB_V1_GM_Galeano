@@ -618,15 +618,15 @@ export default function MatriculasModule({
                         const note = st.subjectAnnuals[subj] || 1.0;
                         return (
                           <td key={subj} style={{ textAlign: 'center' }}>
-                            <span className={`annual-cell-pill ${note >= 3.0 ? 'score-high' : 'score-low'}`}>
-                              {note.toFixed(2)}
+                            <span className={`annual-cell-pill ${Number(note) >= 3.0 ? 'score-high' : 'score-low'}`}>
+                              {Number(note).toFixed(2)}
                             </span>
                           </td>
                         );
                       })}
                       <td style={{ textAlign: 'center' }}>
-                        <strong className={`annual-prom-overall ${st.annualAverage >= 3.0 ? 'score-high-text' : 'score-low-text'}`}>
-                          {st.annualAverage.toFixed(2)}
+                        <strong className={`annual-prom-overall ${Number(st.annualAverage || 1.0) >= 3.0 ? 'score-high-text' : 'score-low-text'}`}>
+                          {Number(st.annualAverage || 1.0).toFixed(2)}
                         </strong>
                       </td>
                       <td style={{ textAlign: 'center' }}>
