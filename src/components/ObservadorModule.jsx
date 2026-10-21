@@ -5,9 +5,11 @@ import ObservadorCard from './ObservadorCard';
 import ObservadorTable from './ObservadorTable';
 import ViewObservadorModal from './ViewObservadorModal';
 import UploadObservadorModal from './UploadObservadorModal';
+import CommitteeAssignmentModal from './CommitteeAssignmentModal';
 import { useObservador } from '../hooks/useObservador';
 import { OBSERVADOR_ROUTES } from '../data/initialObservador';
 import { getDeadlineMeta } from '../utils/observadorDates';
+import { committeeService } from '../services/committeeService.js';
 import './ObservadorModule.css';
 
 export default function ObservadorModule({
@@ -43,6 +45,14 @@ export default function ObservadorModule({
   const [selectedRecordForView, setSelectedRecordForView] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCommitteeModalOpen, setIsCommitteeModalOpen] = useState(false);
+  const [committeesTick, setCommitteesTick] = useState(0);
+
+  useEffect(() => {
+    const handleCommitteesUpdate = () => setCommitteesTick((t) => t + 1);
+    window.addEventListener('gmg_committees_updated', handleCommitteesUpdate);
+    return () => window.removeEventListener('gmg_committees_updated', handleCommitteesUpdate);
+  }, []);
 
   // Deep-Linking reactivo hacia actas o registros de observador específicos
   useEffect(() => {
@@ -68,6 +78,8 @@ export default function ObservadorModule({
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
   const isCoordinador = currentUser?.role === 'coordinador';
   const canAuditAll = isPrivileged || isCoordinador;
+  const canManageCommittees = committeeService.canManageCommittees(currentUser);
+  const canCreateInCurrentRoute = committeeService.canUserCreateInRoute(currentRoute, currentUser);
 
   // Estadísticas globales de alertas de plazos (Vencidos, Vence hoy, Próximos)
   const alertStats = useMemo(() => {
@@ -315,6 +327,7 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
             onlineCount={onlineCount}
             onOpenConnectionsModal={onOpenConnectionsModal}
             onBackToModules={onBackToModules}
+            onOpenCommitteeAssignments={() => setIsCommitteeModalOpen(true)}
           />
         </div>
 
@@ -339,23 +352,74 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
               </div>
             </div>
 
-            <button
-              type="button"
-              className="obs-banner-btn-new"
-              onClick={() => setIsUploadModalOpen(true)}
-              title={
-                isPrivileged
-                  ? "Radicar observación, citación o convocar sesión de comité"
-                  : "Radicar observación pedagógica, citación a acudiente o PIAR"
-              }
-            >
-              <i className="ph-bold ph-plus-circle"></i>
-              <span>
-                {isPrivileged
-                  ? "Radicar / Convocar Comité"
-                  : "Radicar Observación / Citación / PIAR"}
-              </span>
-            </button>
+            <div className="obs-banner-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {canManageCommittees && (
+                <button
+                  type="button"
+                  className="obs-banner-btn-secondary"
+                  onClick={() => setIsCommitteeModalOpen(true)}
+                  title="Asignación institucional de docentes a comités (Facultad de Rectoría)"
+                  style={{
+                    background: '#f0fdfa',
+                    border: '1.5px solid #99f6e4',
+                    color: '#0f766e',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    padding: '0.55rem 0.95rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <i className="ph-bold ph-user-gear"></i>
+                  <span>Asignar Comités</span>
+                </button>
+              )}
+
+              {canCreateInCurrentRoute ? (
+                <button
+                  type="button"
+                  className="obs-banner-btn-new"
+                  onClick={() => setIsUploadModalOpen(true)}
+                  title={
+                    isPrivileged
+                      ? "Radicar observación, citación o convocar sesión de comité"
+                      : "Radicar observación pedagógica, citación a acudiente o PIAR"
+                  }
+                >
+                  <i className="ph-bold ph-plus-circle"></i>
+                  <span>
+                    {isPrivileged
+                      ? "Radicar / Convocar Comité"
+                      : (['comite_convivencia', 'comision_evaluacion', 'consejo_academico'].includes(currentRoute)
+                          ? "Radicar Acta de Comité"
+                          : "Radicar Observación / Citación / PIAR")}
+                  </span>
+                </button>
+              ) : (
+                <div
+                  className="obs-committee-locked-pill"
+                  title="Esta sección de comité está reservada a la docente representante asignada por Rectoría"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '0.55rem 0.85rem',
+                    background: '#f8fafc',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    color: '#64748b',
+                    fontWeight: 600
+                  }}
+                >
+                  <i className="ph-bold ph-lock-key" style={{ color: '#0f766e' }}></i>
+                  <span>Acta reservada a docentes del comité</span>
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Barra de Notificaciones y Alertas Rápidas de Plazos */}
@@ -617,6 +681,14 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
           setIsViewModalOpen(true);
         }}
         initialRoute={currentRoute}
+      />
+
+      {/* Modal para Asignación Directiva de Comités Institucionales */}
+      <CommitteeAssignmentModal
+        isOpen={isCommitteeModalOpen}
+        onClose={() => setIsCommitteeModalOpen(false)}
+        currentUser={currentUser}
+        onAssignmentsUpdated={() => setCommitteesTick((t) => t + 1)}
       />
     </div>
   );

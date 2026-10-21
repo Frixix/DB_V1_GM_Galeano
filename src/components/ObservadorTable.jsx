@@ -66,16 +66,17 @@ export default function ObservadorTable({
                   <code>{rec.id}</code>
                 </td>
 
-                {/* Semáforo Institucional (🔴, 🟡, 🟢) */}
+                {/* Semáforo Institucional Mejorado */}
                 <td className="obs-col-semaforo">
                   <span className={`obs-semaforo-badge ${semaforoInfo.badgeClass}`} title={semaforoInfo.description}>
+                    <i className={`ph-bold ${semaforoInfo.icon || 'ph-circle'}`} style={{ fontSize: '0.85rem' }}></i>
                     <span className={`obs-semaforo-dot ${effectiveSemaforo}`}></span>
                     <span>
                       {effectiveSemaforo === 'rojo'
-                        ? (deadlineMeta.isOverdue ? '🔴 Vencido' : '🔴 Crítico')
+                        ? (deadlineMeta.isOverdue ? 'Vencido' : 'Crítico')
                         : effectiveSemaforo === 'verde'
-                        ? '🟢 Resuelto'
-                        : '🟡 En Proceso'}
+                        ? 'Resuelto'
+                        : 'En Proceso'}
                     </span>
                   </span>
                 </td>

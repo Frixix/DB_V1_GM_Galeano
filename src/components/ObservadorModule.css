@@ -140,9 +140,25 @@
   color: #047857;
   background-color: #d1fae5;
   border: 1px solid #a7f3d0;
-  padding: 0.1rem 0.35rem;
+  padding: 0.12rem 0.4rem;
   border-radius: 9999px;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.obs-member-tag-mini.active {
+  color: #0f766e;
+  background-color: #ccfbf1;
+  border-color: #99f6e4;
+}
+
+.obs-member-tag-mini.locked {
+  color: #94a3b8;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  padding: 0.12rem 0.35rem;
 }
 
 /* Ficha del Rol Propio de la Docente */
@@ -1396,12 +1412,43 @@
 .obs-semaforo-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 0.725rem;
   font-weight: 700;
-  padding: 0.2rem 0.55rem;
+  padding: 0.22rem 0.6rem;
   border-radius: 9999px;
   white-space: nowrap;
+}
+
+.obs-semaforo-badge i,
+.obs-semaforo-chip i {
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.semaforo-badge-rojo i {
+  color: #dc2626;
+}
+
+.semaforo-badge-amarillo i {
+  color: #d97706;
+}
+
+.semaforo-badge-verde i {
+  color: #16a34a;
+}
+
+.obs-btn-mini-assign:hover {
+  background: #ccfbf1 !important;
+  color: #115e59 !important;
+  transform: translateY(-1px);
+}
+
+.obs-banner-btn-secondary:hover {
+  background: #ccfbf1 !important;
+  border-color: #5eead4 !important;
+  color: #115e59 !important;
+  transform: translateY(-1px);
 }
 
 .semaforo-badge-rojo {

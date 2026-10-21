@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { isUserCommitteeMember } from '../data/initialObservador.js';
+import { committeeService } from '../services/committeeService.js';
 import BaseSidebar from './common/BaseSidebar.jsx';
 
 export default function ObservadorSidebar({
@@ -12,9 +14,19 @@ export default function ObservadorSidebar({
   onlineMap = {},
   onlineCount = 0,
   onOpenConnectionsModal,
-  onBackToModules
+  onBackToModules,
+  onOpenCommitteeAssignments
 }) {
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(currentUser.role);
+  const canManageCommittees = committeeService.canManageCommittees(currentUser);
+
+  const [committeesTick, setCommitteesTick] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => setCommitteesTick((t) => t + 1);
+    window.addEventListener('gmg_committees_updated', handleUpdate);
+    return () => window.removeEventListener('gmg_committees_updated', handleUpdate);
+  }, []);
 
   // Contadores por ruta para mostrar badges informativos
   const counts = {
@@ -109,9 +121,33 @@ export default function ObservadorSidebar({
               <i className="ph-bold ph-scales"></i>
               <span>COMITÉS INTERNOS</span>
             </div>
-            <span style={{ fontSize: '0.62rem', color: '#0f766e', fontWeight: 600, textTransform: 'none' }}>
-              Convoca: Rectoría
-            </span>
+            {canManageCommittees ? (
+              <button
+                type="button"
+                className="obs-btn-mini-assign"
+                onClick={onOpenCommitteeAssignments}
+                title="Configurar y asignar representantes docentes a comités escolares (Rectoría)"
+                style={{
+                  background: '#f0fdfa',
+                  border: '1px solid #99f6e4',
+                  color: '#0f766e',
+                  borderRadius: '6px',
+                  fontSize: '0.62rem',
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <i className="ph-bold ph-user-gear"></i> Asignar
+              </button>
+            ) : (
+              <span style={{ fontSize: '0.62rem', color: '#0f766e', fontWeight: 600, textTransform: 'none' }}>
+                Convoca: Rectoría
+              </span>
+            )}
           </div>
 
           <button
@@ -123,10 +159,16 @@ export default function ObservadorSidebar({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, overflow: 'hidden' }}>
               <i className="ph-bold ph-scales"></i>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>C. Convivencia</span>
-              {!isPrivileged && isUserCommitteeMember('comite_convivencia', currentUser) && (
-                <span className="obs-member-tag-mini" title="Eres miembro asignado de este comité">
-                  Miembro
-                </span>
+              {!isPrivileged && (
+                committeeService.isUserAssigned('comite_convivencia', currentUser) ? (
+                  <span className="obs-member-tag-mini active" title="Docente representante asignada formalmente a Convivencia">
+                    ★ Asignada
+                  </span>
+                ) : (
+                  <span className="obs-member-tag-mini locked" title="Solo lectura: no perteneces a este comité">
+                    <i className="ph-bold ph-lock-key"></i>
+                  </span>
+                )
               )}
             </div>
             {counts.comite_convivencia > 0 && (
@@ -143,10 +185,16 @@ export default function ObservadorSidebar({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, overflow: 'hidden' }}>
               <i className="ph-bold ph-chart-pie-slice"></i>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>C. Evaluación</span>
-              {!isPrivileged && isUserCommitteeMember('comision_evaluacion', currentUser) && (
-                <span className="obs-member-tag-mini" title="Eres miembro asignado de este comité">
-                  Miembro
-                </span>
+              {!isPrivileged && (
+                committeeService.isUserAssigned('comision_evaluacion', currentUser) ? (
+                  <span className="obs-member-tag-mini active" title="Docente representante asignada formalmente a Evaluación">
+                    ★ Asignada
+                  </span>
+                ) : (
+                  <span className="obs-member-tag-mini locked" title="Solo lectura: no perteneces a este comité">
+                    <i className="ph-bold ph-lock-key"></i>
+                  </span>
+                )
               )}
             </div>
             {counts.comision_evaluacion > 0 && (
@@ -163,10 +211,16 @@ export default function ObservadorSidebar({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, overflow: 'hidden' }}>
               <i className="ph-bold ph-graduation-cap"></i>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>C. Académico</span>
-              {!isPrivileged && isUserCommitteeMember('consejo_academico', currentUser) && (
-                <span className="obs-member-tag-mini" title="Eres miembro asignado de este comité">
-                  Miembro
-                </span>
+              {!isPrivileged && (
+                committeeService.isUserAssigned('consejo_academico', currentUser) ? (
+                  <span className="obs-member-tag-mini active" title="Docente asignada formalmente">
+                    ★ Asignada
+                  </span>
+                ) : (
+                  <span className="obs-member-tag-mini locked" title="Solo lectura: no perteneces a este consejo">
+                    <i className="ph-bold ph-lock-key"></i>
+                  </span>
+                )
               )}
             </div>
             {counts.consejo_academico > 0 && (
@@ -183,8 +237,8 @@ export default function ObservadorSidebar({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, overflow: 'hidden' }}>
               <i className="ph-bold ph-chalkboard-teacher"></i>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reunión Docente</span>
-              {!isPrivileged && isUserCommitteeMember('reuniones_docentes', currentUser) && (
-                <span className="obs-member-tag-mini" title="Eres miembro asignado de este comité">
+              {!isPrivileged && (
+                <span className="obs-member-tag-mini active" title="Participación de todo el claustro docente">
                   Docente
                 </span>
               )}

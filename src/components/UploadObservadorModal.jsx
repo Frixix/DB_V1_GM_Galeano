@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { STUDENTS_BY_GRADE } from '../data/gradesTreeData';
 import { OBSERVADOR_ROUTES, RECORD_STATUSES, COMMITTEE_MEMBERS, AVAILABLE_TEACHERS } from '../data/initialObservador';
 import { getDateRules, addDays, formatDisplayDate, getDaysDifference } from '../utils/observadorDates';
+import { committeeService } from '../services/committeeService.js';
 
 export default function UploadObservadorModal({
   isOpen,
@@ -13,11 +14,12 @@ export default function UploadObservadorModal({
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
 
   const getValidInitialRoute = (rt) => {
+    if (!rt || rt === 'all') return 'observador';
     const isCommittee = ['comite_convivencia', 'comision_evaluacion', 'consejo_academico', 'reuniones_docentes'].includes(rt);
-    if (!isPrivileged && isCommittee) {
+    if (isCommittee && !committeeService.canUserCreateInRoute(rt, currentUser)) {
       return 'observador';
     }
-    return rt === 'all' ? 'observador' : rt;
+    return rt;
   };
 
   const [route, setRoute] = useState(() => getValidInitialRoute(initialRoute));
@@ -268,33 +270,47 @@ export default function UploadObservadorModal({
                 onChange={(e) => {
                   const newRoute = e.target.value;
                   setRoute(newRoute);
-                  if (COMMITTEE_MEMBERS[newRoute]) {
-                    setAttendees(COMMITTEE_MEMBERS[newRoute].memberNames.join(', '));
+                  if (COMMITTEE_MEMBERS[newRoute] || committeeService.getCommittee(newRoute)) {
+                    const cInfo = committeeService.getCommittee(newRoute);
+                    const membersTxt = committeeService.getCommitteeMembersLabel(newRoute);
+                    setAttendees(`${membersTxt}, Claudia (Rectora)`);
                     if (!title) {
-                      setTitle(`Acta Ordinaria N° - ${COMMITTEE_MEMBERS[newRoute].name}`);
+                      setTitle(`Acta Ordinaria N° - ${cInfo?.name || newRoute}`);
                     }
                   }
                 }}
                 required
               >
-                <optgroup label="Seguimiento a Estudiantes (Habilitado para Docentes)">
+                <optgroup label="Seguimiento a Estudiantes">
                   <option value="observador">Observador del Estudiante</option>
                   <option value="citaciones">Citaciones & Acudientes</option>
                   <option value="piar">Seguimiento Pedagógico & PIAR</option>
                 </optgroup>
-                {isPrivileged ? (
-                  <optgroup label="Comités Internos (Convocatoria Exclusiva Rectoría)">
-                    <option value="comite_convivencia">Comité de Convivencia Escolar (Ley 1620)</option>
-                    <option value="comision_evaluacion">Comisión de Evaluación y Promoción (Dec. 1290)</option>
-                    <option value="consejo_academico">Consejo Académico</option>
+                
+                {/* Comités Disponibles según asignación de Rectoría */}
+                {(isPrivileged || committeeService.getUserAssignedCommittees(currentUser).length > 0) && (
+                  <optgroup label="Actas de Comités Escolares (Asignadas por Rectoría)">
+                    {(isPrivileged || committeeService.isUserAssigned('comite_convivencia', currentUser)) && (
+                      <option value="comite_convivencia">Comité de Convivencia Escolar (Ley 1620)</option>
+                    )}
+                    {(isPrivileged || committeeService.isUserAssigned('comision_evaluacion', currentUser)) && (
+                      <option value="comision_evaluacion">Comisión de Evaluación y Promoción (Dec. 1290)</option>
+                    )}
+                    {(isPrivileged || committeeService.isUserAssigned('consejo_academico', currentUser)) && (
+                      <option value="consejo_academico">Consejo Académico (Ley 115)</option>
+                    )}
                     <option value="reuniones_docentes">Reuniones de Docentes & Asambleas</option>
                   </optgroup>
-                ) : null}
+                )}
               </select>
               {!isPrivileged && (
                 <span style={{ fontSize: '0.72rem', color: '#0f766e', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <i className="ph-bold ph-info"></i>
-                  <span>Permiso docente activo: Anotaciones, citaciones y PIAR. (Comités convocados por Rectoría).</span>
+                  <span>
+                    {committeeService.getUserAssignedCommittees(currentUser).length > 0
+                      ? 'Permisos activos: Observador de aula + Comités asignados por Rectoría.'
+                      : 'Permiso docente estándar: Observador, citaciones y PIAR.'}
+                  </span>
                 </span>
               )}
             </div>

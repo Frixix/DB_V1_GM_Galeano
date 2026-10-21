@@ -135,11 +135,35 @@ export const COMMITTEE_MEMBERS = {
 
 /**
  * Validador de membresía de un docente en un comité escolar
+ * Integra dinámicamente las asignaciones directivas a criterio de Rectoría
  */
 export function isUserCommitteeMember(committeeId, user) {
   if (!user) return false;
   const userRole = user.role || '';
-  if (['admin', 'rectora', 'induccion_rectora'].includes(userRole)) return true;
+  if (['admin', 'rectora', 'induccion_rectora', 'coordinador'].includes(userRole)) return true;
+
+  // Consulta de asignaciones personalizadas de Rectoría desde localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('gmg_committee_assignments_v2');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed[committeeId]) {
+          const custom = parsed[committeeId];
+          if (custom.isAllTeachers) return true;
+          const userKey = (user.key || '').toLowerCase();
+          const userName = (user.name || '').toLowerCase();
+          const isAssigned = (custom.assignedTeachers || []).some((k) => {
+            return k.toLowerCase() === userKey || userName.includes(k.toLowerCase());
+          });
+          return isAssigned;
+        }
+      }
+    } catch {
+      // Continuar con fallback
+    }
+  }
+
   const userKey = (user.key || '').toLowerCase();
   const userName = (user.name || '').toLowerCase();
   const committee = COMMITTEE_MEMBERS[committeeId];
@@ -160,7 +184,7 @@ export function isUserCommitteeMember(committeeId, user) {
 export const SEMAFORO_CONFIG = {
   rojo: {
     id: 'rojo',
-    label: '🔴 Alerta Crítica (No Resuelto)',
+    label: 'Alerta Crítica',
     color: '#dc2626',
     bgColor: '#fef2f2',
     borderColor: '#fca5a5',
@@ -171,7 +195,7 @@ export const SEMAFORO_CONFIG = {
   },
   amarillo: {
     id: 'amarillo',
-    label: '🟡 En Proceso / Seguimiento',
+    label: 'En Seguimiento',
     color: '#d97706',
     bgColor: '#fffbeb',
     borderColor: '#fde68a',
@@ -182,7 +206,7 @@ export const SEMAFORO_CONFIG = {
   },
   verde: {
     id: 'verde',
-    label: '🟢 Superado / Resuelto',
+    label: 'Superado / Resuelto',
     color: '#16a34a',
     bgColor: '#f0fdf4',
     borderColor: '#bbf7d0',

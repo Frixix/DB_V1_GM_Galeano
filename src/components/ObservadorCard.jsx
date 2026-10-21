@@ -52,15 +52,16 @@ export default function ObservadorCard({
       {/* Cabecera de la Tarjeta */}
       <div className="obs-card-header">
         <div className="obs-badges-group">
-          {/* Semáforo Institucional (🔴, 🟡, 🟢) */}
+          {/* Semáforo Institucional Mejorado */}
           <span className={`obs-semaforo-badge ${semaforoInfo.badgeClass}`} title={semaforoInfo.description}>
+            <i className={`ph-bold ${semaforoInfo.icon || 'ph-circle'}`} style={{ fontSize: '0.85rem' }}></i>
             <span className={`obs-semaforo-dot ${effectiveSemaforo}`}></span>
             <strong>
               {effectiveSemaforo === 'rojo'
-                ? (deadlineMeta.isOverdue ? '🔴 Vencido (Crítico)' : '🔴 Crítico')
+                ? (deadlineMeta.isOverdue ? 'Vencido (Crítico)' : 'Alerta Crítica')
                 : effectiveSemaforo === 'verde'
-                ? '🟢 Resuelto'
-                : '🟡 En Proceso'}
+                ? 'Superado / Resuelto'
+                : 'En Proceso'}
             </strong>
           </span>
           <span className={`obs-route-chip ${getRouteBadgeClass(record.route)}`}>

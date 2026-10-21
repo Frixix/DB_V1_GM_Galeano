@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RECORD_STATUSES, RECORD_TYPES, SEMAFORO_CONFIG } from '../data/initialObservador';
 import { getDeadlineMeta } from '../utils/observadorDates';
+import { committeeService } from '../services/committeeService.js';
 
 export default function ViewObservadorModal({
   isOpen,
@@ -44,6 +45,7 @@ export default function ViewObservadorModal({
     : record.semaforo;
   const currentSemaforo = SEMAFORO_CONFIG[effectiveSemaforoKey] || SEMAFORO_CONFIG.amarillo;
   const isStudentRoute = ['observador', 'citaciones', 'piar'].includes(record.route);
+  const canEditThisRecord = committeeService.canUserEditRecord(record, currentUser);
 
   const formatRouteTitle = (route) => {
     const map = {
@@ -164,9 +166,10 @@ export default function ViewObservadorModal({
           </div>
 
           <div className="obs-modal-banner-right">
-            {/* Chip del Semáforo Institucional */}
+            {/* Chip del Semáforo Institucional Mejorado */}
             <span className={`obs-semaforo-chip ${currentSemaforo.badgeClass}`} title={currentSemaforo.description}>
-              <span className={`obs-semaforo-dot ${record.semaforo}`}></span>
+              <i className={`ph-bold ${currentSemaforo.icon || 'ph-circle'}`} style={{ fontSize: '0.95rem' }}></i>
+              <span className={`obs-semaforo-dot ${effectiveSemaforoKey}`}></span>
               <strong>{currentSemaforo.label}</strong>
             </span>
           </div>
@@ -509,7 +512,7 @@ export default function ViewObservadorModal({
         {/* Pie de Modal y Acciones */}
         <div className="obs-modal-footer">
           <div className="obs-modal-footer-left">
-            {onUpdateStatus && (
+            {onUpdateStatus && canEditThisRecord ? (
               record.semaforo === 'verde' || record.status === 'resuelto' ? (
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button
@@ -518,8 +521,8 @@ export default function ViewObservadorModal({
                     onClick={() => handleReopen('amarillo')}
                     title="Reabrir caso y pasar a Semáforo Amarillo (En seguimiento)"
                   >
-                    <i className="ph-bold ph-arrows-clockwise"></i>
-                    <span>Pasar a 🟡 Amarillo (Reabrir)</span>
+                    <i className="ph-bold ph-clock-countdown"></i>
+                    <span>Pasar a Amarillo (Reabrir)</span>
                   </button>
                   <button
                     type="button"
@@ -528,7 +531,7 @@ export default function ViewObservadorModal({
                     title="Pasar a Semáforo Rojo (Alerta Crítica)"
                   >
                     <i className="ph-bold ph-warning-octagon"></i>
-                    <span>Pasar a 🔴 Rojo</span>
+                    <span>Pasar a Rojo</span>
                   </button>
                 </div>
               ) : (
@@ -540,10 +543,19 @@ export default function ViewObservadorModal({
                     title="Desplegar casilla para documentar cómo se arregló y pasar a Verde"
                   >
                     <i className="ph-bold ph-check-circle"></i>
-                    <span>Marcar como Cumplido / Resuelto (🟢 Verde)</span>
+                    <span>Marcar como Cumplido / Resuelto</span>
                   </button>
                 )
               )
+            ) : (
+              <div className="obs-readonly-committee-banner" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#64748b', fontSize: '0.74rem' }}>
+                <i className="ph-bold ph-lock-key" style={{ color: '#0f766e' }}></i>
+                <span>
+                  {['comite_convivencia', 'comision_evaluacion', 'consejo_academico'].includes(record?.route)
+                    ? `Acta restringida: solo miembros del comité asignados por Rectoría.`
+                    : `Solo lectura: anotación a cargo de ${record?.teacher || 'docente titular'}.`}
+                </span>
+              </div>
             )}
           </div>
 
