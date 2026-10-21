@@ -139,9 +139,9 @@
 }
 
 .icon-print {
-  background: #f5f3ff;
-  color: #7c3aed;
-  border: 1px solid #ddd6fe;
+  background: #f0fdf4;
+  color: #059669;
+  border: 1px solid #bbf7d0;
 }
 
 .kpi-info {
@@ -169,7 +169,50 @@
   color: #94a3b8;
 }
 
-/* Banner de la Regla de Oro */
+/* Píldora de Directivas Institucionales y Fórmula N+1 (Bombillo Sutil) */
+.matriculas-hint-bulb-bar {
+  margin-bottom: 1.25rem;
+}
+
+.matriculas-hint-bulb-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  font-size: 0.8rem;
+  color: #166534;
+  line-height: 1.4;
+}
+
+.matriculas-hint-bulb-pill .bulb-icon {
+  font-size: 1.15rem;
+  color: #eab308;
+  flex-shrink: 0;
+}
+
+.matriculas-hint-bulb-pill .bulb-tag {
+  font-weight: 800;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.matriculas-hint-bulb-pill .bulb-text {
+  color: #166534;
+}
+
+.matriculas-hint-bulb-pill .bulb-text strong {
+  color: #14532d;
+}
+
+/* Banner de la Regla de Oro (compatibilidad) */
 .matriculas-golden-rule-banner {
   background: #fffbeb;
   border: 1px solid #fef08a;
@@ -369,9 +412,9 @@
   gap: 5px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #f5f3ff;
-  color: #6d28d9;
-  border: 1px solid #ddd6fe;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
   padding: 4px 10px;
   border-radius: 6px;
 }
@@ -529,8 +572,9 @@
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #ede9fe;
-  color: #6d28d9;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #dcfce7;
   padding: 3px 8px;
   border-radius: 6px;
 }
@@ -597,8 +641,9 @@
 }
 
 .nplus-included {
-  background: #f5f3ff;
-  color: #6d28d9;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
 .nplus-excluded {

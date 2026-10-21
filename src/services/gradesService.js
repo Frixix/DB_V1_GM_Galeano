@@ -968,6 +968,235 @@ class GradesService {
     this.persistTree();
   }
 
+  /**
+   * Sincroniza un estudiante en la tabla matriculas_estudiantes de Supabase
+   */
+  async syncStudentToSupabase(studentData, currentUser = null) {
+    if (!isSupabaseConfigured || !supabase) return { synced: false, reason: 'Supabase no configurado' };
+
+    const payload = {
+      id: String(studentData.id),
+      name: String(studentData.name),
+      grade: String(studentData.grade),
+      acudiente: studentData.acudiente || null,
+      nombre_madre: studentData.nombreMadre || studentData.nombre_madre || null,
+      telefono_madre: studentData.telefonoMadre || studentData.telefono_madre || null,
+      telefono: studentData.telefono || null,
+      fecha_ingreso: studentData.fechaIngreso || studentData.fecha_ingreso || new Date().toISOString().split('T')[0],
+      tipo_ingreso: studentData.tipoIngreso || studentData.tipo_ingreso || 'Matrícula Regular',
+      active: studentData.active !== false,
+      status: studentData.status || (studentData.active !== false ? 'activo' : 'retirado'),
+      inhabilitado: Boolean(studentData.inhabilitado || studentData.active === false),
+      motivo_retiro: studentData.motivoRetiro || studentData.motivo_retiro || null,
+      fecha_retiro: studentData.fechaRetiro || studentData.fecha_retiro || null,
+      observaciones: studentData.observaciones || null,
+      registered_by: studentData.registeredBy || currentUser?.name || 'Administración',
+      updated_by: currentUser?.name || 'Administración',
+      updated_at: new Date().toISOString()
+    };
+
+    // 1. Persistencia directa en matriculas_estudiantes
+    try {
+      const { data, error } = await supabase
+        .from('matriculas_estudiantes')
+        .upsert([payload], { onConflict: 'id' });
+
+      if (!error) {
+        return { synced: true, provider: 'matriculas_estudiantes' };
+      }
+    } catch {
+      // Continuar con respaldo
+    }
+
+    // 2. Respaldo en institutional_vault
+    try {
+      const vaultPayload = {
+        user_key: `student_roster_${payload.id}`,
+        cipher: JSON.stringify(payload),
+        default_invalidated: true,
+        updated_at: new Date().toISOString()
+      };
+      await supabase
+        .from('institutional_vault')
+        .upsert(vaultPayload, { onConflict: 'user_key' });
+      return { synced: true, provider: 'institutional_vault' };
+    } catch (err) {
+      console.warn('[GradesService] Error sincronizando estudiante en Supabase:', err);
+      return { synced: false, error: err };
+    }
+  }
+
+  /**
+   * Descarga todos los estudiantes de Supabase para consolidar el censo institucional
+   */
+  async fetchStudentsFromSupabase() {
+    if (!isSupabaseConfigured || !supabase) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('matriculas_estudiantes')
+        .select('*');
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        return data.map(row => ({
+          id: row.id,
+          name: row.name,
+          grade: row.grade,
+          acudiente: row.acudiente,
+          nombreMadre: row.nombre_madre,
+          telefonoMadre: row.telefono_madre,
+          telefono: row.telefono,
+          fechaIngreso: row.fecha_ingreso,
+          tipoIngreso: row.tipo_ingreso,
+          active: row.active,
+          status: row.status,
+          inhabilitado: row.inhabilitado,
+          motivoRetiro: row.motivo_retiro,
+          fechaRetiro: row.fecha_retiro,
+          observaciones: row.observaciones,
+          registeredBy: row.registered_by
+        }));
+      }
+    } catch {
+      // Ignorar y continuar con fallback
+    }
+
+    return null;
+  }
+
+  /**
+   * Sincronización remota inicial del censo escolar
+   */
+  async initMatriculasRemoteSync() {
+    try {
+      const remoteStudents = await this.fetchStudentsFromSupabase();
+      if (remoteStudents && remoteStudents.length > 0) {
+        let changed = false;
+        remoteStudents.forEach(remoteSt => {
+          const canonicalGrade = normalizeGrade(remoteSt.grade);
+          const subjects = this.getSubjectsForGrade(canonicalGrade);
+          
+          ACADEMIC_PERIODS.forEach(period => {
+            subjects.forEach(subj => {
+              const branch = this.getBranch('2026', period, canonicalGrade, subj);
+              if (branch && branch.students) {
+                const existing = branch.students.find(s => s.id === remoteSt.id);
+                if (existing) {
+                  // Actualizar estado si cambió
+                  if (existing.active !== remoteSt.active || existing.status !== remoteSt.status) {
+                    existing.active = remoteSt.active;
+                    existing.status = remoteSt.status;
+                    existing.inhabilitado = remoteSt.inhabilitado;
+                    existing.motivoRetiro = remoteSt.motivoRetiro;
+                    existing.fechaRetiro = remoteSt.fechaRetiro;
+                    changed = true;
+                  }
+                } else {
+                  // Nuevo estudiante remoto
+                  branch.students.push({
+                    id: remoteSt.id,
+                    name: remoteSt.name,
+                    grade: canonicalGrade,
+                    acudiente: remoteSt.acudiente,
+                    nombreMadre: remoteSt.nombreMadre,
+                    telefonoMadre: remoteSt.telefonoMadre,
+                    fechaIngreso: remoteSt.fechaIngreso,
+                    tipoIngreso: remoteSt.tipoIngreso,
+                    active: remoteSt.active,
+                    status: remoteSt.status,
+                    inhabilitado: remoteSt.inhabilitado,
+                    motivoRetiro: remoteSt.motivoRetiro,
+                    fechaRetiro: remoteSt.fechaRetiro,
+                    observaciones: remoteSt.observaciones,
+                    scores: {},
+                    evaluacionFinal: null
+                  });
+                  changed = true;
+                }
+              }
+            });
+          });
+        });
+
+        if (changed) {
+          this.persistTree();
+          this.notifyCurriculumUpdate();
+        }
+      }
+    } catch (err) {
+      console.warn('[GradesService] Error en initMatriculasRemoteSync:', err);
+    }
+  }
+
+  /**
+   * Suscripción Realtime a cambios en matriculas_estudiantes
+   */
+  initMatriculasRealtimeSubscription() {
+    if (!isSupabaseConfigured || !supabase) return () => {};
+
+    try {
+      const channel = supabase
+        .channel('matriculas_estudiantes_channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'matriculas_estudiantes' }, (payload) => {
+          if (payload.new && payload.new.id) {
+            const st = payload.new;
+            const canonicalGrade = normalizeGrade(st.grade);
+            const subjects = this.getSubjectsForGrade(canonicalGrade);
+
+            ACADEMIC_PERIODS.forEach(period => {
+              subjects.forEach(subj => {
+                const branch = this.getBranch('2026', period, canonicalGrade, subj);
+                if (branch && branch.students) {
+                  const target = branch.students.find(s => s.id === st.id);
+                  if (target) {
+                    target.active = st.active;
+                    target.status = st.status;
+                    target.inhabilitado = st.inhabilitado;
+                    target.motivoRetiro = st.motivo_retiro;
+                    target.fechaRetiro = st.fecha_retiro;
+                  } else {
+                    branch.students.push({
+                      id: st.id,
+                      name: st.name,
+                      grade: canonicalGrade,
+                      acudiente: st.acudiente,
+                      nombreMadre: st.nombre_madre,
+                      telefonoMadre: st.telefono_madre,
+                      fechaIngreso: st.fecha_ingreso,
+                      tipoIngreso: st.tipo_ingreso,
+                      active: st.active,
+                      status: st.status,
+                      inhabilitado: st.inhabilitado,
+                      motivoRetiro: st.motivo_retiro,
+                      fechaRetiro: st.fecha_retiro,
+                      scores: {},
+                      evaluacionFinal: null
+                    });
+                  }
+                }
+              });
+            });
+
+            this.persistTree();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+                detail: { grade: canonicalGrade, studentId: st.id, active: st.active, timestamp: new Date().toISOString() }
+              }));
+            }
+          }
+        })
+        .subscribe();
+
+      return () => {
+        try {
+          supabase.removeChannel(channel);
+        } catch {}
+      };
+    } catch {
+      return () => {};
+    }
+  }
+
   // =====================================================================
   // CÁLCULO DINÁMICO DE IMPRESIONES INSTITUCIONALES (N + 1) & GESTIÓN DE ROSTER
   // =====================================================================
@@ -1152,6 +1381,10 @@ class GradesService {
 
     this.persistTree();
 
+    this.syncStudentToSupabase(newStudent, user).catch(err => {
+      console.warn('[GradesService] Error sincronizando estudiante nuevo:', err);
+    });
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
         detail: { grade: canonicalGrade, action: 'add', student: newStudent, timestamp: new Date().toISOString() }
@@ -1220,6 +1453,19 @@ class GradesService {
 
     this.persistTree();
 
+    this.syncStudentToSupabase({
+      id: studentId,
+      name: studentName,
+      grade: canonicalGrade,
+      active: false,
+      status: 'retirado',
+      inhabilitado: true,
+      motivoRetiro: withdrawalReason,
+      fechaRetiro: withdrawalDate
+    }, user).catch(err => {
+      console.warn('[GradesService] Error sincronizando retiro:', err);
+    });
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
         detail: { 
@@ -1281,6 +1527,19 @@ class GradesService {
     });
 
     this.persistTree();
+
+    this.syncStudentToSupabase({
+      id: studentId,
+      name: studentName,
+      grade: canonicalGrade,
+      active: true,
+      status: 'activo',
+      inhabilitado: false,
+      motivoRetiro: null,
+      fechaRetiro: null
+    }, user).catch(err => {
+      console.warn('[GradesService] Error sincronizando reactivación:', err);
+    });
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('gmg_roster_updated', {

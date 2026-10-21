@@ -54,6 +54,12 @@ export default function MatriculasModule({
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
+    // Sincronización remota inicial con Supabase y respaldo en la nube
+    gradesService.initMatriculasRemoteSync().then(() => {
+      setTick(t => t + 1);
+    });
+    const unsubscribe = gradesService.initMatriculasRealtimeSubscription();
+
     const handleUpdate = () => {
       setTick(t => t + 1);
     };
@@ -62,6 +68,9 @@ export default function MatriculasModule({
     return () => {
       window.removeEventListener('gmg_roster_updated', handleUpdate);
       window.removeEventListener('gmg_curriculum_updated', handleUpdate);
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
   }, []);
 
@@ -220,6 +229,17 @@ export default function MatriculasModule({
               <strong> prohibición estricta de eliminación</strong> con soporte de inhabilitación por traslado o retiro.
             </p>
           </div>
+          <div className="banner-right">
+            <button
+              type="button"
+              className="btn-open-enroll"
+              onClick={() => setIsEnrollModalOpen(true)}
+              title="Inscribir nuevo estudiante extemporáneo en el censo oficial"
+            >
+              <i className="ph-bold ph-user-plus"></i>
+              <span>Inscribir Estudiante</span>
+            </button>
+          </div>
         </section>
 
         {/* 4 Tarjetas de Métricas KPI */}
@@ -271,13 +291,14 @@ export default function MatriculasModule({
           </div>
         </section>
 
-        {/* Banner Informativo de la Regla de Oro */}
-        <div className="matriculas-golden-rule-banner">
-          <div className="rule-badge">
-            <i className="ph-bold ph-lock-key"></i> Regla de Oro Institucional
-          </div>
-          <div className="rule-desc">
-            <strong>Prohibición Estricta de Eliminación Física (NO DELETE):</strong> Los estudiantes nunca se borran del sistema. Si se presenta un traslado o retiro, se inhabilitan para excluir su conteo de la fórmula de copias ($N+1$). Sus notas previas se conservan intactas para auditoría, y las evaluaciones o periodos no cursados se computan con <strong>1.0 por defecto</strong> en el consolidado anual.
+        {/* Píldora de Directivas Institucionales y Fórmula N+1 (Bombillo Sutil) */}
+        <div className="matriculas-hint-bulb-bar">
+          <div className="matriculas-hint-bulb-pill">
+            <i className="ph-fill ph-lightbulb bulb-icon"></i>
+            <span className="bulb-tag">Directiva SIEE:</span>
+            <span className="bulb-text">
+              <strong>Histórico Blindado (Sin Eliminación):</strong> Los traslados o retiros se inhabilitan conservando notas previas (periodos no cursados computan 1.0 en consolidado). El tiraje <strong>N+1</strong> se recalcula en tiempo real según los alumnos activos.
+            </span>
           </div>
         </div>
 
