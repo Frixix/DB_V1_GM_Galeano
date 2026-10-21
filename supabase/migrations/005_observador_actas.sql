@@ -6,8 +6,8 @@
 
 -- 1. Tabla de Registros del Observador y Actas de Comités
 create table if not exists observador_records (
-  id text primary key, -- Radicado único: ej "OBS-2026-004", "ACT-CONV-2026-001"
-  route text not null, -- 'observador', 'citaciones', 'piar', 'comite_convivencia', 'comision_evaluacion', 'consejo_academico', 'reuniones_docentes'
+  id text primary key,
+  route text not null,
   title text not null,
   date text not null,
   period text,
@@ -19,14 +19,14 @@ create table if not exists observador_records (
   session_type text,
   attendees text,
   type text,
-  semaforo text not null default 'amarillo', -- 'rojo', 'amarillo', 'verde'
-  status text not null default 'en_seguimiento', -- 'en_seguimiento', 'compromiso_firmado', 'resuelto', 'acta_aprobada'
+  semaforo text not null default 'amarillo',
+  status text not null default 'en_seguimiento',
   description text,
   agreements text,
   follow_up_date text,
   follow_up_date_iso text,
   file_name text,
-  storage_key text, -- Clave del archivo adjunto en Cloudflare R2 / Supabase Storage
+  storage_key text,
   notes text,
   resolution_notes text,
   resolution_image text,
@@ -90,9 +90,7 @@ insert into observador_records (
   'amarillo',
   'en_seguimiento',
   'El alumno registra 4 retardos consecutivos al ingreso de la primera hora de clase sin justificación médica, además de presentarse sin el suéter reglamentario del uniforme.',
-  '1. El acudiente y el estudiante se comprometen a ingresar puntualmente a las 6:45 a. m.
-2. Presentación completa del uniforme según manual de convivencia.
-3. Plazo máximo de 1 semana para evidenciar cumplimiento estricto.',
+  '1. El acudiente y el estudiante se comprometen a ingresar puntualmente a las 6:45 a. m. 2. Presentación completa del uniforme según manual de convivencia. 3. Plazo máximo de 1 semana para evidenciar cumplimiento estricto.',
   '16/10/2026',
   'Plazo vencido sin reporte de subsanación.',
   '',
@@ -117,8 +115,7 @@ insert into observador_records (
   'rojo',
   'en_seguimiento',
   'En el descanso de la mañana se presentó altercado con uso de vocabulario soez hacia un compañero de 3° grado por disputa de balón de fútbol en la cancha.',
-  '1. Presentación obligatoria de la madre de familia para firma de acta de mediación escolar.
-2. Redacción de carta de disculpa pedagógica y servicio voluntario en descanso.',
+  '1. Presentación obligatoria de la madre de familia para firma de acta de mediación escolar. 2. Redacción de carta de disculpa pedagógica y servicio voluntario en descanso.',
   '19/10/2026',
   'Citación prioritaria programada para la jornada de la tarde.',
   '',
@@ -143,8 +140,7 @@ insert into observador_records (
   'amarillo',
   'en_seguimiento',
   'Implementación de textos con apoyo pictográfico y mayor tiempo de respuesta en evaluaciones formativas de Lengua Castellana y Ciencias.',
-  '1. Seguimiento pedagógico semanal con material adaptado.
-2. Acompañamiento en casa 20 minutos diarios con lecturas cortas guiadas.',
+  '1. Seguimiento pedagógico semanal con material adaptado. 2. Acompañamiento en casa 20 minutos diarios con lecturas cortas guiadas.',
   '24/10/2026',
   'Evolución positiva en fluidez verbal básica.',
   '',
@@ -169,8 +165,7 @@ insert into observador_records (
   'verde',
   'acta_aprobada',
   'Instalación formal del Comité Escolar de Convivencia para el año lectivo 2026 conforme a la Ley 1620 de 2013. Se revisan los protocolos de atención integral.',
-  '1. Socializar la ruta de atención integral Tipo I, II y III con directores de curso.
-2. Establecer cronograma bimensual de mediación y seguimiento preventivo.',
+  '1. Socializar la ruta de atención integral Tipo I, II y III con directores de curso. 2. Establecer cronograma bimensual de mediación y seguimiento preventivo.',
   '14/11/2026',
   'Comité instalado formalmente con quórum del 100%.',
   'Acta firmada y registrada en el archivo de Rectoría.',
@@ -195,9 +190,7 @@ insert into observador_records (
   'verde',
   'acta_aprobada',
   'En cumplimiento del Decreto 1290 y el SIEE del Gimnasio Martín Galeano, se analiza la sábana consolidada de calificaciones al 50% del primer bimestre lectivo. Se detectan 3 estudiantes con bajo desempeño en el área de Matemáticas en 2° y 3° grado.',
-  '1. Activar talleres formativos de refuerzo pedagógico antes de las evaluaciones bimestrales finales.
-2. Directores de curso remitirán reporte de alerta temprana a los acudientes respectivos.
-3. Se valida el cumplimiento del modelo de evaluación continua SIEE (80% Aula Continua y 20% Evaluación Final) en todas las planillas.',
+  '1. Activar talleres formativos de refuerzo pedagógico antes de las evaluaciones bimestrales finales. 2. Directores de curso remitirán reporte de alerta temprana a los acudientes respectivos. 3. Se valida el cumplimiento del modelo de evaluación continua SIEE (80% Aula Continua y 20% Evaluación Final) en todas las planillas.',
   '31/10/2026',
   'Participación del 100% de la planta docente institucional.',
   'Planillas revisadas y compromisos de superación académica notificados.',
@@ -222,8 +215,7 @@ insert into observador_records (
   'verde',
   'acta_aprobada',
   'Revisión y unificación de mallas curriculares según los Derechos Básicos de Aprendizaje (DBA) para Básica Primaria.',
-  '1. Entregar ajustes a planeaciones antes del 20 de octubre.
-2. Incluir proyectos transversales de lectura crítica en el cronograma institucional.',
+  '1. Entregar ajustes a planeaciones antes del 20 de octubre. 2. Incluir proyectos transversales de lectura crítica en el cronograma institucional.',
   '20/10/2026',
   'Aprobación unánime del claustro académico.',
   'Planeaciones curriculares consolidadas en Recursos Pedagógicos.',
@@ -248,8 +240,7 @@ insert into observador_records (
   'verde',
   'acta_aprobada',
   'Jornada pedagógica para coordinar calendario de izadas de bandera, simulacros institucionales y salidas de campo.',
-  '1. Profe 2 coordinará la primera izada de bandera de matemáticas.
-2. Cada directora de grado enviará circular informativa a padres con 3 días de anticipación.',
+  '1. Profe 2 coordinará la primera izada de bandera de matemáticas. 2. Cada directora de grado enviará circular informativa a padres con 3 días de anticipación.',
   '22/10/2026',
   'Acuerdos pedagógicos firmados por todos los asistentes.',
   'Cronograma institucional publicado en el portal docente.',
@@ -274,8 +265,7 @@ insert into observador_records (
   'verde',
   'resuelto',
   'El estudiante destaca por su empatía, espíritu colaborativo ayudando a sus compañeros en las guías de lectoescritura y excelente presentación personal.',
-  '1. Felicitación pública en el aula de clase.
-2. Constancia meritoria en el observador escolar.',
+  '1. Felicitación pública en el aula de clase. 2. Constancia meritoria en el observador escolar.',
   '15/10/2026',
   'Caso ejemplar de convivencia positiva.',
   'Se entregó mención de honor y se registró en la carpeta del estudiante.',
