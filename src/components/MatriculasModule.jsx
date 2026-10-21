@@ -402,7 +402,7 @@ export default function MatriculasModule({
                     <th style={{ width: '40px', textAlign: 'center' }}>#</th>
                     <th style={{ minWidth: '220px' }}>Estudiante</th>
                     <th style={{ minWidth: '110px' }}>Grado</th>
-                    <th style={{ minWidth: '220px' }}>Acudiente & Contacto</th>
+                    <th style={{ minWidth: '220px' }}>Madre / Acudiente & Teléfono</th>
                     <th style={{ minWidth: '120px' }}>Fecha Ingreso</th>
                     <th style={{ minWidth: '130px', textAlign: 'center' }}>Estado Oficial</th>
                     <th style={{ minWidth: '110px', textAlign: 'center' }}>Impacto N+1</th>

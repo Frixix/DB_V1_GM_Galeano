@@ -17,7 +17,8 @@ export default function EnrollStudentModal({
 }) {
   const [name, setName] = useState('');
   const [grade, setGrade] = useState(() => normalizeGrade(initialGrade));
-  const [acudiente, setAcudiente] = useState('');
+  const [nombreMadre, setNombreMadre] = useState('');
+  const [telefonoMadre, setTelefonoMadre] = useState('');
   const [fechaIngreso, setFechaIngreso] = useState(() => new Date().toISOString().split('T')[0]);
   const [tipoIngreso, setTipoIngreso] = useState('Matrícula Extemporánea');
   const [observaciones, setObservaciones] = useState('');
@@ -26,6 +27,29 @@ export default function EnrollStudentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
+
+  const resetForm = () => {
+    setName('');
+    setNombreMadre('');
+    setTelefonoMadre('');
+    setObservaciones('');
+    setCustomId('');
+    setErrorMsg(null);
+    setTipoIngreso('Matrícula Extemporánea');
+    setFechaIngreso(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  // Regla para teléfono de la madre: solo números y exactamente hasta 10 dígitos
+  const handlePhoneChange = (e) => {
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setTelefonoMadre(digitsOnly);
+    if (errorMsg) setErrorMsg(null);
+  };
 
   // Sugerencia de código automático basado en el grado seleccionado
   const autoSuggestedCode = () => {
@@ -46,10 +70,22 @@ export default function EnrollStudentModal({
       setErrorMsg('Por favor ingrese el nombre completo del estudiante.');
       return;
     }
-    if (!acudiente.trim()) {
-      setErrorMsg('Por favor ingrese el nombre del acudiente y su teléfono de contacto.');
+    if (!nombreMadre.trim()) {
+      setErrorMsg('Por favor ingrese el nombre de la madre o acudiente.');
       return;
     }
+
+    // Regla estricta: 10 números exactamente para el teléfono de la madre
+    const cleanPhone = telefonoMadre.replace(/\D/g, '');
+    if (!cleanPhone) {
+      setErrorMsg('Por favor ingrese el número telefónico de la madre.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      setErrorMsg(`El teléfono de la madre debe contener exactamente 10 números (actualmente ingresó ${cleanPhone.length} dígitos).`);
+      return;
+    }
+
     if (!fechaIngreso) {
       setErrorMsg('Por favor seleccione la fecha de ingreso.');
       return;
@@ -58,12 +94,16 @@ export default function EnrollStudentModal({
     try {
       setIsSubmitting(true);
       const studentId = customId.trim() || autoSuggestedCode();
+      const guardianDisplay = `${nombreMadre.trim()} (Madre) - Cel: ${cleanPhone}`;
 
       const created = gradesService.addStudentExtemporaneo({
         grade,
         name: name.trim(),
         id: studentId,
-        acudiente: acudiente.trim(),
+        nombreMadre: nombreMadre.trim(),
+        telefonoMadre: cleanPhone,
+        telefono: cleanPhone,
+        acudiente: guardianDisplay,
         fechaIngreso,
         tipoIngreso,
         observaciones: observaciones.trim()
@@ -73,6 +113,7 @@ export default function EnrollStudentModal({
         onStudentEnrolled(created);
       }
 
+      resetForm();
       onClose();
     } catch (err) {
       setErrorMsg(err.message || 'Error al inscribir estudiante.');
@@ -86,7 +127,7 @@ export default function EnrollStudentModal({
   };
 
   return (
-    <div className="enroll-modal-overlay" onClick={onClose}>
+    <div className="enroll-modal-overlay" onClick={handleClose}>
       <div className="enroll-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Cabecera del Modal */}
         <div className="enroll-modal-header">
@@ -105,7 +146,7 @@ export default function EnrollStudentModal({
           <button 
             type="button" 
             className="enroll-close-btn" 
-            onClick={onClose} 
+            onClick={handleClose} 
             title="Cerrar ventana"
           >
             ×
@@ -180,20 +221,58 @@ export default function EnrollStudentModal({
               </div>
             </div>
 
-            {/* Campo 4: Acudiente y Contacto */}
-            <div className="enroll-form-group col-span-2">
-              <label htmlFor="enroll-acudiente">
-                Nombre del Acudiente & Teléfono de Contacto <span className="req-star">*</span>
+            {/* Casilla 1: Nombre de la Madre / Acudiente */}
+            <div className="enroll-form-group">
+              <label htmlFor="enroll-nombre-madre">
+                Nombre de la Madre / Acudiente <span className="req-star">*</span>
               </label>
               <input
-                id="enroll-acudiente"
+                id="enroll-nombre-madre"
                 type="text"
                 required
-                placeholder="Ej: Carmen Castro (Madre) - Cel: 312 890 1234"
-                value={acudiente}
-                onChange={(e) => setAcudiente(e.target.value)}
+                placeholder="Ej: Carmen Castro López"
+                value={nombreMadre}
+                onChange={(e) => setNombreMadre(e.target.value)}
                 className="enroll-input"
               />
+            </div>
+
+            {/* Casilla 2: Teléfono de la Madre (Regla: 10 Números) */}
+            <div className="enroll-form-group">
+              <div className="enroll-phone-label-bar">
+                <label htmlFor="enroll-telefono-madre">
+                  Teléfono de la Madre <span className="req-star">*</span>
+                </label>
+                <span className={`phone-digit-counter ${telefonoMadre.length === 10 ? 'counter-success' : ''}`}>
+                  {telefonoMadre.length === 10 ? '✓ 10/10' : `${telefonoMadre.length}/10`}
+                </span>
+              </div>
+              <div className="enroll-phone-input-wrap">
+                <span className="phone-prefix-addon">+57</span>
+                <input
+                  id="enroll-telefono-madre"
+                  type="tel"
+                  inputMode="numeric"
+                  required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                  placeholder="Ej: 3128901234"
+                  value={telefonoMadre}
+                  onChange={handlePhoneChange}
+                  className={`enroll-input enroll-phone-input ${telefonoMadre.length === 10 ? 'phone-valid' : ''}`}
+                />
+              </div>
+              <div className="phone-rule-hint">
+                {telefonoMadre.length === 10 ? (
+                  <span className="hint-ok">
+                    <i className="ph-bold ph-check-circle"></i> Válido: 10 dígitos numéricos
+                  </span>
+                ) : (
+                  <span className="hint-pending">
+                    <i className="ph-bold ph-info"></i> Regla: exactamente 10 números
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Campo 5: Fecha de Ingreso */}
@@ -273,7 +352,7 @@ export default function EnrollStudentModal({
             <button
               type="button"
               className="btn-enroll-cancel"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancelar

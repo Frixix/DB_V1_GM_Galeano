@@ -942,6 +942,9 @@ class GradesService {
     name,
     id,
     acudiente,
+    nombreMadre,
+    telefonoMadre,
+    telefono,
     fechaIngreso,
     tipoIngreso = 'Matrícula Extemporánea',
     observaciones = ''
@@ -963,11 +966,22 @@ class GradesService {
       ? id.trim().toUpperCase() 
       : `EST-${canonicalGrade.substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
 
+    const cleanMotherPhone = (telefonoMadre || telefono || '').toString().replace(/\D/g, '').slice(0, 10);
+    const cleanMotherName = (nombreMadre || '').trim();
+    const formattedGuardian = acudiente?.trim() || (
+      cleanMotherName 
+        ? `${cleanMotherName} (Madre)${cleanMotherPhone ? ` - Cel: ${cleanMotherPhone}` : ''}`
+        : 'Acudiente registrado en secretaría'
+    );
+
     const newStudent = {
       id: studentCode,
       name: name.trim(),
       grade: canonicalGrade,
-      acudiente: acudiente?.trim() || 'Acudiente registrado en secretaría',
+      nombreMadre: cleanMotherName || null,
+      telefonoMadre: cleanMotherPhone || null,
+      telefono: cleanMotherPhone || null,
+      acudiente: formattedGuardian,
       fechaIngreso: fechaIngreso || new Date().toISOString().split('T')[0],
       tipoIngreso: tipoIngreso || 'Matrícula Extemporánea',
       observaciones: observaciones?.trim() || '',

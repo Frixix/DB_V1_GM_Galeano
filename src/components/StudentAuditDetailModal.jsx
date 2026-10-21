@@ -128,7 +128,7 @@ export default function StudentAuditDetailModal({
           {/* Ficha de Datos Administrativos */}
           <div className="audit-info-grid">
             <div className="audit-info-item">
-              <span className="info-label">Acudiente & Contacto</span>
+              <span className="info-label">Madre / Acudiente & Teléfono</span>
               <span className="info-val">
                 <i className="ph-bold ph-users"></i> {student.acudiente || 'Acudiente registrado en secretaría'}
               </span>
