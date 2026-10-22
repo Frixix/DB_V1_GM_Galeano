@@ -5558,3 +5558,44 @@ select {
   color: #7c3aed;
   font-size: 0.8rem;
 }
+
+/* =====================================================================
+   UTILIDADES CROMÁTICAS ARMONIZADAS (ÁMBAR CÁLIDO & PIZARRA NEUTRO)
+   ===================================================================== */
+.bg-amber-50\/70,
+.bg-amber-50-70 {
+  background-color: rgba(254, 243, 199, 0.7) !important;
+}
+
+.bg-amber-50 {
+  background-color: #fffbeb !important;
+}
+
+.border-amber-200 {
+  border-color: #fde68a !important;
+}
+
+.text-amber-900 {
+  color: #78350f !important;
+}
+
+.text-amber-800 {
+  color: #92400e !important;
+}
+
+.text-amber-700 {
+  color: #b45309 !important;
+}
+
+.bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+.text-slate-800 {
+  color: #1e293b !important;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+

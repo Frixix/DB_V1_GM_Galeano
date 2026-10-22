@@ -28,31 +28,98 @@ const DEFAULT_EVALUATION_CALENDAR = {
     startDate: '2026-02-02',
     endDate: '2026-04-10',
     closureDate: '2026-04-17',
-    status: 'abierto',
+    status: 'cerrado',
     description: 'Evaluaciones ordinarias Primer Periodo Lectivo'
   },
   '2° Periodo (25%)': {
     startDate: '2026-04-13',
     endDate: '2026-06-19',
     closureDate: '2026-06-26',
-    status: 'programado',
+    status: 'cerrado',
     description: 'Evaluaciones ordinarias Segundo Periodo Lectivo'
   },
   '3° Periodo (25%)': {
     startDate: '2026-07-13',
     endDate: '2026-09-18',
     closureDate: '2026-09-25',
-    status: 'programado',
+    status: 'cerrado',
     description: 'Evaluaciones ordinarias Tercer Periodo Lectivo'
   },
   '4° Periodo (25%)': {
     startDate: '2026-09-21',
     endDate: '2026-11-20',
     closureDate: '2026-11-27',
-    status: 'programado',
+    status: 'abierto',
     description: 'Evaluaciones finales y comisiones de promoción'
   }
 };
+
+/**
+ * Obtiene la fecha actual en formato local YYYY-MM-DD (sin desfase de zona horaria)
+ */
+export function getLocalDateString(date = new Date()) {
+  const d = date instanceof Date ? date : new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Calcula automáticamente el estado de cada periodo académico según la fecha actual.
+ * Regla de Oro Institucional: NUNCA pueden quedar dos periodos académicos abiertos al tiempo.
+ *
+ * @param {Object} calendar Calendario de periodos
+ * @param {string|Date} referenceDate Fecha de referencia (por defecto fecha actual)
+ * @returns {Object} Calendario con estados actualizados
+ */
+export function syncPeriodStatusesByDate(calendar, referenceDate = new Date()) {
+  const todayStr = typeof referenceDate === 'string' ? referenceDate : getLocalDateString(referenceDate);
+  const updated = {};
+
+  // 1. Encontrar el periodo que contiene la fecha actual.
+  // Si varios coinciden por solapamiento de fechas, se elige el más reciente que haya iniciado.
+  let matchingIndex = -1;
+  for (let i = ACADEMIC_PERIODS.length - 1; i >= 0; i--) {
+    const key = ACADEMIC_PERIODS[i];
+    const data = calendar[key] || DEFAULT_EVALUATION_CALENDAR[key];
+    const start = data.startDate || '2026-01-01';
+    const close = data.closureDate || data.endDate || '2026-12-31';
+    if (todayStr >= start && todayStr <= close) {
+      matchingIndex = i;
+      break;
+    }
+  }
+
+  // 2. Asignar estados garantizando exclusividad: MÁXIMO 1 periodo abierto
+  ACADEMIC_PERIODS.forEach((key, idx) => {
+    const data = { ...(calendar[key] || DEFAULT_EVALUATION_CALENDAR[key]) };
+    const start = data.startDate || '2026-01-01';
+    const close = data.closureDate || data.endDate || '2026-12-31';
+
+    if (matchingIndex !== -1) {
+      if (idx < matchingIndex) {
+        data.status = 'cerrado';
+      } else if (idx === matchingIndex) {
+        data.status = 'abierto';
+      } else {
+        data.status = 'programado';
+      }
+    } else {
+      // Fuera de rango de periodos (ej. receso de mitad de año o fin de año)
+      if (todayStr > close) {
+        data.status = 'cerrado';
+      } else if (todayStr < start) {
+        data.status = 'programado';
+      } else {
+        data.status = 'programado';
+      }
+    }
+    updated[key] = data;
+  });
+
+  return updated;
+}
 
 /**
  * Servicio Centralizado para la Jerarquía de Datos Relacional (RBAC) de Calificaciones
@@ -273,7 +340,8 @@ class GradesService {
     this.customAssignments = this.loadFromStorage(ASSIGNMENTS_CUSTOM_KEY, {});
     this.customDirectors = this.loadFromStorage(DIRECTORS_CUSTOM_KEY, {});
     this.replacementLogs = this.loadFromStorage(REPLACEMENTS_LOG_KEY, []);
-    this.evaluationCalendar = this.loadFromStorage(CALENDAR_STORAGE_KEY, DEFAULT_EVALUATION_CALENDAR);
+    const rawCalendar = this.loadFromStorage(CALENDAR_STORAGE_KEY, DEFAULT_EVALUATION_CALENDAR);
+    this.evaluationCalendar = syncPeriodStatusesByDate(rawCalendar);
     this.extemporaryExtensions = this.loadFromStorage(EXTENSIONS_STORAGE_KEY, []);
   }
 
@@ -710,7 +778,7 @@ class GradesService {
     return false;
   }
 
-  canEditScores(user, grade, subject) {
+  canEditScores(user, grade, subject, period = null) {
     if (!user) return false;
     // Administrador, Rectoría y Coordinación supervisan y auditan institucionalmente en modo exclusivamente VISUAL (sin alterar notas)
     if (user.role === 'admin' || user.role === 'rectora' || user.role === 'induccion_rectora' || user.role === 'coordinador') {
@@ -721,11 +789,23 @@ class GradesService {
     }
     const teacherInfo = this.getTeacherAssignment(grade, subject);
     const userKey = user.key || user.role;
-    return teacherInfo.docente_id === userKey || teacherInfo.teacherName === user.name;
+    const isTeacher = teacherInfo.docente_id === userKey || teacherInfo.teacherName === user.name;
+    if (!isTeacher) return false;
+
+    // Validación según calendario académico SIEE y fechas de corte:
+    if (period && this.evaluationCalendar && this.evaluationCalendar[period]) {
+      const pData = this.evaluationCalendar[period];
+      if (pData.status === 'cerrado' || pData.status === 'programado') {
+        // En periodo cerrado o programado, solo se permite calificar si tiene prórroga extemporánea activa autorizada por Coordinación
+        return this.isSubjectOpenForExtemporary(period, grade, subject);
+      }
+    }
+
+    return true;
   }
 
-  canEditTeacherFeedback(user, grade, subject) {
-    return this.canEditScores(user, grade, subject);
+  canEditTeacherFeedback(user, grade, subject, period = null) {
+    return this.canEditScores(user, grade, subject, period);
   }
 
   canEditDirectiveSuggestion(user) {
@@ -767,7 +847,10 @@ class GradesService {
   // GESTIÓN DE FECHAS, CIERRES Y PRÓRROGAS EXTEMPORÁNEAS (COORDINACIÓN)
   // =====================================================================
 
-  getEvaluationCalendar() {
+  getEvaluationCalendar(autoSync = false) {
+    if (autoSync) {
+      this.evaluationCalendar = syncPeriodStatusesByDate(this.evaluationCalendar);
+    }
     return this.evaluationCalendar;
   }
 
@@ -776,17 +859,61 @@ class GradesService {
       throw new Error('No tiene autorización para modificar el calendario de evaluaciones.');
     }
     if (!this.evaluationCalendar[period]) {
-      this.evaluationCalendar[period] = {};
+      this.evaluationCalendar[period] = { ...(DEFAULT_EVALUATION_CALENDAR[period] || {}) };
     }
-    this.evaluationCalendar[period] = {
-      ...this.evaluationCalendar[period],
-      ...updateData,
-      lastModifiedBy: user?.name || 'Coordinación',
-      lastModifiedAt: new Date().toISOString()
-    };
+
+    // Regla de Oro Institucional: NUNCA pueden quedar dos periodos académicos abiertos al tiempo
+    if (updateData.status === 'abierto') {
+      const targetIndex = ACADEMIC_PERIODS.indexOf(period);
+      ACADEMIC_PERIODS.forEach((pKey, idx) => {
+        if (!this.evaluationCalendar[pKey]) {
+          this.evaluationCalendar[pKey] = { ...(DEFAULT_EVALUATION_CALENDAR[pKey] || {}) };
+        }
+        if (idx < targetIndex) {
+          this.evaluationCalendar[pKey].status = 'cerrado';
+        } else if (idx === targetIndex) {
+          this.evaluationCalendar[pKey] = {
+            ...this.evaluationCalendar[pKey],
+            ...updateData,
+            status: 'abierto',
+            lastModifiedBy: user?.name || 'Coordinación',
+            lastModifiedAt: new Date().toISOString()
+          };
+        } else {
+          this.evaluationCalendar[pKey].status = 'programado';
+        }
+      });
+    } else if (updateData.startDate || updateData.closureDate) {
+      // Si se actualizaron fechas, aplicar la actualización y recalcular automáticamente por fechas
+      this.evaluationCalendar[period] = {
+        ...this.evaluationCalendar[period],
+        ...updateData,
+        lastModifiedBy: user?.name || 'Coordinación',
+        lastModifiedAt: new Date().toISOString()
+      };
+      this.evaluationCalendar = syncPeriodStatusesByDate(this.evaluationCalendar);
+    } else {
+      this.evaluationCalendar[period] = {
+        ...this.evaluationCalendar[period],
+        ...updateData,
+        lastModifiedBy: user?.name || 'Coordinación',
+        lastModifiedAt: new Date().toISOString()
+      };
+    }
+
     this.persistCustomState();
     this.notifyCurriculumUpdate();
-    return this.evaluationCalendar[period];
+    return this.evaluationCalendar;
+  }
+
+  recalculatePeriodsByCurrentDate(user) {
+    if (user && !this.canManageCalendarAndDeadlines(user)) {
+      throw new Error('No tiene autorización para modificar el calendario de evaluaciones.');
+    }
+    this.evaluationCalendar = syncPeriodStatusesByDate(this.evaluationCalendar);
+    this.persistCustomState();
+    this.notifyCurriculumUpdate();
+    return this.evaluationCalendar;
   }
 
   getExtemporaryExtensions() {

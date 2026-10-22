@@ -24,12 +24,28 @@ export default function EvaluationCalendarModal({ isOpen, onClose, currentUser, 
 
   if (!isOpen) return null;
 
-  const handleUpdatePeriod = (period, closureDate, status) => {
+  const handleUpdatePeriod = (period, closureDate, status, startDate) => {
     try {
-      gradesService.updateEvaluationPeriod(period, { closureDate, status }, currentUser);
+      const updateData = {};
+      if (closureDate !== undefined) updateData.closureDate = closureDate;
+      if (status !== undefined) updateData.status = status;
+      if (startDate !== undefined) updateData.startDate = startDate;
+      gradesService.updateEvaluationPeriod(period, updateData, currentUser);
       setCalendar({ ...gradesService.getEvaluationCalendar() });
       setStatusMsg(`Periodo ${period} actualizado exitosamente.`);
       setTimeout(() => setStatusMsg(null), 3000);
+      if (onCalendarUpdated) onCalendarUpdated();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleAutoSync = () => {
+    try {
+      const updated = gradesService.recalculatePeriodsByCurrentDate(currentUser);
+      setCalendar({ ...updated });
+      setStatusMsg('✓ Periodos sincronizados automáticamente según la fecha actual del sistema.');
+      setTimeout(() => setStatusMsg(null), 3500);
       if (onCalendarUpdated) onCalendarUpdated();
     } catch (e) {
       alert(e.message);
@@ -73,6 +89,9 @@ export default function EvaluationCalendarModal({ isOpen, onClose, currentUser, 
   const teachers = Object.entries(USERS)
     .filter(([, u]) => u.role === 'docente')
     .map(([key, u]) => ({ key, name: u.name }));
+
+  const todayStr = gradesService.getLocalDateString ? gradesService.getLocalDateString() : new Date().toISOString().split('T')[0];
+  const openPeriodName = Object.entries(calendar).find(([, d]) => d.status === 'abierto')?.[0];
 
   return (
     <div className="eval-calendar-modal-overlay" onClick={onClose}>
@@ -136,7 +155,34 @@ export default function EvaluationCalendarModal({ isOpen, onClose, currentUser, 
 
           {/* Pestaña 1: Calendario de Periodos */}
           {activeTab === 'periods' && (
-            <div>
+            <div className="eval-periods-tab-content">
+              {/* Banner Informativo y Sincronización Automática */}
+              <div className="eval-calendar-sync-banner">
+                <div className="sync-banner-info">
+                  <div className="sync-badge">
+                    <i className="ph-bold ph-calendar-check"></i>
+                    <span>Automatización SIEE Activa</span>
+                  </div>
+                  <p>
+                    Fecha del sistema: <strong>{todayStr}</strong>. Los periodos se abren y cierran automáticamente según sus fechas de inicio y cierre.
+                    {openPeriodName ? (
+                      <> Periodo activo actual: <strong className="highlight-open-period">{openPeriodName}</strong>.</>
+                    ) : (
+                      <> No hay ningún periodo en curso actualmente.</>
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-auto-sync-calendar"
+                  onClick={handleAutoSync}
+                  title="Recalcular aperturas y cierres según la fecha de hoy"
+                >
+                  <i className="ph-bold ph-arrows-clockwise"></i>
+                  <span>Sincronizar por Fecha de Hoy</span>
+                </button>
+              </div>
+
               <table className="eval-periods-table">
                 <thead>
                   <tr>
@@ -148,48 +194,62 @@ export default function EvaluationCalendarModal({ isOpen, onClose, currentUser, 
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(calendar).map(([pName, pData]) => (
-                    <tr key={pName}>
-                      <td><strong>{pName}</strong></td>
-                      <td>{pData.startDate || '—'}</td>
-                      <td>
-                        <input 
-                          type="date" 
-                          defaultValue={pData.closureDate}
-                          onBlur={(e) => handleUpdatePeriod(pName, e.target.value, pData.status)}
-                          style={{
-                            padding: '0.25rem 0.5rem',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '6px',
-                            fontSize: '0.8rem'
-                          }}
-                        />
-                      </td>
-                      <td>
-                        <span className={`status-pill status-${pData.status || 'abierto'}`}>
-                          {pData.status || 'abierto'}
-                        </span>
-                      </td>
-                      <td>
-                        <select 
-                          value={pData.status || 'abierto'}
-                          onChange={(e) => handleUpdatePeriod(pName, pData.closureDate, e.target.value)}
-                          style={{
-                            padding: '0.25rem 0.45rem',
-                            borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
-                            fontSize: '0.8rem'
-                          }}
-                        >
-                          <option value="abierto">Abierto</option>
-                          <option value="cerrado">Cerrado</option>
-                          <option value="programado">Programado</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
+                  {Object.entries(calendar).map(([pName, pData]) => {
+                    const isOpen = pData.status === 'abierto';
+                    return (
+                      <tr key={pName} className={isOpen ? 'row-period-open' : ''}>
+                        <td>
+                          <div className="period-cell-name">
+                            {isOpen && <span className="active-dot" title="Periodo Activo"></span>}
+                            <strong>{pName}</strong>
+                          </div>
+                        </td>
+                        <td>
+                          <input 
+                            type="date" 
+                            defaultValue={pData.startDate || ''}
+                            onBlur={(e) => handleUpdatePeriod(pName, undefined, undefined, e.target.value)}
+                            className="eval-date-input"
+                            title="Fecha de inicio del periodo"
+                          />
+                        </td>
+                        <td>
+                          <input 
+                            type="date" 
+                            defaultValue={pData.closureDate || ''}
+                            onBlur={(e) => handleUpdatePeriod(pName, e.target.value, undefined, undefined)}
+                            className="eval-date-input"
+                            title="Fecha de cierre ordinario del periodo"
+                          />
+                        </td>
+                        <td>
+                          <span className={`status-pill status-${pData.status || 'programado'}`}>
+                            {pData.status || 'programado'}
+                          </span>
+                        </td>
+                        <td>
+                          <select 
+                            value={pData.status || 'programado'}
+                            onChange={(e) => handleUpdatePeriod(pName, undefined, e.target.value, undefined)}
+                            className="eval-status-select"
+                          >
+                            <option value="abierto">Abierto</option>
+                            <option value="cerrado">Cerrado</option>
+                            <option value="programado">Programado</option>
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+
+              <div className="eval-calendar-footnote">
+                <i className="ph-bold ph-shield-check"></i>
+                <span>
+                  <strong>Garantía SIEE:</strong> No pueden coexistir dos periodos abiertos simultáneamente. Al abrir un periodo (manual o automáticamente), todos los demás se ajustan estrictamente a cerrado o programado.
+                </span>
+              </div>
             </div>
           )}
 

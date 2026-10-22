@@ -208,14 +208,19 @@ export default function GradesModule({
     return gradesService.isViewingAsGradeDirector(currentUser, selectedGrade, selectedSubject);
   }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
 
-  // Permisos granulares de edición en la rama activa
+  // Información de estado del periodo académico según el calendario SIEE
+  const periodCalendarData = useMemo(() => {
+    return gradesService.getEvaluationCalendar()[selectedPeriod] || {};
+  }, [selectedPeriod, curriculumTick]);
+
+  // Permisos granulares de edición en la rama activa (valida docente, rol y apertura de periodo SIEE)
   const canEditScores = useMemo(() => {
-    return gradesService.canEditScores(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
+    return gradesService.canEditScores(currentUser, selectedGrade, selectedSubject, selectedPeriod);
+  }, [currentUser, selectedGrade, selectedSubject, selectedPeriod, curriculumTick]);
 
   const canEditFeedback = useMemo(() => {
-    return gradesService.canEditTeacherFeedback(currentUser, selectedGrade, selectedSubject);
-  }, [currentUser, selectedGrade, selectedSubject, curriculumTick]);
+    return gradesService.canEditTeacherFeedback(currentUser, selectedGrade, selectedSubject, selectedPeriod);
+  }, [currentUser, selectedGrade, selectedSubject, selectedPeriod, curriculumTick]);
 
   const canEditDirective = useMemo(() => {
     return gradesService.canEditDirectiveSuggestion(currentUser);
@@ -904,7 +909,29 @@ export default function GradesModule({
                       </div>
                     </div>
                   </div>
-                  <p>Docente a cargo: <strong>{teacherInfo.teacherName}</strong> • {selectedPeriod}</p>
+                  <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span>Docente a cargo: <strong>{teacherInfo.teacherName}</strong> • {selectedPeriod}</span>
+                    {periodCalendarData.status === 'abierto' && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }}>
+                        <i className="ph-bold ph-lock-key-open"></i> Periodo Abierto
+                      </span>
+                    )}
+                    {periodCalendarData.status === 'cerrado' && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fee2e2', color: '#b91c1c', padding: '2px 8px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }} title="Periodo cerrado por calendario SIEE. Solo lectura a menos que cuente con prórroga extemporánea.">
+                        <i className="ph-bold ph-lock-key"></i> Periodo Cerrado
+                      </span>
+                    )}
+                    {periodCalendarData.status === 'programado' && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }}>
+                        <i className="ph-bold ph-clock"></i> Periodo Programado
+                      </span>
+                    )}
+                    {gradesService.isSubjectOpenForExtemporary(selectedPeriod, selectedGrade, selectedSubject) && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ede9fe', color: '#6d28d9', padding: '2px 8px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }} title="Prórroga extemporánea habilitada por Coordinación Académica">
+                        <i className="ph-bold ph-hourglass-high"></i> Prórroga Activa
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
