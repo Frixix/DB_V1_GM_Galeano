@@ -47,7 +47,7 @@ export default function StudentAuditDetailModal({
         let isDefaulted = false;
 
         if (record) {
-          const calc = calculateGrade80_20(record, branch?.activities);
+          const calc = calculateGrade80_20(record, branch?.activities, subj);
           score = calc.definitivaNum;
           isPreserved = Boolean(calc.hasPreservedScores || calc.activeScoresCount > 0);
           isDefaulted = Boolean(isRetired && !isPreserved);

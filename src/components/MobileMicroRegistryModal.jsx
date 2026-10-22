@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { subjectHasFinalExam } from '../data/gradesTreeData';
 import './MobileMicroRegistryModal.css';
 
 /**
@@ -74,14 +75,21 @@ export default function MobileMicroRegistryModal({
     return student[activityId] || '';
   }
 
+  const isSubjectWithFinalExam = useMemo(() => subjectHasFinalExam(selectedSubject), [selectedSubject]);
+
   // Nombre de la actividad seleccionada
   const activeActivityMeta = useMemo(() => {
     if (activeActivityId === 'evaluacionFinal') {
-      return { id: 'evaluacionFinal', name: 'Evaluación Final / Bimestral', weight: '20%', isFinal: true };
+      return { 
+        id: 'evaluacionFinal', 
+        name: isSubjectWithFinalExam ? 'Evaluación Final / Bimestral' : 'Otras Actividades Formativas', 
+        weight: '20%', 
+        isFinal: isSubjectWithFinalExam 
+      };
     }
     const act = activities.find(a => a.id === activeActivityId);
     return act ? { ...act, weight: '80% Aula', isFinal: false } : { id: 'act_1', name: 'Actividad', weight: '80%', isFinal: false };
-  }, [activeActivityId, activities]);
+  }, [activeActivityId, activities, isSubjectWithFinalExam]);
 
   // Estadísticas de completitud de la actividad actual
   const stats = useMemo(() => {
@@ -205,15 +213,15 @@ export default function MobileMicroRegistryModal({
               </button>
             ))}
 
-            {/* Chip especial para Evaluación Final (20%) */}
+            {/* Chip especial para Evaluación Final (20%) o Componente Otras Actividades (20%) */}
             <button
               type="button"
               className={`micro-act-chip chip-final-exam ${activeActivityId === 'evaluacionFinal' ? 'active' : ''}`}
               onClick={() => setActiveActivityId('evaluacionFinal')}
             >
-              <i className="ph-bold ph-exam"></i>
-              <span className="micro-act-name">Examen Bimestral</span>
-              <span className="micro-act-weight final-tag">20%</span>
+              <i className={`ph-bold ${isSubjectWithFinalExam ? 'ph-exam' : 'ph-sparkle'}`}></i>
+              <span className="micro-act-name">{isSubjectWithFinalExam ? 'Examen Bimestral' : 'Otras Actividades'}</span>
+              <span className={`micro-act-weight final-tag ${!isSubjectWithFinalExam ? 'formative-tag' : ''}`}>20%</span>
             </button>
           </div>
 

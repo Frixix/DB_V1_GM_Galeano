@@ -7,6 +7,7 @@ import RetireStudentModal from './RetireStudentModal';
 import StudentAuditDetailModal from './StudentAuditDetailModal';
 import './GradesModule.css';
 import { gradesService, calculateGrade80_20 } from '../services/gradesService';
+import { subjectHasFinalExam } from '../data/gradesTreeData';
 
 // Clases pastel para los avatares circulares de estudiantes
 const PASTEL_AVATAR_CLASSES = [
@@ -474,14 +475,17 @@ export default function GradesModule({
     setIsAuditModalOpen(true);
   };
 
+  // Indica si la asignatura activa cuenta con evaluación final escrita oficial o si el 20% es de otras actividades
+  const isSubjectWithFinalExam = useMemo(() => subjectHasFinalExam(selectedSubject), [selectedSubject]);
+
   // Cálculos SIEE 80/20 y predicciones de cada estudiante
   const studentCalculations = useMemo(() => {
     const map = {};
     students.forEach(st => {
-      map[st.id] = calculateGrade80_20(st, activities);
+      map[st.id] = calculateGrade80_20(st, activities, selectedSubject);
     });
     return map;
-  }, [students, activities]);
+  }, [students, activities, selectedSubject]);
 
   // Métricas estadísticas del grupo actual (Materia)
   const averagesList = useMemo(() => {
@@ -890,8 +894,12 @@ export default function GradesModule({
                         </div>
                         <div className="bulb-tooltip-content">
                           <p><strong>Aula Continua ({activities.length} activas):</strong> 80% (talleres, quices y tareas sin rigidez).</p>
-                          <p><strong>Evaluación Final:</strong> 20%.</p>
-                          <p><strong>Tiraje N+1:</strong> {suggestedCopies} copias sugeridas ({activeStudentsCount} alumnos activos + 1 docente).</p>
+                          <p><strong>{isSubjectWithFinalExam ? 'Evaluación Final:' : 'Otras Actividades:'}</strong> 20% {isSubjectWithFinalExam ? '(examen acumulativo bimestral)' : '(en esta área el 20% se obtiene de talleres formativos y vivenciales, sin examen escrito)'}.</p>
+                          {isSubjectWithFinalExam ? (
+                            <p><strong>Tiraje N+1:</strong> {suggestedCopies} copias sugeridas ({activeStudentsCount} alumnos activos + 1 docente).</p>
+                          ) : (
+                            <p><strong>Sin Impresión Escrita:</strong> No requiere fotocopiado en secretaría.</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -900,10 +908,17 @@ export default function GradesModule({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div className="grades-sheet-metric-pill" title="Sugerencia de impresión automatizada institucional (N + 1): Alumnos Activos + 1 Copia Docente Calificador">
-                  <i className="ph-bold ph-printer"></i>
-                  <span>Impresión N+1: <strong>{suggestedCopies} copias</strong> ({activeStudentsCount} act + 1 doc)</span>
-                </div>
+                {isSubjectWithFinalExam ? (
+                  <div className="grades-sheet-metric-pill" title="Sugerencia de impresión automatizada institucional (N + 1): Alumnos Activos + 1 Copia Docente Calificador">
+                    <i className="ph-bold ph-printer"></i>
+                    <span>Impresión N+1: <strong>{suggestedCopies} copias</strong> ({activeStudentsCount} act + 1 doc)</span>
+                  </div>
+                ) : (
+                  <div className="grades-sheet-metric-pill" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }} title="Materia formativa: El 20% se obtiene de otras actividades institucionales de aula sin prueba escrita acumulativa">
+                    <i className="ph-bold ph-sparkle"></i>
+                    <span>20% Formativo (Sin Examen Escrito)</span>
+                  </div>
+                )}
                 {/* Micro-registro Rápido Móvil (comentado temporalmente por requerimiento, adaptado exclusivamente para dispositivos celulares)
                 {canEditScores && (
                   <button
@@ -991,11 +1006,17 @@ export default function GradesModule({
                       </div>
                     </th>
 
-                    {/* Evaluación Final / Bimestral (20%) */}
+                    {/* Evaluación Final / Bimestral (20%) o Componente Otras Actividades */}
                     <th className="th-pastel-final-exam" style={{ textAlign: 'center', minWidth: '110px' }}>
                       <div className="th-component-header">
-                        <span>Eval. Final</span>
-                        <span className="th-badge-weight">20%</span>
+                        <span>{isSubjectWithFinalExam ? 'Eval. Final' : 'Otras Act.'}</span>
+                        <span 
+                          className="th-badge-weight"
+                          style={!isSubjectWithFinalExam ? { background: '#ecfdf5', color: '#047857' } : {}}
+                          title={!isSubjectWithFinalExam ? "En esta materia formativa el 20% institucional se obtiene de otras actividades formativas y vivenciales de aula (sin examen final escrito)" : "Evaluación final acumulativa (20%)"}
+                        >
+                          20%
+                        </span>
                         {!canEditScores && (
                           <i 
                             className="ph-bold ph-lock-key th-lock-icon" 
@@ -1059,7 +1080,7 @@ export default function GradesModule({
                     </tr>
                   ) : (
                     filteredStudents.map((student, idx) => {
-                      const gradeData = calculateGrade80_20(student, activities);
+                      const gradeData = calculateGrade80_20(student, activities, selectedSubject);
                       const defVal = gradeData.definitivaNum !== undefined && gradeData.definitivaNum !== null
                         ? Number(gradeData.definitivaNum)
                         : (gradeData.definitiva !== null && gradeData.definitiva !== undefined ? Number(gradeData.definitiva) : null);
@@ -1197,7 +1218,7 @@ export default function GradesModule({
                                 value={student.evaluacionFinal !== undefined && student.evaluacionFinal !== null ? student.evaluacionFinal : ''}
                                 onChange={(e) => handleFinalExamChange(student.id, e.target.value)}
                                 className={`grades-input-score input-c3 ${!canEditScores ? 'grades-input-locked' : ''} ${gradeData.isSimulated ? 'is-simulated' : ''}`}
-                                placeholder={(student.inhabilitado || student.active === false) ? "1.0* (Retirado)" : "Pendiente"}
+                                placeholder={(student.inhabilitado || student.active === false) ? "1.0* (Retirado)" : (isSubjectWithFinalExam ? "Pendiente" : "Otras Act.")}
                                 readOnly={!canEditScores}
                                 title={
                                   (student.inhabilitado || student.active === false) && (student.evaluacionFinal === null || student.evaluacionFinal === undefined || student.evaluacionFinal === '')
@@ -1206,7 +1227,9 @@ export default function GradesModule({
                                         ? (isViewingAsGradeDirector 
                                             ? `Solo Lectura (Director de Curso): Calificada por ${teacherInfo.teacherName}` 
                                             : "Solo Lectura: SIEE") 
-                                        : "Calificación de la Evaluación Final (20%)")
+                                        : (isSubjectWithFinalExam 
+                                            ? "Calificación de la Evaluación Final (20%)" 
+                                            : "Calificación de Otras Actividades Formativas / Prácticas (20%)"))
                                 }
                               />
                               {!canEditScores && (
@@ -1341,7 +1364,7 @@ export default function GradesModule({
                   <span className="legend-dot" style={{ backgroundColor: '#6366f1' }}></span> Aula Continua 80% ({activities.length} acts)
                 </span>
                 <span className="footer-legend-item">
-                  <span className="legend-dot" style={{ backgroundColor: '#f59e0b' }}></span> Evaluación Final 20%
+                  <span className="legend-dot" style={{ backgroundColor: isSubjectWithFinalExam ? '#f59e0b' : '#059669' }}></span> {isSubjectWithFinalExam ? 'Evaluación Final 20%' : 'Otras Actividades 20% (Sin Examen Escrito)'}
                 </span>
                 <span className="footer-legend-item">
                   <span className="legend-dot" style={{ backgroundColor: '#10b981' }}></span> Definitiva SIEE 100%

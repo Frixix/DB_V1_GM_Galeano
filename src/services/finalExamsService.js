@@ -3,16 +3,19 @@ import {
   ACADEMIC_PERIODS,
   GRADES_LIST, 
   ALL_SUBJECTS, 
+  FINAL_EXAM_SUBJECTS,
+  EXCLUDED_FINAL_EXAM_SUBJECTS,
+  subjectHasFinalExam,
   STUDENTS_BY_GRADE, 
   GRADE_DIRECTORS,
   TEACHER_CURRICULUM_ASSIGNMENTS 
-} from '../data/gradesTreeData';
-import { USERS } from '../data/users';
-import gradesService from './gradesService';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { uploadDocumentFile, deleteDocumentFile, getDocumentPublicUrl } from './storageService';
+} from '../data/gradesTreeData.js';
+import { USERS } from '../data/users.js';
+import gradesService from './gradesService.js';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
+import { uploadDocumentFile, deleteDocumentFile, getDocumentPublicUrl } from './storageService.js';
 
-const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v3';
+const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v4';
 const DEADLINES_STORAGE_KEY = 'gmg_evaluaciones_deadlines_v1';
 
 export const DEFAULT_DEADLINES = {
@@ -62,6 +65,13 @@ const createInitialEvaluationsData = () => {
       const studentCount = (STUDENTS_BY_GRADE[grade] || []).length;
 
       Object.entries(subjectsInGrade).forEach(([subj, assign]) => {
+        // En el Gimnasio Martín Galeano solo las materias académicas fundamentales
+        // (Lengua Castellana, Matemáticas, Ciencias Naturales, Ciencias Sociales e Inglés)
+        // cuentan con evaluación final acumulativa escrita para fotocopiado e impresión.
+        // En Educación Artística, Educación Física, Religión y Ética & Valores, el 20%
+        // se obtiene de otras actividades formativas de aula (sin examen escrito).
+        if (!subjectHasFinalExam(subj)) return;
+
         initialData[period][grade][subj] = {
           id: null,
           uploaded: false,
@@ -87,15 +97,15 @@ const createInitialEvaluationsData = () => {
   // Ejemplos institucionales diferenciados para el 1° Periodo:
   const p1 = '1° Periodo (25%)';
   if (initialData[p1]) {
-    // 1. Profe 1: Educación Artística en Transición
-    if (initialData[p1]['Transición']?.['Educación Artística']) {
-      initialData[p1]['Transición']['Educación Artística'] = {
+    // 1. Profe 1: Matemáticas en Transición
+    if (initialData[p1]['Transición']?.['Matemáticas']) {
+      initialData[p1]['Transición']['Matemáticas'] = {
         id: 'EVAL-TRA-01',
         uploaded: true,
         grade: 'Transición',
-        subject: 'Educación Artística',
-        title: 'Evaluación de Educación Artística - Transición',
-        fileName: 'Evaluacion_Arte_Transicion_Profe1.pdf',
+        subject: 'Matemáticas',
+        title: 'Evaluación de Matemáticas - Transición',
+        fileName: 'Evaluacion_Matematicas_Transicion_Profe1.pdf',
         fileSize: '1.2 MB',
         fileType: 'application/pdf',
         storageKey: null,
@@ -104,7 +114,7 @@ const createInitialEvaluationsData = () => {
         teacherId: 'profe1',
         copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length + 1,
         copiesStatus: 'aprobado',
-        notes: 'Impresión a color de guía de trazos, motricidad fina y dactilopintura.',
+        notes: 'Guía institucional de nociones lógicas, conteo inicial, conjuntos y figuras geométricas.',
         downloadUrl: null
       };
     }
@@ -197,7 +207,7 @@ const createInitialEvaluationsData = () => {
       };
     }
 
-    // 6. Profe 3: Ciencias Naturales en 5° Primaria
+    // 6. Yuri: Ciencias Naturales en 5° Primaria
     if (initialData[p1]['5° Primaria']?.['Ciencias Naturales']) {
       initialData[p1]['5° Primaria']['Ciencias Naturales'] = {
         id: 'EVAL-5PRI-01',
@@ -205,13 +215,13 @@ const createInitialEvaluationsData = () => {
         grade: '5° Primaria',
         subject: 'Ciencias Naturales',
         title: 'Evaluación de Ciencias Naturales - 5° Primaria',
-        fileName: 'Evaluacion_Naturales_5Primaria_Profe3.pdf',
+        fileName: 'Evaluacion_Naturales_5Primaria_Yuri.pdf',
         fileSize: '1.6 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 17:00',
-        uploadedBy: 'Profe 3',
-        teacherId: 'profe3',
+        uploadedBy: 'Yuri',
+        teacherId: 'yuri',
         copiesNeeded: (STUDENTS_BY_GRADE['5° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Sistemas biológicos humanos, nutrición y ecosistemas de Colombia.',
@@ -243,7 +253,23 @@ class FinalExamsService {
     if (typeof window === 'undefined') return createInitialEvaluationsData();
     try {
       const data = localStorage.getItem(EVALUACIONES_STORAGE_KEY);
-      return data ? JSON.parse(data) : createInitialEvaluationsData();
+      if (!data) return createInitialEvaluationsData();
+      const parsed = JSON.parse(data);
+      let modified = false;
+      Object.keys(parsed).forEach((period) => {
+        Object.keys(parsed[period] || {}).forEach((grade) => {
+          Object.keys(parsed[period][grade] || {}).forEach((subj) => {
+            if (!subjectHasFinalExam(subj)) {
+              delete parsed[period][grade][subj];
+              modified = true;
+            }
+          });
+        });
+      });
+      if (modified) {
+        localStorage.setItem(EVALUACIONES_STORAGE_KEY, JSON.stringify(parsed));
+      }
+      return parsed;
     } catch (e) {
       console.error('Error cargando repositorio de evaluaciones para impresión:', e);
       return createInitialEvaluationsData();
@@ -334,13 +360,21 @@ class FinalExamsService {
     return { docente_id: 'jessica', teacherName: 'Jessica' };
   }
 
+  subjectHasFinalExam(subject) {
+    return subjectHasFinalExam(subject);
+  }
+
   getSubjectsForGrade(grade) {
+    let list = [];
     if (gradesService && gradesService.getSubjectsForGrade) {
-      return gradesService.getSubjectsForGrade(grade);
+      list = gradesService.getSubjectsForGrade(grade);
+    } else {
+      const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
+      list = Object.keys(defaultGradeAssignments);
     }
-    const defaultGradeAssignments = TEACHER_CURRICULUM_ASSIGNMENTS[grade] || {};
-    const all = Object.keys(defaultGradeAssignments);
-    return all.length > 0 ? all : ALL_SUBJECTS;
+    if (!list || list.length === 0) list = ALL_SUBJECTS;
+    // Excluir asignaturas formativas sin examen acumulativo escrito para fotocopiado (SIEE)
+    return list.filter((subj) => this.subjectHasFinalExam(subj));
   }
 
   getStudentCount(grade) {

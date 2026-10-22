@@ -3,8 +3,11 @@ import {
   ACADEMIC_PERIODS, 
   GRADES_LIST, 
   ALL_SUBJECTS, 
+  FINAL_EXAM_SUBJECTS,
+  EXCLUDED_FINAL_EXAM_SUBJECTS,
+  subjectHasFinalExam,
   STUDENTS_BY_GRADE, 
-  GRADE_DIRECTORS,
+  GRADE_DIRECTORS, 
   TEACHER_CURRICULUM_ASSIGNMENTS, 
   createInitialRosterForBranch,
   normalizeGrade
@@ -70,7 +73,7 @@ const DEFAULT_EVALUATION_CALENDAR = {
  * - Sus notas previas se conservan intactas para auditoría.
  * - Evaluaciones no presentadas o periodos futuros se registran con 1.0 por defecto para el cómputo del consolidado.
  */
-export function calculateGrade80_20(student, branchActivities = []) {
+export function calculateGrade80_20(student, branchActivities = [], subject = '') {
   if (!student) {
     return {
       promedioAula: 0,
@@ -83,9 +86,15 @@ export function calculateGrade80_20(student, branchActivities = []) {
       notaRequerida: 3.0,
       puedeAprobar: true,
       activeScoresCount: 0,
-      isRetired: false
+      isRetired: false,
+      isSubjectWithFinalExam: true
     };
   }
+
+  // En el Gimnasio Martín Galeano:
+  // - Materias con evaluación final escrita (20%): Lengua Castellana, Matemáticas, Ciencias Naturales, Ciencias Sociales e Inglés.
+  // - Materias formativas/prácticas (Ética, Ed. Física, Artística, Religión): El 20% se obtiene de otras actividades formativas de aula (sin examen escrito).
+  const isSubjectWithFinalExam = !subject || subjectHasFinalExam(subject);
 
   const isRetired = Boolean(student.inhabilitado || student.active === false || student.status === 'retirado' || student.status === 'inactivo');
 
@@ -151,12 +160,13 @@ export function calculateGrade80_20(student, branchActivities = []) {
       aporteFinal,
       definitiva: definitivaNum.toFixed(1),
       definitivaNum,
-      isSimulated: !hasFinalExam,
+      isSimulated: isSubjectWithFinalExam ? !hasFinalExam : false,
       notaRequerida: 3.0,
       puedeAprobar: false,
       activeScoresCount: preservedCount,
       isRetired: true,
-      hasPreservedScores: preservedCount > 0
+      hasPreservedScores: preservedCount > 0,
+      isSubjectWithFinalExam
     };
   }
 
@@ -194,7 +204,7 @@ export function calculateGrade80_20(student, branchActivities = []) {
 
   const aporteAula = Number((promedioAula * 0.80).toFixed(2));
 
-  // Evaluación Final (20%)
+  // Evaluación Final / Otras Actividades (20%)
   let finalExamVal = null;
   if (student.evaluacionFinal !== undefined && student.evaluacionFinal !== null && student.evaluacionFinal !== '') {
     finalExamVal = Number(student.evaluacionFinal);
@@ -212,17 +222,33 @@ export function calculateGrade80_20(student, branchActivities = []) {
     aporteFinal = Number((finalExamVal * 0.20).toFixed(2));
     definitivaNum = Number((aporteAula + aporteFinal).toFixed(1));
     isSimulated = false;
+  } else if (!isSubjectWithFinalExam) {
+    // Asignatura formativa sin examen acumulativo escrito (Ética, Ed. Física, Artística, Religión):
+    // El 20% se obtiene de otras actividades formativas de aula. Si no se registra nota específica,
+    // se calcula la definitiva en base al rendimiento continuo de aula sin proyectar castigo de 1.0.
+    if (activeScoresCount > 0) {
+      aporteFinal = Number((promedioAula * 0.20).toFixed(2));
+      definitivaNum = Number(promedioAula.toFixed(1));
+      isSimulated = false;
+    } else {
+      aporteFinal = 0.20;
+      definitivaNum = 1.0;
+      isSimulated = false;
+    }
   } else {
-    // SIMULACIÓN PREDICTIVA CON 1.0:
+    // Asignatura fundamental con examen final acumulativo obligatorio:
+    // SIMULACIÓN PREDICTIVA CON 1.0 mientras no se califique la prueba bimestral:
     aporteFinal = 0.20;
     definitivaNum = Number((aporteAula + 0.20).toFixed(1));
     isSimulated = true;
   }
 
-  // Nota requerida en la prueba final para aprobar con 3.0
+  // Nota requerida en la prueba final para aprobar con 3.0 (solo si tiene examen y está simulado)
   const notaRequeridaRaw = (3.0 - aporteAula) / 0.20;
-  const notaRequerida = Number(Math.max(1.0, Math.min(5.0, notaRequeridaRaw)).toFixed(1));
-  const puedeAprobar = notaRequeridaRaw <= 5.0;
+  const notaRequerida = isSubjectWithFinalExam
+    ? Number(Math.max(1.0, Math.min(5.0, notaRequeridaRaw)).toFixed(1))
+    : null;
+  const puedeAprobar = !isSubjectWithFinalExam || notaRequeridaRaw <= 5.0;
 
   return {
     promedioAula,
@@ -235,7 +261,8 @@ export function calculateGrade80_20(student, branchActivities = []) {
     notaRequerida,
     puedeAprobar,
     activeScoresCount,
-    isRetired: false
+    isRetired: false,
+    isSubjectWithFinalExam
   };
 }
 
@@ -471,7 +498,7 @@ class GradesService {
         const branch = subjectRosters[subj];
         const studentRecord = branch?.students?.find(s => s.id === st.id) || st;
         if (studentRecord) {
-          const calc = calculateGrade80_20(studentRecord, branch?.activities);
+          const calc = calculateGrade80_20(studentRecord, branch?.activities, subj);
           const defNum = calc.definitivaNum;
           subjectGrades[subj] = defNum;
           totalSum += defNum;
@@ -570,7 +597,7 @@ class GradesService {
           
           let periodDef = 1.0;
           if (studentRec) {
-            const calc = calculateGrade80_20(studentRec, branch?.activities);
+            const calc = calculateGrade80_20(studentRec, branch?.activities, subj);
             periodDef = calc.definitivaNum;
           }
           periodScores.push(periodDef);

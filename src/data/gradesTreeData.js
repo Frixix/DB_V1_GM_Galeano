@@ -66,6 +66,46 @@ export const ALL_SUBJECTS = [
   'Ética & Valores'
 ];
 
+/**
+ * Materias Oficiales con Evaluación Final Acumulativa Escrita (SIEE):
+ * - 4 evaluaciones acumulativas oficiales al año (1 por cada periodo académico: 1°, 2°, 3° y 4° Periodo).
+ * - Se radican, aprueban e imprimen/fotocopian en Coordinación Académica y Secretaría.
+ */
+export const FINAL_EXAM_SUBJECTS = [
+  'Lengua Castellana',
+  'Matemáticas',
+  'Ciencias Naturales',
+  'Ciencias Sociales',
+  'Inglés'
+];
+
+/**
+ * Materias Formativas / Prácticas SIN Evaluación Final Escrita para Impresión:
+ * - En el Gimnasio Martín Galeano, el 20% institucional de estas áreas se obtiene
+ *   de actividades continuas, formativas, prácticas y vivenciales de aula (no de prueba escrita).
+ */
+export const EXCLUDED_FINAL_EXAM_SUBJECTS = [
+  'Educación Artística',
+  'Educación Física',
+  'Religión',
+  'Ética & Valores'
+];
+
+/**
+ * Determina si una materia cuenta con evaluación final acumulativa escrita para fotocopiado.
+ * @param {string} subject Nombre de la asignatura
+ * @returns {boolean}
+ */
+export function subjectHasFinalExam(subject) {
+  if (!subject) return false;
+  const s = subject.toLowerCase().trim();
+  if (s.includes('art')) return false; // Educación Artística
+  if (s.includes('física') || s.includes('fisica')) return false; // Educación Física
+  if (s.includes('relig')) return false; // Religión
+  if (s.includes('ética') || s.includes('etica')) return false; // Ética & Valores
+  return true;
+}
+
 // Directores de Curso Oficiales por Grado (Exactamente 1 Director por Grado)
 export const GRADE_DIRECTORS = {
   'Transición': { docente_id: 'profe1', teacherName: 'Profe 1' },

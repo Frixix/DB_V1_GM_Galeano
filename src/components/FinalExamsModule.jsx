@@ -322,6 +322,10 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                 <p className="final-banner-desc">
                   Gestión y control de entrega de pruebas acumulativas para fotocopiado y reproducción institucional ({selectedPeriod}).
                 </p>
+                <div className="final-policy-notice" style={{ marginTop: '6px', fontSize: '0.8rem', color: '#4338ca', display: 'flex', alignItems: 'center', gap: '6px', background: '#eef2ff', padding: '4px 10px', borderRadius: '6px', width: 'fit-content' }}>
+                  <i className="ph-bold ph-info"></i>
+                  <span><strong>SIEE Oficial:</strong> 4 evaluaciones por materia al año (1 por periodo académico) en áreas fundamentales (Lengua Castellana, Matemáticas, Ciencias Naturales, Ciencias Sociales e Inglés). En Educación Artística, Educación Física, Religión y Ética & Valores el 20% se obtiene de actividades formativas (sin examen escrito para fotocopiado).</span>
+                </div>
               </div>
             </div>
 

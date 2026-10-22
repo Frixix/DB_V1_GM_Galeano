@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import gradesService from '../services/gradesService';
-import { GRADES_LIST, ALL_SUBJECTS } from '../data/gradesTreeData';
+import { GRADES_LIST, ALL_SUBJECTS, subjectHasFinalExam } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
 import './EvaluationCalendarModal.css';
 
@@ -220,14 +220,16 @@ export default function EvaluationCalendarModal({ isOpen, onClose, currentUser, 
                     </select>
                   </div>
 
-                  <div className="form-field-group">
-                    <label>Asignatura:</label>
-                    <select value={targetSubject} onChange={(e) => setTargetSubject(e.target.value)}>
-                      {ALL_SUBJECTS.map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
+                    <div className="form-field-group">
+                      <label>Asignatura:</label>
+                      <select value={targetSubject} onChange={(e) => setTargetSubject(e.target.value)}>
+                        {ALL_SUBJECTS.map(s => (
+                          <option key={s} value={s}>
+                            {s} {!subjectHasFinalExam(s) ? '• 20% Formativo' : '• Examen Final'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                   <div className="form-field-group">
                     <label>Docente:</label>
