@@ -329,8 +329,8 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
               </div>
             </div>
 
-            <div className="final-banner-actions">
-              {isPrivileged && (
+            {isPrivileged && (
+              <div className="final-banner-actions">
                 <button
                   type="button"
                   className="final-btn-secondary"
@@ -340,18 +340,8 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
                   <i className="ph-bold ph-calendar-check"></i>
                   <span>Fechas Límite</span>
                 </button>
-              )}
-
-              <button
-                type="button"
-                className="final-btn-primary"
-                onClick={() => handleOpenUpload(null, null)}
-                title="Subir evaluación final para impresión"
-              >
-                <i className="ph-bold ph-upload-simple"></i>
-                <span>Subir Evaluación</span>
-              </button>
-            </div>
+              </div>
+            )}
           </section>
 
           {/* Banner de Alerta de Fecha Límite de Entrega & Resumen de Fotocopiado */}

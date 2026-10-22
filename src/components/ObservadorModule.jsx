@@ -378,27 +378,7 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
                 </button>
               )}
 
-              {canCreateInCurrentRoute ? (
-                <button
-                  type="button"
-                  className="obs-banner-btn-new"
-                  onClick={() => setIsUploadModalOpen(true)}
-                  title={
-                    isPrivileged
-                      ? "Radicar observación, citación o convocar sesión de comité"
-                      : "Radicar observación pedagógica, citación a acudiente o PIAR"
-                  }
-                >
-                  <i className="ph-bold ph-plus-circle"></i>
-                  <span>
-                    {isPrivileged
-                      ? "Radicar / Convocar Comité"
-                      : (['comite_convivencia', 'comision_evaluacion', 'consejo_academico'].includes(currentRoute)
-                          ? "Radicar Acta de Comité"
-                          : "Radicar Observación / Citación / PIAR")}
-                  </span>
-                </button>
-              ) : (
+              {!canCreateInCurrentRoute && (
                 <div
                   className="obs-committee-locked-pill"
                   title="Esta sección de comité está reservada a la docente representante asignada por Rectoría"
@@ -631,26 +611,28 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         </main>
       </div>
 
-      {/* Botón Flotante para Radicar Nuevo Registro / Acta (Inferior Derecha) */}
-      <button
-        type="button"
-        className="btn-floating-upload"
-        onClick={() => setIsUploadModalOpen(true)}
-        title={
-          isPrivileged
-            ? "Radicar observación, citación o convocar comité"
-            : "Radicar observación, citación a acudiente o PIAR"
-        }
-        style={{
-          background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
-          boxShadow: '0 6px 16px rgba(15, 118, 110, 0.35)'
-        }}
-      >
-        <i className="ph-bold ph-note-pencil"></i>
-        <span>
-          {isPrivileged ? "Radicar / Convocar Comité" : "Radicar Observación / Citación"}
-        </span>
-      </button>
+      {/* Botón Flotante para Radicar Nuevo Registro / Acta (Inferior Derecha - Unificado) */}
+      {canCreateInCurrentRoute && (
+        <button
+          type="button"
+          className="btn-floating-upload"
+          onClick={() => setIsUploadModalOpen(true)}
+          title={
+            isPrivileged
+              ? "Radicar observación, citación o convocar comité"
+              : "Radicar observación, citación a acudiente o PIAR"
+          }
+          style={{
+            background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
+            boxShadow: '0 6px 16px rgba(15, 118, 110, 0.35)'
+          }}
+        >
+          <i className="ph-bold ph-note-pencil"></i>
+          <span>
+            {isPrivileged ? "Radicar / Convocar Comité" : "Radicar Observación / Citación"}
+          </span>
+        </button>
+      )}
 
       {/* Modal para Ver y Descargar Registro o Acta */}
       <ViewObservadorModal

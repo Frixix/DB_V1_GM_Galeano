@@ -229,17 +229,6 @@ export default function MatriculasModule({
               <strong> prohibición estricta de eliminación</strong> con soporte de inhabilitación por traslado o retiro.
             </p>
           </div>
-          <div className="banner-right">
-            <button
-              type="button"
-              className="btn-open-enroll"
-              onClick={() => setIsEnrollModalOpen(true)}
-              title="Inscribir nuevo estudiante extemporáneo en el censo oficial"
-            >
-              <i className="ph-bold ph-user-plus"></i>
-              <span>Inscribir Estudiante</span>
-            </button>
-          </div>
         </section>
 
         {/* 4 Tarjetas de Métricas KPI */}
