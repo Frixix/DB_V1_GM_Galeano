@@ -52,6 +52,16 @@ export const USERS = {
     maxUploadBytes: 1 * GB,
     maxUploadLabel: '1 GB',
   },
+  profe0: {
+    name: 'Profe Pre-Jardín',
+    role: 'docente',
+    label: 'Docente • Dir. Pre-Jardín',
+    initial: 'PJ',
+    avatar: '/images/avatars/profe1.svg',
+    pass: 'prejardin2026',
+    maxUploadBytes: 15 * MB,
+    maxUploadLabel: '15 MB',
+  },
   profe1: {
     name: 'Profe 1',
     role: 'docente',

@@ -15,7 +15,7 @@ import gradesService from './gradesService.js';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 import { uploadDocumentFile, deleteDocumentFile, getDocumentPublicUrl } from './storageService.js';
 
-const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v4';
+const EVALUACIONES_STORAGE_KEY = 'gmg_evaluaciones_impresion_v5';
 const DEADLINES_STORAGE_KEY = 'gmg_evaluaciones_deadlines_v1';
 
 export const DEFAULT_DEADLINES = {
@@ -97,7 +97,29 @@ const createInitialEvaluationsData = () => {
   // Ejemplos institucionales diferenciados para el 1° Periodo:
   const p1 = '1° Periodo (25%)';
   if (initialData[p1]) {
-    // 1. Profe 1: Matemáticas en Transición
+    // 0. Profe Pre-Jardín: Lengua Castellana en Pre-Jardín (Directora no rota)
+    if (initialData[p1]['Pre-Jardín']?.['Lengua Castellana']) {
+      initialData[p1]['Pre-Jardín']['Lengua Castellana'] = {
+        id: 'EVAL-PRJ-01',
+        uploaded: true,
+        grade: 'Pre-Jardín',
+        subject: 'Lengua Castellana',
+        title: 'Evaluación de Lengua Castellana - Pre-Jardín',
+        fileName: 'Evaluacion_Lengua_PreJardin_ProfePreJardin.pdf',
+        fileSize: '1.1 MB',
+        fileType: 'application/pdf',
+        storageKey: null,
+        uploadedAt: '2026-03-24 09:30',
+        uploadedBy: 'Profe Pre-Jardín',
+        teacherId: 'profe0',
+        copiesNeeded: (STUDENTS_BY_GRADE['Pre-Jardín'] || []).length + 1,
+        copiesStatus: 'aprobado',
+        notes: 'Guía de trazos iniciales, aprestamiento y discriminación fonológica.',
+        downloadUrl: null
+      };
+    }
+
+    // 1. Profe 1: Matemáticas en Transición (Directora no rota)
     if (initialData[p1]['Transición']?.['Matemáticas']) {
       initialData[p1]['Transición']['Matemáticas'] = {
         id: 'EVAL-TRA-01',

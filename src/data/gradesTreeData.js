@@ -30,6 +30,7 @@ export const ACADEMIC_PERIODS = [
 ];
 
 export const GRADES_LIST = [
+  'Pre-Jardín',
   'Transición',
   '1° Primaria',
   '2° Primaria',
@@ -39,12 +40,13 @@ export const GRADES_LIST = [
 ];
 
 /**
- * Normaliza cualquier formato de grado (ej: "Primero (1°)", "1°", "primero")
+ * Normaliza cualquier formato de grado (ej: "Primero (1°)", "1°", "primero", "prejardín")
  * a la nomenclatura canónica de GRADES_LIST.
  */
 export function normalizeGrade(grade) {
   if (!grade) return '1° Primaria';
   const g = grade.toString().toLowerCase().trim();
+  if (g.includes('pre-jard') || g.includes('prejard')) return 'Pre-Jardín';
   if (g.includes('transic')) return 'Transición';
   if (g.includes('primero') || g.includes('1')) return '1° Primaria';
   if (g.includes('segundo') || g.includes('2')) return '2° Primaria';
@@ -108,6 +110,7 @@ export function subjectHasFinalExam(subject) {
 
 // Directores de Curso Oficiales por Grado (Exactamente 1 Director por Grado)
 export const GRADE_DIRECTORS = {
+  'Pre-Jardín': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
   'Transición': { docente_id: 'profe1', teacherName: 'Profe 1' },
   '1° Primaria': { docente_id: 'jessica', teacherName: 'Jessica' },
   '2° Primaria': { docente_id: 'yuri', teacherName: 'Yuri' },
@@ -118,6 +121,12 @@ export const GRADE_DIRECTORS = {
 
 // Estudiantes matriculados por Grado (Roster Base Institucional)
 export const STUDENTS_BY_GRADE = {
+  'Pre-Jardín': [
+    { id: 'PRJ-001', name: 'Thiago Emmanuel Vargas', acudiente: 'Camila Vargas (Madre) - Cel: 310 987 6543', fechaIngreso: '2026-02-02', tipoIngreso: 'Matrícula Regular' },
+    { id: 'PRJ-002', name: 'Mia Antonella Castillo', acudiente: 'Juan Castillo (Padre) - Cel: 315 876 5432', fechaIngreso: '2026-02-02', tipoIngreso: 'Matrícula Regular' },
+    { id: 'PRJ-003', name: 'Lucas Gabriel Cárdenas', acudiente: 'Diana Cárdenas (Madre) - Cel: 320 765 4321', fechaIngreso: '2026-02-02', tipoIngreso: 'Matrícula Regular' },
+    { id: 'PRJ-004', name: 'Emma Lucía Gómez', acudiente: 'Sebastián Gómez (Padre) - Cel: 318 654 3210', fechaIngreso: '2026-02-02', tipoIngreso: 'Matrícula Regular' },
+  ],
   'Transición': [
     { id: 'TRA-001', name: 'Martín Alejandro Silva', acudiente: 'Claudia Silva (Madre) - Cel: 311 204 8891', fechaIngreso: '2026-02-02', tipoIngreso: 'Matrícula Regular' },
     { id: 'TRA-002', name: 'Sofía Isabella Torres', acudiente: 'Carlos Torres (Padre) - Cel: 315 489 1234', fechaIngreso: '2026-02-02', tipoIngreso: 'Matrícula Regular' },
@@ -166,20 +175,36 @@ export const STUDENTS_BY_GRADE = {
 
 // Matriz de Asignación Docente Oficial por (Grado, Materia)
 // Reglas Oficiales:
-// - Elcy: Especialista institucional en Inglés
-// - Jessica: Especialista institucional en Lengua Castellana (Español)
-// - Yuri: Especialista institucional en Ciencias Naturales y Ciencias Sociales
-// - Artes (Educación Artística), Religión y Educación Física: Asignadas a la misma docente Directora de Curso del grado
-// - Profe 2: Docente de Matemáticas (1° a 5°)
-// - Profe 1: Docente titular y Directora de Transición
-// - Profe 3: Docente titular y Directora de 5° Primaria
-// - Ética & Valores: Dirección de curso y formación integral por grado
+// - Preescolar (Pre-Jardín y Transición): La Directora de Curso no rota, se encarga del control total y de todas las evaluaciones.
+//   • Pre-Jardín: Profe Pre-Jardín (todas las asignaturas y evaluaciones)
+//   • Transición: Profe 1 (todas las asignaturas y evaluaciones)
+// - Primaria (1° a 5° - Rotación de Especialistas):
+//   • Elcy: Especialista institucional en Inglés
+//   • Jessica: Especialista institucional en Lengua Castellana (Español)
+//   • Yuri: Especialista institucional en Ciencias Naturales y Ciencias Sociales
+//   • Profe 2: Especialista en Matemáticas (1° a 5°)
+//   • Profe 3: Docente titular y Directora de 5° Primaria
+//   • Artes (Educación Artística), Religión, Educación Física y Ética: Directora de Curso del grado
 export const TEACHER_CURRICULUM_ASSIGNMENTS = {
-  // Transición (Directora de Curso: Profe 1)
+  // Pre-Jardín (Directora de Curso: Profe Pre-Jardín - No rota, control total del grupo y evaluaciones)
+  'Pre-Jardín': {
+    'Lengua Castellana': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Matemáticas': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Ciencias Naturales': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Ciencias Sociales': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Inglés': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Educación Artística': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Religión': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Educación Física': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+    'Ética & Valores': { docente_id: 'profe0', teacherName: 'Profe Pre-Jardín' },
+  },
+  // Transición (Directora de Curso: Profe 1 - No rota, control total del grupo y evaluaciones)
   'Transición': {
-    'Lengua Castellana': { docente_id: 'jessica', teacherName: 'Jessica' },
+    'Lengua Castellana': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Matemáticas': { docente_id: 'profe1', teacherName: 'Profe 1' },
-    'Inglés': { docente_id: 'elcy', teacherName: 'Elcy' },
+    'Ciencias Naturales': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Ciencias Sociales': { docente_id: 'profe1', teacherName: 'Profe 1' },
+    'Inglés': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Educación Artística': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Religión': { docente_id: 'profe1', teacherName: 'Profe 1' },
     'Educación Física': { docente_id: 'profe1', teacherName: 'Profe 1' },

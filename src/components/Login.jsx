@@ -16,6 +16,7 @@ import './Login.css';
 const STAFF_MEMBERS = [
   { key: 'claudia', name: 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría Institucional' },
   { key: 'coordinacion', name: 'Coordinación Académica', roleTitle: 'Coordinación', grade: 'Supervisión Institucional' },
+  { key: 'profe0', name: 'Profe Pre-Jardín', roleTitle: 'Docente', grade: 'Dir. Pre-Jardín' },
   { key: 'profe1', name: 'Profe 1', roleTitle: 'Docente', grade: 'Dir. Transición' },
   { key: 'jessica', name: 'Jessica', roleTitle: 'Docente Español', grade: 'Dir. 1° Primaria' },
   { key: 'yuri', name: 'Yuri', roleTitle: 'Docente C. Sociales', grade: 'Dir. 2° Primaria' },

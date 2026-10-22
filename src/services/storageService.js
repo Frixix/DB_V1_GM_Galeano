@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 import { 
   r2Client, 
   isR2Configured, 
@@ -7,9 +7,9 @@ import {
   PutObjectCommand, 
   GetObjectCommand, 
   DeleteObjectCommand 
-} from '../lib/r2Client';
+} from '../lib/r2Client.js';
 
-export const STORAGE_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'documentos-galeano';
+export const STORAGE_BUCKET = (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_SUPABASE_STORAGE_BUCKET) || (typeof process !== 'undefined' && process?.env?.VITE_SUPABASE_STORAGE_BUCKET) || 'documentos-galeano';
 
 /**
  * Sanitiza el nombre del archivo para evitar caracteres inválidos en Storage.

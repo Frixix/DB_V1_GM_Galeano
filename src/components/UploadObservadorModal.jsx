@@ -535,7 +535,8 @@ export default function UploadObservadorModal({
                       value={grade}
                       onChange={(e) => setGrade(e.target.value)}
                     >
-                      <option value="Transición">Transición</option>
+                      <option value="Pre-Jardín">Pre-Jardín</option>
+                    <option value="Transición">Transición</option>
                       <option value="1° Primaria">1° Primaria</option>
                       <option value="2° Primaria">2° Primaria</option>
                       <option value="3° Primaria">3° Primaria</option>

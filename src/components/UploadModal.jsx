@@ -279,6 +279,7 @@ export default function UploadModal({
                 <div className="form-group">
                   <label htmlFor="docGrade">Grado</label>
                   <select id="docGrade" value={grade} onChange={(e) => setGrade(e.target.value)}>
+                    <option value="Pre-Jardín">Pre-Jardín</option>
                     <option value="Transición">Transición</option>
                     <option value="Primero (1°)">Grado 1°</option>
                     <option value="Segundo (2°)">Grado 2°</option>

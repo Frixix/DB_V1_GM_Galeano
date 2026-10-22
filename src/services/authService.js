@@ -491,6 +491,7 @@ export const DEFAULT_PASSWORDS = {
   admin: 'admin2026',
   claudia: 'rectora2026',
   coordinacion: 'coordinacion2026',
+  profe0: 'prejardin2026',
   profe1: 'profe12026',
   jessica: 'jessica2026',
   yuri: 'yuri2026',

@@ -99,7 +99,7 @@ class TeacherService {
   // =========================================================================
 
   getTeachers() {
-    const teacherOrder = ['profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'];
+    const teacherOrder = ['profe0', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'];
     const teachers = Object.entries(USERS)
       .filter(([key, u]) => u.role === 'docente' || key.startsWith('profe') || ['jessica', 'yuri', 'elcy'].includes(key))
       .map(([key, u]) => {
@@ -477,6 +477,7 @@ class TeacherService {
 
     // 1. Asignar Directores Oficiales
     const officialDirectors = {
+      'Pre-Jardín': 'profe0',
       'Transición': 'profe1',
       '1° Primaria': 'jessica',
       '2° Primaria': 'yuri',
@@ -502,22 +503,28 @@ class TeacherService {
       const dirKey = officialDirectors[grade];
       const dirTeacher = USERS[dirKey] || { name: dirKey };
 
-      const isTransicion = grade === 'Transición';
+      const isPreschool = grade === 'Pre-Jardín' || grade === 'Transición';
 
-      const assignments = {
-        'Lengua Castellana': { docente_id: 'jessica', teacherName: USERS.jessica.name },
-        'Inglés': { docente_id: 'elcy', teacherName: USERS.elcy.name },
-        'Ciencias Sociales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
-        'Ciencias Naturales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
-        'Matemáticas': isTransicion 
-          ? { docente_id: 'profe1', teacherName: USERS.profe1.name }
-          : { docente_id: 'profe2', teacherName: USERS.profe2.name },
-        // Materias formativas vinculadas a Directora de Curso:
-        'Educación Artística': { docente_id: dirKey, teacherName: dirTeacher.name },
-        'Religión': { docente_id: dirKey, teacherName: dirTeacher.name },
-        'Educación Física': { docente_id: dirKey, teacherName: dirTeacher.name },
-        'Ética & Valores': { docente_id: dirKey, teacherName: dirTeacher.name }
-      };
+      let assignments = {};
+      if (isPreschool) {
+        // En Preescolar (Pre-Jardín y Transición), la Directora de Curso no rota y tiene el control total de sus alumnos y evaluaciones
+        ALL_SUBJECTS.forEach(subj => {
+          assignments[subj] = { docente_id: dirKey, teacherName: dirTeacher.name };
+        });
+      } else {
+        assignments = {
+          'Lengua Castellana': { docente_id: 'jessica', teacherName: USERS.jessica.name },
+          'Inglés': { docente_id: 'elcy', teacherName: USERS.elcy.name },
+          'Ciencias Sociales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
+          'Ciencias Naturales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
+          'Matemáticas': { docente_id: 'profe2', teacherName: USERS.profe2.name },
+          // Materias formativas vinculadas a Directora de Curso:
+          'Educación Artística': { docente_id: dirKey, teacherName: dirTeacher.name },
+          'Religión': { docente_id: dirKey, teacherName: dirTeacher.name },
+          'Educación Física': { docente_id: dirKey, teacherName: dirTeacher.name },
+          'Ética & Valores': { docente_id: dirKey, teacherName: dirTeacher.name }
+        };
+      }
 
       Object.entries(assignments).forEach(([subj, assign]) => {
         gradesService.customAssignments[grade][subj] = {
@@ -540,11 +547,12 @@ class TeacherService {
     });
 
     // 3. Actualizar Etiquetas de Perfil
-    saveUserOverride('elcy', { label: 'Docente de Inglés • Dir. 4° Primaria' });
+    saveUserOverride('profe0', { label: 'Docente • Dir. Pre-Jardín' });
+    saveUserOverride('profe1', { label: 'Docente • Dir. Transición' });
     saveUserOverride('jessica', { label: 'Docente de Español • Dir. 1° Primaria' });
     saveUserOverride('yuri', { label: 'Docente de Ciencias (Naturales & Sociales) • Dir. 2° Primaria' });
     saveUserOverride('profe2', { label: 'Docente de Matemáticas • Dir. 3° Primaria' });
-    saveUserOverride('profe1', { label: 'Docente • Dir. Transición' });
+    saveUserOverride('elcy', { label: 'Docente de Inglés • Dir. 4° Primaria' });
     saveUserOverride('profe3', { label: 'Docente • Dir. 5° Primaria' });
 
     gradesService.persistCustomState();
@@ -552,7 +560,7 @@ class TeacherService {
 
     this.addAuditLog(
       'Aplicación de Preset Institucional Galeano 2026',
-      'Configuración integral: Elcy (Inglés), Jessica (Español), Yuri (Ciencias Nat. y Soc.), Profe 2 (Matemáticas) y Directoras para Formativas (Artes, Religión, Ed. Física, Ética).',
+      'Configuración integral: Preescolar sin rotación (Pre-Jardín y Transición con Directoras titulares a cargo total), Primaria con especialistas (Elcy, Jessica, Yuri, Profe 2).',
       adminUser
     );
 
@@ -570,7 +578,7 @@ class TeacherService {
         }));
         await supabase.from('directores_curso').upsert(directorsPayload, { onConflict: 'grade' });
 
-        const profilesPayload = ['profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'].map(k => ({
+        const profilesPayload = ['profe0', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'].map(k => ({
           user_key: k,
           name: USERS[k].name,
           label: USERS[k].label,

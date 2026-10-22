@@ -43,7 +43,8 @@ export default function FilterBar({
         <div className="filter-group">
           <select value={grade} onChange={(e) => setGrade(e.target.value)}>
             <option value="">Todos los grados</option>
-            <option value="Transición">Transición</option>
+            <option value="Pre-Jardín">Pre-Jardín</option>
+                    <option value="Transición">Transición</option>
             <option value="Primero (1°)">Grado 1°</option>
             <option value="Segundo (2°)">Grado 2°</option>
             <option value="Tercero (3°)">Grado 3°</option>

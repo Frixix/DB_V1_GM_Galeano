@@ -4,6 +4,7 @@ import { USERS } from '../data/users.js';
 
 // Lista de docentes elegibles para representación institucional
 const ELIGIBLE_TEACHERS = [
+  { key: 'profe0', name: 'Profe Pre-Jardín', grade: 'Pre-Jardín' },
   { key: 'profe1', name: 'Profe 1', grade: 'Transición' },
   { key: 'jessica', name: 'Jessica', grade: '1° Primaria' },
   { key: 'yuri', name: 'Yuri', grade: '2° Primaria' },
