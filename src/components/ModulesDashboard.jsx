@@ -175,7 +175,22 @@ export default function ModulesDashboard({
                 </button>
               )}
 
-              {/* Módulo 4: Observador & Actas */}
+              {/* Módulo: Gestión de Matrícula & Censo (Fase 5) */}
+              {canManageMatriculas && (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-matriculas ${selectedNavModule === 'matriculas' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('matriculas')}
+                  title="Panel de Matriculados e Histórico Blindado (Fase 5)"
+                  style={{ marginTop: '0.25rem' }}
+                >
+                  <i className="ph-bold ph-identification-badge"></i>
+                  <span className="portal-nav-text">Matrículas & Censo</span>
+                  <span className="portal-sidebar-active-tag" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>Fase 5</span>
+                </button>
+              )}
+
+              {/* Módulo: Observador & Actas */}
               <button 
                 type="button"
                 className={`portal-nav-item portal-nav-item-observador ${selectedNavModule === 'observador' ? 'active' : ''}`}
@@ -190,18 +205,7 @@ export default function ModulesDashboard({
                 )}
               </button>
 
-              {/* Módulo 5: Evaluaciones Finales */}
-              <button 
-                type="button"
-                className={`portal-nav-item portal-nav-item-evaluaciones ${selectedNavModule === 'evaluaciones' ? 'active' : ''}`}
-                onClick={() => handleModuleClick('evaluaciones')}
-                title="Acceder a Evaluaciones Finales & Cierres SIEE"
-                style={{ marginTop: '0.25rem' }}
-              >
-                <i className="ph-bold ph-graduation-cap"></i>
-                <span className="portal-nav-text">Evaluaciones Finales</span>
-
-              </button>
+              {/* Módulo: Gestión Docente & Malla Curricular */}
               {canManageDocentes && (
                 <button 
                   type="button"
@@ -215,19 +219,18 @@ export default function ModulesDashboard({
                   <span className="portal-sidebar-active-tag" style={{ background: '#e0e7ff', color: '#4338ca', borderColor: '#c7d2fe' }}>Directivo</span>
                 </button>
               )}
-              {canManageMatriculas && (
-                <button 
-                  type="button"
-                  className={`portal-nav-item portal-nav-item-matriculas ${selectedNavModule === 'matriculas' ? 'active' : ''}`}
-                  onClick={() => handleModuleClick('matriculas')}
-                  title="Panel de Matriculados e Histórico Blindado (Fase 5)"
-                  style={{ marginTop: '0.25rem' }}
-                >
-                  <i className="ph-bold ph-identification-badge"></i>
-                  <span className="portal-nav-text">Matrículas & Censo</span>
-                  <span className="portal-sidebar-active-tag" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>Fase 5</span>
-                </button>
-              )}
+
+              {/* Módulo: Evaluaciones Finales */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-evaluaciones ${selectedNavModule === 'evaluaciones' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('evaluaciones')}
+                title="Acceder a Evaluaciones Finales & Cierres SIEE"
+                style={{ marginTop: '0.25rem' }}
+              >
+                <i className="ph-bold ph-graduation-cap"></i>
+                <span className="portal-nav-text">Evaluaciones Finales</span>
+              </button>
             </nav>
           </div>
 
@@ -441,7 +444,52 @@ export default function ModulesDashboard({
               </article>
             )}
 
-            {/* MÓDULO 4: OBSERVADOR & ACTAS */}
+            {/* MÓDULO: GESTIÓN DE MATRÍCULA E HISTÓRICO BLINDADO (FASE 5) */}
+            <article 
+              className={`portal-module-card ${canManageMatriculas ? 'portal-module-card-emerald' : 'portal-module-card-disabled'}`}
+              onClick={() => handleModuleClick('matriculas')}
+              role="button"
+              tabIndex={0}
+              title={canManageMatriculas ? "Acceder al Panel de Matriculados e Histórico Blindado (Fase 5)" : "Módulo reservado para Rectoría, Coordinación y Administración"}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleModuleClick('matriculas');
+                }
+              }}
+            >
+              <div className="portal-card-header-bar">
+                <div className={`portal-card-icon-container ${canManageMatriculas ? 'portal-emerald-icon' : 'portal-gray-icon'}`}>
+                  <i className="ph-bold ph-identification-badge" style={{ fontSize: '1.75rem', color: canManageMatriculas ? '#059669' : undefined }}></i>
+                </div>
+                {canManageMatriculas ? (
+                  <span className="portal-badge-emerald">Activo · Fase 5</span>
+                ) : (
+                  <span className="portal-badge-gray">Directivo & Coord.</span>
+                )}
+              </div>
+
+              <div className="portal-card-body">
+                <h3 style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-title' : undefined}>
+                  Gestión de Matrícula & Censo
+                </h3>
+                <p style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-desc' : undefined}>
+                  Inscripción extemporánea de estudiantes, auditoría de censo escolar, inhabilitación por traslado o retiro (sin eliminación física) y fórmula de copias N+1.
+                </p>
+              </div>
+
+              <div className={`portal-card-footer ${!canManageMatriculas ? 'portal-footer-disabled' : ''}`}>
+                {canManageMatriculas ? (
+                  <span className="portal-link-label-emerald">Gestionar Matrícula & Histórico &rarr;</span>
+                ) : (
+                  <span className="portal-label-muted">
+                    <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
+                  </span>
+                )}
+              </div>
+            </article>
+
+            {/* MÓDULO: OBSERVADOR & ACTAS */}
             <article 
               className="portal-module-card portal-module-card-teal"
               onClick={() => handleModuleClick('observador')}
@@ -492,40 +540,7 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-            {/* MÓDULO 5: EVALUACIONES FINALES */}
-            <article 
-              className="portal-module-card portal-module-card-violet"
-              onClick={() => handleModuleClick('evaluaciones')}
-              role="button"
-              tabIndex={0}
-              title="Acceder a Evaluaciones Finales, Nivelaciones y Comisiones de Promoción (SIEE)"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('evaluaciones');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container portal-violet-icon">
-                  <i className="ph-bold ph-graduation-cap" style={{ fontSize: '1.75rem', color: '#6d28d9' }}></i>
-                </div>
-                <span className="portal-badge-violet">Activo · SIEE</span>
-              </div>
-
-              <div className="portal-card-body">
-                <h3 style={{ color: '#0f172a' }}>Evaluaciones Finales</h3>
-                <p style={{ color: '#0f172a' }}>
-                  Consola de exámenes acumulativos, sustentaciones finales, actas de nivelación, sábanas de comisiones de promoción y cierre oficial de año lectivo.
-                </p>
-              </div>
-
-              <div className="portal-card-footer">
-                <span className="portal-link-label-violet">Gestionar Evaluaciones Finales &rarr;</span>
-              </div>
-            </article>
-
-            {/* MÓDULO 6: GESTIÓN DOCENTE & PLANTA CURRICULAR */}
+            {/* MÓDULO: GESTIÓN DOCENTE & PLANTA CURRICULAR */}
             <article 
               className={`portal-module-card ${canManageDocentes ? 'portal-module-card-cyan' : 'portal-module-card-disabled'}`}
               onClick={() => handleModuleClick('docentes')}
@@ -570,48 +585,36 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-            {/* MÓDULO 7: GESTIÓN DE MATRÍCULA E HISTÓRICO BLINDADO (FASE 5) */}
+            {/* MÓDULO: EVALUACIONES FINALES */}
             <article 
-              className={`portal-module-card ${canManageMatriculas ? 'portal-module-card-emerald' : 'portal-module-card-disabled'}`}
-              onClick={() => handleModuleClick('matriculas')}
+              className="portal-module-card portal-module-card-violet"
+              onClick={() => handleModuleClick('evaluaciones')}
               role="button"
               tabIndex={0}
-              title={canManageMatriculas ? "Acceder al Panel de Matriculados e Histórico Blindado (Fase 5)" : "Módulo reservado para Rectoría, Coordinación y Administración"}
+              title="Acceder a Evaluaciones Finales, Nivelaciones y Comisiones de Promoción (SIEE)"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleModuleClick('matriculas');
+                  handleModuleClick('evaluaciones');
                 }
               }}
             >
               <div className="portal-card-header-bar">
-                <div className={`portal-card-icon-container ${canManageMatriculas ? 'portal-emerald-icon' : 'portal-gray-icon'}`}>
-                  <i className="ph-bold ph-identification-badge" style={{ fontSize: '1.75rem', color: canManageMatriculas ? '#059669' : undefined }}></i>
+                <div className="portal-card-icon-container portal-violet-icon">
+                  <i className="ph-bold ph-graduation-cap" style={{ fontSize: '1.75rem', color: '#6d28d9' }}></i>
                 </div>
-                {canManageMatriculas ? (
-                  <span className="portal-badge-emerald">Activo · Fase 5</span>
-                ) : (
-                  <span className="portal-badge-gray">Directivo & Coord.</span>
-                )}
+                <span className="portal-badge-violet">Activo · SIEE</span>
               </div>
 
               <div className="portal-card-body">
-                <h3 style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-title' : undefined}>
-                  Gestión de Matrícula & Censo
-                </h3>
-                <p style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-desc' : undefined}>
-                  Inscripción extemporánea de estudiantes, auditoría de censo escolar, inhabilitación por traslado o retiro (sin eliminación física) y fórmula de copias N+1.
+                <h3 style={{ color: '#0f172a' }}>Evaluaciones Finales</h3>
+                <p style={{ color: '#0f172a' }}>
+                  Consola de exámenes acumulativos, sustentaciones finales, actas de nivelación, sábanas de comisiones de promoción y cierre oficial de año lectivo.
                 </p>
               </div>
 
-              <div className={`portal-card-footer ${!canManageMatriculas ? 'portal-footer-disabled' : ''}`}>
-                {canManageMatriculas ? (
-                  <span className="portal-link-label-emerald">Gestionar Matrícula & Histórico &rarr;</span>
-                ) : (
-                  <span className="portal-label-muted">
-                    <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
-                  </span>
-                )}
+              <div className="portal-card-footer">
+                <span className="portal-link-label-violet">Gestionar Evaluaciones Finales &rarr;</span>
               </div>
             </article>
           </section>
