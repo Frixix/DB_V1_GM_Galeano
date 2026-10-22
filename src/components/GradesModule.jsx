@@ -133,8 +133,8 @@ export default function GradesModule({
 
   // Carga de la rama actual del árbol: Año -> Periodo -> Grado -> Materia
   const branchData = useMemo(() => {
-    return gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
-  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick]);
+    return gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject, currentUser);
+  }, [selectedYear, selectedPeriod, selectedGrade, selectedSubject, curriculumTick, currentUser]);
 
   const [students, setStudents] = useState(branchData.students || []);
   const [activities, setActivities] = useState(() => {
@@ -159,13 +159,17 @@ export default function GradesModule({
   // Sincronizar roster y actividades al cambiar de rama en el árbol o al registrarse un reemplazo
   useEffect(() => {
     let isMounted = true;
-    const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject);
+    const freshBranch = gradesService.getBranch(selectedYear, selectedPeriod, selectedGrade, selectedSubject, currentUser);
     setStudents(freshBranch.students || []);
     setActivities(freshBranch.activities || [
       { id: 'act_1', name: 'Taller 1', type: 'Taller' },
       { id: 'act_2', name: 'Quiz Rápido', type: 'Quiz' },
       { id: 'act_3', name: 'Trabajo en Clase', type: 'Clase' }
     ]);
+
+    // En modo inducción, no sobreescribir el sandbox con datos remotos
+    const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+    if (isInduccion) return;
 
     // Consultar y sincronizar con Supabase en la nube
     gradesService.fetchBranchFromSupabase(selectedYear, selectedPeriod, selectedGrade, selectedSubject)

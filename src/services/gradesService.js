@@ -337,12 +337,21 @@ class GradesService {
   constructor() {
     this.checkVersionAndMigrate();
     this.tree = this.loadTreeFromStorage();
+    this.sandboxTree = {};
+    this.activeUser = null;
     this.customAssignments = this.loadFromStorage(ASSIGNMENTS_CUSTOM_KEY, {});
     this.customDirectors = this.loadFromStorage(DIRECTORS_CUSTOM_KEY, {});
     this.replacementLogs = this.loadFromStorage(REPLACEMENTS_LOG_KEY, []);
     const rawCalendar = this.loadFromStorage(CALENDAR_STORAGE_KEY, DEFAULT_EVALUATION_CALENDAR);
     this.evaluationCalendar = syncPeriodStatusesByDate(rawCalendar);
     this.extemporaryExtensions = this.loadFromStorage(EXTENSIONS_STORAGE_KEY, []);
+  }
+
+  setActiveUser(user) {
+    this.activeUser = user;
+    if (!user || (user.role !== 'induccion' && user.role !== 'induccion_rectora')) {
+      this.sandboxTree = {};
+    }
   }
 
   checkVersionAndMigrate() {
@@ -486,9 +495,14 @@ class GradesService {
     const role = user.role;
     const userKey = user.key || role;
 
-    // Directivos, Administradores, Coordinador y Modo Inducción ven todos los grados
-    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion' || role === 'coordinador') {
+    // Directivos, Administradores y Coordinador ven todos los grados
+    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'coordinador') {
       return GRADES_LIST;
+    }
+
+    // Modo Inducción Docente: Aislado estrictamente al grado modelo de muestra (1° Primaria)
+    if (role === 'induccion') {
+      return ['1° Primaria'];
     }
 
     // Para docente: ÚNICAMENTE los grados donde tiene materias asignadas a su cargo oficial
@@ -515,9 +529,14 @@ class GradesService {
     const role = user.role;
     const userKey = user.key || role;
 
-    // Directivos, Administradores, Coordinador y Modo Inducción ven todas las materias
-    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'induccion' || role === 'coordinador') {
+    // Directivos, Administradores y Coordinador ven todas las materias
+    if (role === 'rectora' || role === 'induccion_rectora' || role === 'admin' || role === 'coordinador') {
       return allSubjectsInGrade;
+    }
+
+    // Modo Inducción Docente: Únicamente la asignatura modelo asignada de muestra (Lengua Castellana)
+    if (role === 'induccion') {
+      return grade === '1° Primaria' ? ['Lengua Castellana'] : [];
     }
 
     // Para docentes: ÚNICAMENTE las materias asignadas a su cargo (estricto aislamiento entre docentes)
@@ -730,7 +749,42 @@ class GradesService {
   /**
    * Accede a la rama del árbol: Año -> Periodo -> Grado -> Materia
    */
-  getBranch(year = '2026', period = '1° Periodo (25%)', grade = '1° Primaria', subject = 'Matemáticas') {
+  getBranch(year = '2026', period = '1° Periodo (25%)', grade = '1° Primaria', subject = 'Matemáticas', user = null) {
+    const effectiveUser = user || this.activeUser;
+    const isInduccion = effectiveUser?.role === 'induccion' || effectiveUser?.role === 'induccion_rectora';
+
+    // AISLAMIENTO SANDBOX: En modo inducción, opera sobre sandboxTree en memoria sin tocar el árbol de producción
+    if (isInduccion) {
+      if (!this.sandboxTree[year]) this.sandboxTree[year] = {};
+      if (!this.sandboxTree[year][period]) this.sandboxTree[year][period] = {};
+      if (!this.sandboxTree[year][period][grade]) this.sandboxTree[year][period][grade] = {};
+
+      const defaultActivities = [
+        { id: 'act_1', name: 'Taller 1', type: 'Taller' },
+        { id: 'act_2', name: 'Quiz Rápido', type: 'Quiz' },
+        { id: 'act_3', name: 'Trabajo en Clase', type: 'Clase' }
+      ];
+
+      if (!this.sandboxTree[year][period][grade][subject]) {
+        const initialRoster = createInitialRosterForBranch(grade, subject, period);
+        this.sandboxTree[year][period][grade][subject] = {
+          docente_id: 'induccion',
+          teacherName: effectiveUser?.name || 'Inducción Profesoras',
+          activities: defaultActivities,
+          students: initialRoster,
+          lastUpdated: new Date().toISOString(),
+          isSandbox: true
+        };
+      } else {
+        const branch = this.sandboxTree[year][period][grade][subject];
+        if (!branch.activities || !Array.isArray(branch.activities) || branch.activities.length === 0) {
+          branch.activities = defaultActivities;
+        }
+      }
+
+      return this.sandboxTree[year][period][grade][subject];
+    }
+
     if (!this.tree[year]) this.tree[year] = {};
     if (!this.tree[year][period]) this.tree[year][period] = {};
     if (!this.tree[year][period][grade]) this.tree[year][period][grade] = {};
@@ -785,7 +839,8 @@ class GradesService {
       return false;
     }
     if (user.role === 'induccion') {
-      return true;
+      // Modo inducción docente: permite interactuar únicamente en la materia y grado modelo de muestra (1° Primaria - Lengua Castellana)
+      return grade === '1° Primaria' && (subject === 'Lengua Castellana' || !subject);
     }
     const teacherInfo = this.getTeacherAssignment(grade, subject);
     const userKey = user.key || user.role;
@@ -973,7 +1028,10 @@ class GradesService {
   }
 
   saveBranchStudents(year, period, grade, subject, students, user, activities = null) {
-    const branch = this.getBranch(year, period, grade, subject);
+    const effectiveUser = user || this.activeUser;
+    const isInduccion = effectiveUser?.role === 'induccion' || effectiveUser?.role === 'induccion_rectora';
+
+    const branch = this.getBranch(year, period, grade, subject, effectiveUser);
     if (activities && Array.isArray(activities)) {
       branch.activities = activities;
     }
@@ -983,7 +1041,15 @@ class GradesService {
       observacionCoordinacion: student.observacion_coordinacion || student.observacionCoordinacion || null,
     }));
     branch.lastUpdated = new Date().toISOString();
-    branch.lastUpdatedBy = user?.name || 'Sistema';
+    branch.lastUpdatedBy = effectiveUser?.name || 'Sistema';
+
+    // BLINDAJE INSTITUCIONAL MODO INDUCCIÓN:
+    // Permite que los botones sirvan, recalculen notas y actualicen la planilla en pantalla (sandbox),
+    // pero NUNCA persiste en el árbol oficial de producción ni sincroniza con Supabase.
+    if (isInduccion) {
+      return branch;
+    }
+
     this.persistTree();
 
     // Sincronización asíncrona con Supabase en segundo plano
@@ -1006,6 +1072,9 @@ class GradesService {
    * Sincroniza una rama con Supabase (tabla grades_branches con respaldo en institutional_vault)
    */
   async syncBranchToSupabase(year, period, grade, subject, branchData) {
+    if (branchData?.isSandbox || this.activeUser?.role === 'induccion' || this.activeUser?.role === 'induccion_rectora') {
+      return { synced: false, simulated: true, reason: 'Modo inducción protegido' };
+    }
     if (!isSupabaseConfigured || !supabase) return { synced: false, reason: 'Supabase no configurado' };
 
     const branchKey = this.getBranchCanonicalKey(year, period, grade, subject);
@@ -1126,6 +1195,10 @@ class GradesService {
    * Sincroniza un estudiante en la tabla matriculas_estudiantes de Supabase
    */
   async syncStudentToSupabase(studentData, currentUser = null) {
+    const effectiveUser = currentUser || this.activeUser;
+    if (effectiveUser?.role === 'induccion' || effectiveUser?.role === 'induccion_rectora') {
+      return { synced: false, simulated: true, reason: 'Modo inducción protegido' };
+    }
     if (!isSupabaseConfigured || !supabase) return { synced: false, reason: 'Supabase no configurado' };
 
     const payload = {
@@ -1522,7 +1595,7 @@ class GradesService {
     // Propagar a TODAS las materias y a TODOS los periodos lectivos del grado en el árbol
     ACADEMIC_PERIODS.forEach(period => {
       subjects.forEach(subj => {
-        const branch = this.getBranch(year, period, canonicalGrade, subj);
+        const branch = this.getBranch(year, period, canonicalGrade, subj, user);
         if (branch && branch.students) {
           const exists = branch.students.find(s => s.id === studentCode);
           if (!exists) {
@@ -1533,6 +1606,19 @@ class GradesService {
         }
       });
     });
+
+    const effectiveUser = user || this.activeUser;
+    const isInduccion = effectiveUser?.role === 'induccion' || effectiveUser?.role === 'induccion_rectora';
+
+    if (isInduccion) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+          detail: { grade: canonicalGrade, action: 'add', student: newStudent, timestamp: new Date().toISOString() }
+        }));
+      }
+      this.notifyCurriculumUpdate();
+      return newStudent;
+    }
 
     this.persistTree();
 
@@ -1587,7 +1673,7 @@ class GradesService {
     // Actualizar en todas las materias y periodos manteniendo notas previas para auditoría
     ACADEMIC_PERIODS.forEach(period => {
       subjects.forEach(subj => {
-        const branch = this.getBranch(year, period, canonicalGrade, subj);
+        const branch = this.getBranch(year, period, canonicalGrade, subj, user);
         if (branch && branch.students) {
           const target = branch.students.find(s => s.id === studentId);
           if (target) {
@@ -1605,6 +1691,36 @@ class GradesService {
         }
       });
     });
+
+    const effectiveUser = user || this.activeUser;
+    const isInduccion = effectiveUser?.role === 'induccion' || effectiveUser?.role === 'induccion_rectora';
+
+    if (isInduccion) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+          detail: { 
+            grade: canonicalGrade, 
+            action: 'retire', 
+            studentId, 
+            studentName, 
+            active: false, 
+            motivoRetiro: withdrawalReason, 
+            fechaRetiro: withdrawalDate,
+            timestamp: nowIso 
+          }
+        }));
+      }
+      this.notifyCurriculumUpdate();
+      return {
+        success: true,
+        simulated: true,
+        studentId,
+        studentName,
+        grade: canonicalGrade,
+        motivoRetiro: withdrawalReason,
+        fechaRetiro: withdrawalDate
+      };
+    }
 
     this.persistTree();
 
@@ -1662,7 +1778,7 @@ class GradesService {
 
     ACADEMIC_PERIODS.forEach(period => {
       subjects.forEach(subj => {
-        const branch = this.getBranch(year, period, canonicalGrade, subj);
+        const branch = this.getBranch(year, period, canonicalGrade, subj, user);
         if (branch && branch.students) {
           const target = branch.students.find(s => s.id === studentId);
           if (target) {
@@ -1680,6 +1796,32 @@ class GradesService {
         }
       });
     });
+
+    const effectiveUser = user || this.activeUser;
+    const isInduccion = effectiveUser?.role === 'induccion' || effectiveUser?.role === 'induccion_rectora';
+
+    if (isInduccion) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gmg_roster_updated', {
+          detail: { 
+            grade: canonicalGrade, 
+            action: 'reactivate', 
+            studentId, 
+            studentName, 
+            active: true, 
+            timestamp: nowIso 
+          }
+        }));
+      }
+      this.notifyCurriculumUpdate();
+      return {
+        success: true,
+        simulated: true,
+        studentId,
+        studentName,
+        grade: canonicalGrade
+      };
+    }
 
     this.persistTree();
 

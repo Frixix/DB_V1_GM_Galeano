@@ -452,6 +452,9 @@ class FinalExamsService {
    */
   getGradesForUser(user) {
     if (!user) return GRADES_LIST;
+    if (user.role === 'induccion') {
+      return ['1° Primaria'];
+    }
     if (this.isPrivilegedUser(user)) {
       return GRADES_LIST;
     }
@@ -475,6 +478,9 @@ class FinalExamsService {
     const validAll = this.getSubjectsForGrade(grade);
 
     if (!user) return validAll;
+    if (user.role === 'induccion') {
+      return grade === '1° Primaria' ? ['Lengua Castellana'] : [];
+    }
     if (this.isPrivilegedUser(user)) {
       return validAll;
     }
@@ -493,6 +499,9 @@ class FinalExamsService {
    */
   canUploadForSubject(user, grade, subject) {
     if (!user) return false;
+    if (user.role === 'induccion') {
+      return grade === '1° Primaria' && (subject === 'Lengua Castellana' || !subject);
+    }
     if (this.isPrivilegedUser(user)) return true;
     const assignment = this.getTeacherAssignment(grade, subject);
     return this.isTeacherMatch(user, assignment);
@@ -729,19 +738,22 @@ class FinalExamsService {
     const cleanSubj = subject.replace(/[\s&]+/g, '_');
     const radicado = this.evaluations[period]?.[grade]?.[subject]?.id || `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
 
+    const isInduccion = user?.role === 'induccion' || user?.role === 'induccion_rectora';
     let storageKey = this.evaluations[period]?.[grade]?.[subject]?.storageKey || null;
     let downloadUrl = this.evaluations[period]?.[grade]?.[subject]?.downloadUrl || null;
 
-    // Subida binaria a Cloudflare R2 / Supabase Storage si se suministró archivo
+    // Subida binaria a Cloudflare R2 / Supabase Storage si se suministró archivo (omitido en modo inducción)
     if (file) {
-      try {
-        const uploadRes = await uploadDocumentFile(file, 'evaluaciones', radicado);
-        if (!uploadRes.error && uploadRes.storageKey) {
-          storageKey = uploadRes.storageKey;
-          downloadUrl = getDocumentPublicUrl(storageKey);
+      if (!isInduccion) {
+        try {
+          const uploadRes = await uploadDocumentFile(file, 'evaluaciones', radicado);
+          if (!uploadRes.error && uploadRes.storageKey) {
+            storageKey = uploadRes.storageKey;
+            downloadUrl = getDocumentPublicUrl(storageKey);
+          }
+        } catch (err) {
+          console.warn('[FinalExamsService] Advertencia subiendo archivo a R2/Storage:', err);
         }
-      } catch (err) {
-        console.warn('[FinalExamsService] Advertencia subiendo archivo a R2/Storage:', err);
       }
       if (!downloadUrl && typeof window !== 'undefined') {
         downloadUrl = URL.createObjectURL(file);
@@ -768,10 +780,17 @@ class FinalExamsService {
       teacher: assignment.teacherName,
       copiesNeeded: printInfo.suggestedCopies,
       copiesStatus: copiesStatus || 'aprobado',
-      notes: notes || `Sugerencia institucional automatizada: ${printInfo.formulaText}.`
+      notes: notes || `Sugerencia institucional automatizada: ${printInfo.formulaText}.`,
+      isSimulated: isInduccion
     };
 
     this.evaluations[period][grade][subject] = evalData;
+
+    if (isInduccion) {
+      this.notifyUpdate();
+      return evalData;
+    }
+
     this.saveEvaluations();
     this.notifyUpdate();
 
@@ -792,8 +811,9 @@ class FinalExamsService {
     }
 
     if (this.evaluations[period] && this.evaluations[period][grade] && this.evaluations[period][grade][subject]) {
+      const isInduccion = user?.role === 'induccion' || user?.role === 'induccion_rectora';
       const existing = this.evaluations[period][grade][subject];
-      if (existing.storageKey) {
+      if (existing.storageKey && !isInduccion) {
         deleteDocumentFile(existing.storageKey).catch(e => console.warn('Error eliminando archivo R2:', e));
       }
 
@@ -820,6 +840,12 @@ class FinalExamsService {
       };
 
       this.evaluations[period][grade][subject] = resetData;
+
+      if (isInduccion) {
+        this.notifyUpdate();
+        return true;
+      }
+
       this.saveEvaluations();
       this.notifyUpdate();
 

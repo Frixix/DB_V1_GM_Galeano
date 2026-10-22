@@ -101,8 +101,13 @@ function mapUpdatedFieldsToDb(fields) {
   return mapped;
 }
 
-export function useObservador() {
+export function useObservador(currentUser = null) {
+  const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+
   const [records, setRecords] = useState(() => {
+    if (isInduccion) {
+      return initialObservadorRecords;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -131,7 +136,7 @@ export function useObservador() {
 
   // 1. Sincronización inicial y Realtime con Supabase
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (isInduccion || !isSupabaseConfigured || !supabase) return;
 
     let isMounted = true;
 
@@ -231,20 +236,27 @@ export function useObservador() {
 
   // 3. Persistir en localStorage
   useEffect(() => {
+    if (isInduccion) return; // Modo inducción: no sobreescribir registros reales en localStorage
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     } catch (err) {
       console.warn('Error saving observador records to localStorage:', err);
     }
-  }, [records]);
+  }, [records, isInduccion]);
 
   // 4. Radicar nuevo registro u acta
   const addRecord = useCallback(async (newRecord) => {
     setRecords((prev) => {
       const updated = [newRecord, ...prev];
-      window.dispatchEvent(new CustomEvent('gmg_observador_sync', { detail: updated }));
+      if (!isInduccion) {
+        window.dispatchEvent(new CustomEvent('gmg_observador_sync', { detail: updated }));
+      }
       return updated;
     });
+
+    if (isInduccion) {
+      return { success: true, simulated: true };
+    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -256,15 +268,21 @@ export function useObservador() {
         console.warn('[useObservador] Advertencia al respaldar registro en Supabase:', err);
       }
     }
-  }, []);
+  }, [isInduccion]);
 
   // 5. Modificar o actualizar registro existente
   const updateRecord = useCallback(async (id, updatedFields) => {
     setRecords((prev) => {
       const updated = prev.map((rec) => (rec.id === id ? { ...rec, ...updatedFields } : rec));
-      window.dispatchEvent(new CustomEvent('gmg_observador_sync', { detail: updated }));
+      if (!isInduccion) {
+        window.dispatchEvent(new CustomEvent('gmg_observador_sync', { detail: updated }));
+      }
       return updated;
     });
+
+    if (isInduccion) {
+      return { success: true, simulated: true };
+    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -277,15 +295,21 @@ export function useObservador() {
         console.warn('[useObservador] Advertencia al actualizar en Supabase:', err);
       }
     }
-  }, []);
+  }, [isInduccion]);
 
   // 6. Eliminar registro
   const deleteRecord = useCallback(async (id) => {
     setRecords((prev) => {
       const updated = prev.filter((rec) => rec.id !== id);
-      window.dispatchEvent(new CustomEvent('gmg_observador_sync', { detail: updated }));
+      if (!isInduccion) {
+        window.dispatchEvent(new CustomEvent('gmg_observador_sync', { detail: updated }));
+      }
       return updated;
     });
+
+    if (isInduccion) {
+      return { success: true, simulated: true };
+    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -297,7 +321,7 @@ export function useObservador() {
         console.warn('[useObservador] Advertencia al eliminar en Supabase:', err);
       }
     }
-  }, []);
+  }, [isInduccion]);
 
   // 7. Restablecer valores iniciales
   const resetToDefaults = useCallback(() => {

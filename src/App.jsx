@@ -36,6 +36,7 @@ import { useUserPresence } from './hooks/useUserPresence';
 import { downloadDocumentBlob } from './services/storageService';
 import { syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword, hasBovedaCustomPassword } from './services/authService';
 import { syncAvatarsFromCloud, subscribeToAvatarChanges } from './services/avatarService';
+import gradesService from './services/gradesService';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -189,10 +190,13 @@ export default function App() {
     };
   }, [refreshPresence]);
 
-  // Restricción de seguridad: durante la fase de desarrollo y pruebas en la nube,
-  // Verificación estricta de permisos para módulos directivos
   useEffect(() => {
-    const canAccessGrades = currentUser && (currentUser.role === 'admin' || currentUser.role === 'coordinador');
+    gradesService.setActiveUser(currentUser);
+  }, [currentUser]);
+
+  // Verificación estricta de permisos para módulos institucionales
+  useEffect(() => {
+    const canAccessGrades = currentUser && ['admin', 'coordinador', 'rectora', 'induccion_rectora', 'docente', 'induccion'].includes(currentUser.role);
     if (!canAccessGrades && activeModule === 'grades') {
       setActiveModule(null);
     }
@@ -211,6 +215,7 @@ export default function App() {
 
   const isPrivileged = currentUser && ["admin", "rectora", "induccion_rectora"].includes(currentUser.role);
   const isCoordinador = currentUser && currentUser.role === 'coordinador';
+  const isInduccionUser = currentUser && (currentUser.role === 'induccion' || currentUser.role === 'induccion_rectora');
   const canAuditDocs = isPrivileged || isCoordinador;
 
   // Identificar si un documento o circular está pendiente de revisión por el usuario actual
@@ -369,7 +374,7 @@ export default function App() {
       : `¿Está seguro de eliminar el registro ${id}?`;
 
     if (window.confirm(confirmMessage)) {
-      deleteDocument(id);
+      deleteDocument(id, isInduccionUser);
       setSelectedDocForView(prev => {
         if (prev?.id === id) {
           setIsViewModalOpen(false);
@@ -378,12 +383,12 @@ export default function App() {
         return prev;
       });
     }
-  }, [documents, deleteDocument]);
+  }, [documents, deleteDocument, isInduccionUser]);
 
   // Manejador para registrar nuevo documento
   const handleUploadSuccess = useCallback(async (newDoc) => {
-    return await addDocument(newDoc);
-  }, [addDocument]);
+    return await addDocument(isInduccionUser ? { ...newDoc, isSimulated: true } : newDoc);
+  }, [addDocument, isInduccionUser]);
 
   if (!currentUser) {
     return (
@@ -396,7 +401,6 @@ export default function App() {
 
   // Verificación obligatoria de primer ingreso institucional (no se puede saltar, salvo cuentas de inducción guiada)
   const currentAccountKey = currentUser.key || currentUser.role;
-  const isInduccionUser = currentUser.role === 'induccion' || currentUser.role === 'induccion_rectora';
   if (!isInduccionUser && !hasCustomPassword(currentAccountKey)) {
     const handleCancelFirstLogin = async () => {
       setIsLogoutModalOpen(false);

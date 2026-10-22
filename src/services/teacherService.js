@@ -200,6 +200,11 @@ class TeacherService {
 
     this.notifyUpdates();
 
+    const isInduccion = adminUser?.role === 'induccion' || adminUser?.role === 'induccion_rectora';
+    if (isInduccion) {
+      return { success: true, simulated: true, teacher: USERS[key] };
+    }
+
     // Sincronización en Supabase
     if (isSupabaseConfigured && supabase) {
       try {
@@ -308,6 +313,11 @@ class TeacherService {
 
     this.notifyUpdates();
 
+    const isInduccion = adminUser?.role === 'induccion' || adminUser?.role === 'induccion_rectora';
+    if (isInduccion) {
+      return { success: true, simulated: true, grade, director: newTeacher };
+    }
+
     // Sincronización en Supabase
     if (isSupabaseConfigured && supabase) {
       try {
@@ -411,6 +421,11 @@ class TeacherService {
     );
 
     this.notifyUpdates();
+
+    const isInduccion = adminUser?.role === 'induccion' || adminUser?.role === 'induccion_rectora';
+    if (isInduccion) {
+      return { success: true, simulated: true, grade, director: newTeacher };
+    }
 
     // Sincronización en Supabase
     if (isSupabaseConfigured && supabase) {

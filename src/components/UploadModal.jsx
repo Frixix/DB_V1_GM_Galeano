@@ -157,11 +157,14 @@ export default function UploadModal({
       const finalSize = compressedInfo?.compressedBytes || rawBytes;
 
       // Subir archivo al bucket de Supabase Storage
-      const { storageKey, error: uploadErr } = await uploadDocumentFile(
-        fileToUpload,
-        folder,
-        radicado
-      );
+      const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+      const { storageKey, error: uploadErr } = isInduccion
+        ? { storageKey: null, error: null }
+        : await uploadDocumentFile(
+            fileToUpload,
+            folder,
+            radicado
+          );
 
       if (uploadErr) {
         console.warn('Continuando con radicación local/metadatos tras advertencia en Storage:', uploadErr);
@@ -187,6 +190,7 @@ export default function UploadModal({
         ...(folder === 'boveda' ? { bovedaYear, bovedaSubfolder } : {}),
         storageKey: storageKey || null,
         fileBlob: fileToUpload,
+        isSimulated: isInduccion,
       };
 
       await onUploadSuccess(newDoc);

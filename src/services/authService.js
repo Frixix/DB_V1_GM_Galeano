@@ -696,6 +696,11 @@ export async function changeBovedaPassword({ keyRole = 'rectora', currentAuthPas
     throw new Error('La nueva clave de la Bóveda debe ser diferente a la clave actual de Administración.');
   }
 
+  // En modo inducción, simular éxito sin sobreescribir las claves reales de la institución
+  if (currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora') {
+    return { success: true, simulated: true };
+  }
+
   // Ofuscar con algoritmo interno de la app (nunca guardada en texto plano)
   const obfuscatedCipher = obfuscatePassword(cleanNew);
 

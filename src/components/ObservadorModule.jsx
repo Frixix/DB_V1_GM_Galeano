@@ -29,7 +29,7 @@ export default function ObservadorModule({
   readCircularIds = [],
   onConfirmRead = null
 }) {
-  const { records, addRecord, updateRecord, deleteRecord } = useObservador();
+  const { records, addRecord, updateRecord, deleteRecord } = useObservador(currentUser);
 
   const [currentRoute, setCurrentRoute] = useState('all');
   const [currentTeacher, setCurrentTeacher] = useState('all');

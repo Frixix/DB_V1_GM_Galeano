@@ -136,7 +136,7 @@ export function useDocuments() {
     // Actualización optimista local inmediata
     setDocuments(prev => [newDoc, ...prev]);
 
-    if (!isSupabaseConfigured || !supabase) return { success: true };
+    if (newDoc?.isSimulated || !isSupabaseConfigured || !supabase) return { success: true, simulated: Boolean(newDoc?.isSimulated) };
 
     try {
       const dbPayload = mapDocToDb(newDoc);
@@ -163,7 +163,7 @@ export function useDocuments() {
   }, []);
 
   // Eliminar documento
-  const deleteDocument = useCallback(async (id) => {
+  const deleteDocument = useCallback(async (id, isSimulatedOnly = false) => {
     let targetDoc = null;
 
     // Actualización optimista local inmediata y captura de storageKey sin depender de documents
@@ -172,7 +172,7 @@ export function useDocuments() {
       return prev.filter(doc => doc.id !== id);
     });
 
-    if (!isSupabaseConfigured || !supabase) return { success: true };
+    if (isSimulatedOnly || targetDoc?.isSimulated || !isSupabaseConfigured || !supabase) return { success: true, simulated: Boolean(isSimulatedOnly || targetDoc?.isSimulated) };
 
     try {
       if (targetDoc?.storageKey) {
