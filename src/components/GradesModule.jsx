@@ -698,7 +698,7 @@ export default function GradesModule({
             Muestra todas las materias lado a lado, promedios, puestos y reprobadas
             ===================================================================== */}
         {activeSheetType === 'consolidated' ? (
-          <section className="grades-sheet-card grades-consolidated-sheet-card">
+          <section className="grades-sheet-card grades-consolidated-sheet-card border-t-4 border-[var(--mod-accent)]">
             <div className="consolidated-header-bar">
               <div className="consolidated-header-title">
                 <i className="ph-bold ph-table"></i>
@@ -874,7 +874,7 @@ export default function GradesModule({
              VISTA 2: PLANILLA DETALLADA DE LA ASIGNATURA SELECCIONADA
              Modelo Flexible 80% Aula Continua / 20% Evaluación Final
              ===================================================================== */
-          <section className="grades-sheet-card">
+          <section className="grades-sheet-card border-t-4 border-[var(--mod-accent)]">
             <div className="subject-sheet-header-bar">
               <div className="subject-sheet-info">
                 <div className="subject-icon-box">
@@ -1026,7 +1026,7 @@ export default function GradesModule({
                     ))}
 
                     {/* Promedio Ponderado Aula (80%) */}
-                    <th className="th-pastel-prom-aula" style={{ textAlign: 'center', minWidth: '95px' }}>
+                    <th className="th-pastel-prom-aula bg-slate-50 text-slate-800 font-bold" style={{ textAlign: 'center', minWidth: '95px' }}>
                       <div className="th-component-header">
                         <span>Prom. Aula</span>
                         <span className="th-badge-weight">80%</span>
@@ -1225,7 +1225,7 @@ export default function GradesModule({
                           })}
 
                           {/* Promedio Aula (80%) */}
-                          <td className="td-prom-aula" style={{ textAlign: 'center' }}>
+                          <td className="td-prom-aula bg-slate-50 text-slate-800 font-bold" style={{ textAlign: 'center' }}>
                             <span className="prom-aula-pill">
                               {gradeData.promedioAula !== null && gradeData.promedioAula !== undefined && !isNaN(Number(gradeData.promedioAula))
                                 ? Number(gradeData.promedioAula).toFixed(1)
@@ -1422,8 +1422,8 @@ export default function GradesModule({
           onClick={handleSaveAction}
           title="Guardar notas y actividades docentes en la nube (Supabase)"
           style={{
-            background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
-            boxShadow: '0 10px 25px -5px rgba(234, 88, 12, 0.45), 0 8px 10px -6px rgba(234, 88, 12, 0.25)',
+            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+            boxShadow: '0 10px 25px -5px rgba(217, 119, 6, 0.45), 0 8px 10px -6px rgba(217, 119, 6, 0.25)',
             cursor: 'pointer'
           }}
         >

@@ -91,7 +91,7 @@ export default function GradesSidebar({
       defaultExpanded={true}
       sectionId="gradesTeacherSection"
       ownCardTitle="Mi Grado & Rol"
-      accentColor="#ea580c"
+      accentColor="#d97706"
       id="gradesSidebar"
     >
       {/* Sección 2: Selector de Periodo Académico Activo */}
@@ -180,7 +180,7 @@ export default function GradesSidebar({
                     <span style={{ fontSize: '0.83rem', fontWeight: isSelected ? 700 : 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {subj}
                     </span>
-                    <span style={{ fontSize: '0.68rem', color: isSelected ? 'inherit' : (isMySubject ? '#ea580c' : '#64748b'), opacity: isSelected ? 0.9 : 1 }}>
+                    <span style={{ fontSize: '0.68rem', color: isSelected ? 'inherit' : (isMySubject ? '#b45309' : '#64748b'), opacity: isSelected ? 0.9 : 1 }}>
                       {isMySubject ? '★ A tu cargo' : teacher.teacherName}
                     </span>
                   </div>
