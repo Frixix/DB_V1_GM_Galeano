@@ -5599,3 +5599,34 @@ select {
   font-weight: 700 !important;
 }
 
+/* =====================================================================
+   TOUR SPOTLIGHT (PANEL RESALTADO & FONDO OSCURO ILUMINADO)
+   ===================================================================== */
+.tour-box.has-target {
+  bottom: 2rem !important;
+  right: 2.5rem !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+@media (max-width: 900px) {
+  .tour-box.has-target {
+    bottom: 1.25rem !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: 94% !important;
+  }
+}
+
+.tour-highlighted-target {
+  position: relative !important;
+  z-index: 1005 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 4px #10b981, 0 0 45px rgba(16, 185, 129, 0.45) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+  animation: pulseTarget 2s infinite ease-in-out !important;
+}
+

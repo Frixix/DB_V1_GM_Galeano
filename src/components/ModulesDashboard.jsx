@@ -81,16 +81,6 @@ export default function ModulesDashboard({
       return;
     }
 
-    if (moduleId === 'observador' && isDocente) {
-      setDevModalInfo({
-        moduleId: 'observador',
-        moduleName: 'Observador & Actas',
-        icon: 'ph-bold ph-user-list',
-        canEnter: true
-      });
-      return;
-    }
-
     setSelectedNavModule(moduleId);
     if (onSelectModule) {
       onSelectModule(moduleId);
@@ -121,7 +111,7 @@ export default function ModulesDashboard({
         <aside className="portal-sidebar">
           <div className="portal-sidebar-section">
             <p className="portal-sidebar-label">MÓDULOS DEL SISTEMA</p>
-            <nav className="portal-sidebar-nav">
+            <nav className="portal-sidebar-nav" id="tour-sidebar-nav">
               {/* Módulo 1 (Destacado SIEE): Control Académico para Coordinador o Notas para Admin/Docente */}
               {isCoordinador ? (
                 <button 
@@ -195,14 +185,11 @@ export default function ModulesDashboard({
                 type="button"
                 className={`portal-nav-item portal-nav-item-observador ${selectedNavModule === 'observador' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('observador')}
-                title={isDocente ? "Módulo en desarrollo • Fase N° 1 (Clic para echar un vistazo)" : "Acceder a Observador del Estudiante y Actas de Comités"}
+                title="Acceder a Observador del Estudiante y Actas de Comités"
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-user-list"></i>
                 <span className="portal-nav-text">Observador & Actas</span>
-                {isDocente && (
-                  <span className="portal-sidebar-dev-tag">En desarrollo</span>
-                )}
               </button>
 
               {/* Módulo: Gestión Docente & Malla Curricular */}
@@ -249,7 +236,7 @@ export default function ModulesDashboard({
 
           <div className="portal-sidebar-footer">
             <div className="portal-badge-status">
-              <span className="portal-status-dot"></span> Fase N° 1 en Pruebas de Nube
+              <span className="portal-status-dot"></span> Plataforma Institucional Activa
             </div>
           </div>
         </aside>
@@ -266,6 +253,7 @@ export default function ModulesDashboard({
             {/* MÓDULO 1: CONTROL ACADÉMICO Y EVALUACIONES (COORDINACIÓN) O NOTAS & CALIFICACIONES (ADMIN / DOCENTES) */}
             {isCoordinador ? (
               <article 
+                id="tour-card-grades"
                 className="portal-module-card portal-module-card-indigo"
                 onClick={() => handleModuleClick('grades')}
                 role="button"
@@ -298,11 +286,12 @@ export default function ModulesDashboard({
               </article>
             ) : (
               <article 
+                id="tour-card-grades"
                 className="portal-module-card portal-module-card-amber"
                 onClick={() => handleModuleClick('grades')}
                 role="button"
                 tabIndex={0}
-                title={isAdmin ? "Acceder a Notas & Calificaciones (SIEE)" : "Módulo en desarrollo · Fase N° 1"}
+                title="Acceder a Notas & Calificaciones (SIEE)"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -330,6 +319,7 @@ export default function ModulesDashboard({
 
             {/* MÓDULO 2: RECURSOS PEDAGÓGICOS & CIRCULARES */}
             <article 
+              id="tour-card-docs"
               className="portal-module-card portal-module-card-active"
               onClick={() => handleModuleClick('docs')}
               role="button"
@@ -358,11 +348,10 @@ export default function ModulesDashboard({
               </div>
             </article>
 
-
-
             {/* MÓDULO ACTIVO: BÓVEDA DIRECTIVA */}
             {isPrivileged ? (
               <article 
+                id="tour-card-boveda"
                 className="portal-module-card portal-module-card-slate"
                 onClick={() => handleModuleClick('boveda')}
                 role="button"
@@ -394,6 +383,7 @@ export default function ModulesDashboard({
               </article>
             ) : isCoordinador ? (
               <article 
+                id="tour-card-boveda"
                 className="portal-module-card portal-module-card-disabled"
                 onClick={() => handleModuleClick('boveda')}
                 role="button"
@@ -425,7 +415,10 @@ export default function ModulesDashboard({
                 </div>
               </article>
             ) : (
-              <article className="portal-module-card portal-module-card-disabled">
+              <article 
+                id="tour-card-boveda" 
+                className="portal-module-card portal-module-card-disabled"
+              >
                 <div className="portal-card-header-bar">
                   <div className="portal-card-icon-container portal-gray-icon">
                     <i className="ph-bold ph-vault" style={{ fontSize: '1.75rem' }}></i>
@@ -446,6 +439,7 @@ export default function ModulesDashboard({
 
             {/* MÓDULO: GESTIÓN DE MATRÍCULA E HISTÓRICO BLINDADO (FASE 5) */}
             <article 
+              id="tour-card-matriculas"
               className={`portal-module-card ${canManageMatriculas ? 'portal-module-card-emerald' : 'portal-module-card-disabled'}`}
               onClick={() => handleModuleClick('matriculas')}
               role="button"
@@ -491,11 +485,12 @@ export default function ModulesDashboard({
 
             {/* MÓDULO: OBSERVADOR & ACTAS */}
             <article 
+              id="tour-card-observador"
               className="portal-module-card portal-module-card-teal"
               onClick={() => handleModuleClick('observador')}
               role="button"
               tabIndex={0}
-              title={isDocente ? "Módulo en desarrollo • Fase N° 1 (Clic para ver estado o echar un vistazo)" : "Acceder a Observador del Estudiante y Actas de Comités"}
+              title="Acceder a Observador del Estudiante y Actas de Comités"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -507,11 +502,7 @@ export default function ModulesDashboard({
                 <div className="portal-card-icon-container portal-teal-icon">
                   <i className="ph-bold ph-user-list" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
                 </div>
-                {isDocente ? (
-                  <span className="portal-badge-teal">En desarrollo • Fase N° 1</span>
-                ) : (
-                  <span className="portal-badge-teal">Activo</span>
-                )}
+                <span className="portal-badge-teal">Activo</span>
               </div>
 
               <div className="portal-card-body">
@@ -522,26 +513,13 @@ export default function ModulesDashboard({
               </div>
 
               <div className="portal-card-footer">
-                {isDocente ? (
-                  <span 
-                    className="portal-link-label-teal"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onSelectModule) onSelectModule('observador');
-                    }}
-                    title="Acceso directo: Echar un vistazo y entrar al módulo"
-                  >
-                    <i className="ph-bold ph-eye" style={{ marginRight: '5px' }}></i>
-                    Echar un vistazo &rarr;
-                  </span>
-                ) : (
-                  <span className="portal-link-label-teal">Acceder al módulo &rarr;</span>
-                )}
+                <span className="portal-link-label-teal">Acceder al módulo &rarr;</span>
               </div>
             </article>
 
             {/* MÓDULO: GESTIÓN DOCENTE & PLANTA CURRICULAR */}
             <article 
+              id="tour-card-docentes"
               className={`portal-module-card ${canManageDocentes ? 'portal-module-card-cyan' : 'portal-module-card-disabled'}`}
               onClick={() => handleModuleClick('docentes')}
               role="button"
@@ -587,6 +565,7 @@ export default function ModulesDashboard({
 
             {/* MÓDULO: EVALUACIONES FINALES */}
             <article 
+              id="tour-card-evaluaciones"
               className="portal-module-card portal-module-card-violet"
               onClick={() => handleModuleClick('evaluaciones')}
               role="button"

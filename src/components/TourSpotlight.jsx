@@ -118,12 +118,16 @@ export default function TourSpotlight({ currentUser }) {
         <>
           <div className="tour-backdrop" onClick={handleClose}></div>
           <div 
-            className="tour-box" 
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
+            className={`tour-box ${currentStep?.targetId ? 'has-target' : ''}`}
+            style={
+              currentStep?.targetId
+                ? undefined
+                : {
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                  }
+            }
           >
             <span className="tour-badge-step">
               Paso {currentStepIndex + 1} de {steps.length}

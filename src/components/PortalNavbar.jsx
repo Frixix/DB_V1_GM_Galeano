@@ -82,6 +82,7 @@ export default function PortalNavbar({
         {isPrivileged && onOpenConnectionsModal && (
           <button 
             type="button"
+            id="tour-navbar-presence"
             className="btn-presence-nav" 
             onClick={onOpenConnectionsModal}
             title="Supervisión en vivo: Ver quién está conectado y horarios de ingreso"
@@ -97,6 +98,7 @@ export default function PortalNavbar({
 
         {/* 2. Campanita de Notificaciones Institucionales (Circulares & Comunicados) */}
         <div 
+          id="tour-navbar-notifications"
           className={`nav-notification-bell ${isNotificationsOpen ? 'active' : ''}`}
           title={circularesCount > 0 ? `${circularesCount} comunicado(s) pendiente(s) por revisar` : "Centro de notificaciones institucionales"}
           onClick={onOpenCirculares}
@@ -125,6 +127,7 @@ export default function PortalNavbar({
 
         {/* 4. Chip Interactivo de Usuario y Rol (Admin, Rectora, Docentes) */}
         <div 
+          id="tour-navbar-user-chip"
           className="user-chip user-chip-clickable portal-user-chip" 
           onClick={() => onOpenProfile && onOpenProfile()}
           role="button"
