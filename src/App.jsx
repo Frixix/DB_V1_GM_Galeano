@@ -26,6 +26,7 @@ import ConnectionsModal from './components/ConnectionsModal';
 import LogoutConfirmModal from './components/LogoutConfirmModal';
 import NotificationCenter from './components/NotificationCenter';
 import TrialWatermark from './components/TrialWatermark';
+import ModuleThemeWrapper from './components/common/ModuleThemeWrapper';
 import { USERS } from './data/users';
 import { useDocuments } from './hooks/useDocuments';
 import { useCircularReads } from './hooks/useCircularReads';
@@ -536,7 +537,7 @@ export default function App() {
   // Módulo de Gestión Docente & Planta Curricular (Coordinación, Rectoría y Administración)
   if (activeModule === 'docentes' || activeModule === 'gestion_docente') {
     return (
-      <>
+      <ModuleThemeWrapper themeKey="gestionDocente">
         <Suspense fallback={<LoadingSpinner message="Cargando Gestión Docente & Planta Curricular..." />}>
           <GestionDocenteModule 
             currentUser={currentUser}
@@ -610,14 +611,14 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
-      </>
+      </ModuleThemeWrapper>
     );
   }
 
   // Módulo de Gestión de Matrícula e Histórico Blindado (Fase 5: Solo Admin, Rectora y Coordinación)
   if (activeModule === 'matriculas' || activeModule === 'matricula') {
     return (
-      <>
+      <ModuleThemeWrapper themeKey="matriculas">
         <Suspense fallback={<LoadingSpinner message="Cargando Panel de Matriculados (Fase 5)..." />}>
           <MatriculasModule 
             currentUser={currentUser}
@@ -691,14 +692,14 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
-      </>
+      </ModuleThemeWrapper>
     );
   }
 
   // Módulo 2: Notas y Calificaciones (Paleta pastel y cero salto visual)
   if (activeModule === 'grades') {
     return (
-      <>
+      <ModuleThemeWrapper themeKey="notas">
         <Suspense fallback={<LoadingSpinner message="Cargando Calificaciones & SIEE..." />}>
           <GradesModule 
             currentUser={currentUser}
@@ -792,7 +793,7 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
-      </>
+      </ModuleThemeWrapper>
     );
   }
 
@@ -801,7 +802,7 @@ export default function App() {
   // Módulo 5: Evaluaciones Finales (Pruebas Acumulativas & Cierres SIEE)
   if (activeModule === 'evaluaciones') {
     return (
-      <>
+      <ModuleThemeWrapper themeKey="evaluaciones">
         <Suspense fallback={<LoadingSpinner message="Cargando Evaluaciones & Exámenes Finales..." />}>
           <FinalExamsModule 
             currentUser={currentUser}
@@ -895,7 +896,7 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
-      </>
+      </ModuleThemeWrapper>
     );
   }
 
@@ -956,7 +957,7 @@ export default function App() {
   // Módulo 3: Bóveda Directiva & Archivo Confidencial (Gris Pastel con Texto Negro Formal)
   if (activeModule === 'boveda') {
     return (
-      <>
+      <ModuleThemeWrapper themeKey="boveda">
         <Suspense fallback={<LoadingSpinner message="Cargando Bóveda Directiva & Archivo Confidencial..." />}>
           <BovedaModule 
             currentUser={currentUser}
@@ -1102,14 +1103,14 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
-      </>
+      </ModuleThemeWrapper>
     );
   }
 
   // Módulo 4: Observador del Estudiante & Actas de Comités Internos (Estilo Teal Pastel)
   if (activeModule === 'observador') {
     return (
-      <>
+      <ModuleThemeWrapper themeKey="observador">
         <Suspense fallback={<LoadingSpinner message="Cargando Observador & Comités..." />}>
           <ObservadorModule 
             currentUser={currentUser}
@@ -1207,13 +1208,14 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
-      </>
+      </ModuleThemeWrapper>
     );
   }
 
   return (
-    <div id="appContainer">
-      <Navbar 
+    <ModuleThemeWrapper themeKey="recursos">
+      <div id="appContainer">
+        <Navbar 
         currentUser={currentUser} 
         onLogout={handleLogout} 
         onToggleSidebar={handleToggleSidebar}
@@ -1461,5 +1463,6 @@ export default function App() {
         currentUser={currentUser}
       />
     </div>
-  );
+  </ModuleThemeWrapper>
+);
 }
