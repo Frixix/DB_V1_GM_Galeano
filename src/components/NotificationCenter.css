@@ -65,6 +65,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .notif-center-title-group {
@@ -174,23 +175,31 @@
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   padding: 0 0.5rem;
-  gap: 2px;
+  gap: 4px;
   overflow-x: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .notif-center-tabs::-webkit-scrollbar {
-  display: none;
+  height: 3px;
+}
+
+.notif-center-tabs::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .notif-tab {
-  flex: 1 1 0%;
-  min-width: fit-content;
+  flex: 0 0 auto;
+  min-width: max-content;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 0.65rem 0.35rem;
+  gap: 6px;
+  padding: 0.65rem 0.55rem;
   font-size: 0.78rem;
   font-weight: 600;
   color: #64748b;
@@ -200,6 +209,7 @@
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  user-select: none;
 }
 
 .notif-tab:hover {
@@ -218,23 +228,43 @@
   border-radius: 10px;
   background: #f1f5f9;
   color: #64748b;
+  pointer-events: none;
 }
 
 .notif-tab-badge.unread {
   background: #fee2e2;
   color: #dc2626;
+  pointer-events: none;
 }
 
 /* Lista de Notificaciones */
 .notif-center-list {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 480px;
+  overscroll-behavior: contain;
   padding: 0.6rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 8px;
   background: #f8fafc;
+}
+
+.notif-center-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notif-center-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.notif-center-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.notif-center-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Item de Notificación */
@@ -246,14 +276,14 @@
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   position: relative;
+  flex-shrink: 0;
 }
 
 .notif-item:hover {
   border-color: #cbd5e1;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-  transform: translateY(-1px);
 }
 
 .notif-item.is-unread {
@@ -443,6 +473,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .notif-center-footer i {

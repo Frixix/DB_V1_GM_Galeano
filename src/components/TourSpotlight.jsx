@@ -2,10 +2,21 @@ import { useState, useEffect } from 'react';
 import { TOUR_STEPS_DOCENTE, TOUR_STEPS_RECTORA } from '../data/tourSteps';
 
 export default function TourSpotlight({ currentUser }) {
-  const isRectoraInduccion = currentUser?.role === 'induccion_rectora' || currentUser?.role === 'rectora';
+  const isInduccionUser = currentUser && (
+    currentUser.role === 'induccion' || 
+    currentUser.role === 'induccion_rectora' || 
+    currentUser.key === 'induccion' || 
+    currentUser.key === 'induccion_rectora'
+  );
+
+  if (!isInduccionUser) {
+    return null;
+  }
+
+  const isRectoraInduccion = currentUser?.role === 'induccion_rectora' || currentUser?.key === 'induccion_rectora';
 
   const defaultSteps = isRectoraInduccion ? TOUR_STEPS_RECTORA : TOUR_STEPS_DOCENTE;
-  const isAutoStart = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+  const isAutoStart = isInduccionUser;
 
   const [isOpen, setIsOpen] = useState(isAutoStart);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);

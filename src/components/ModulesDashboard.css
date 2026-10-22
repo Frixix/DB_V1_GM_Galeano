@@ -738,8 +738,9 @@
   margin-left: auto;
 }
 
-/* 3. Módulo Activo: Novedades & Reemplazos */
+/* 3. Módulo Activo: Novedades & Reemplazos / Gestión Docente */
 .portal-nav-item-reemplazos:hover:not(.active),
+.portal-nav-item-docentes:hover:not(.active),
 .portal-nav-item-cyan:hover:not(.active) {
   background-color: #f1f5f9;
   border-color: transparent;
@@ -748,12 +749,15 @@
 }
 
 .portal-nav-item-reemplazos:hover:not(.active) i,
+.portal-nav-item-docentes:hover:not(.active) i,
 .portal-nav-item-cyan:hover:not(.active) i {
   color: #0f766e;
 }
 
 .portal-nav-item-reemplazos:active,
 .portal-nav-item-reemplazos.active,
+.portal-nav-item-docentes:active,
+.portal-nav-item-docentes.active,
 .portal-nav-item-cyan:active,
 .portal-nav-item-cyan.active {
   background-color: #f0fdfa;
@@ -764,9 +768,87 @@
 
 .portal-nav-item-reemplazos:active i,
 .portal-nav-item-reemplazos.active i,
+.portal-nav-item-docentes:active i,
+.portal-nav-item-docentes.active i,
 .portal-nav-item-cyan:active i,
 .portal-nav-item-cyan.active i {
   color: #0f766e;
+}
+
+/* Módulo Activo: Control Académico / Coordinación (Índigo) */
+.portal-nav-item-coordinacion:hover:not(.active),
+.portal-nav-item-indigo:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.portal-nav-item-coordinacion:hover:not(.active) i,
+.portal-nav-item-indigo:hover:not(.active) i {
+  color: #4338ca;
+}
+
+.portal-nav-item-coordinacion:active,
+.portal-nav-item-coordinacion.active,
+.portal-nav-item-indigo:active,
+.portal-nav-item-indigo.active {
+  background-color: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+  font-weight: 700;
+}
+
+.portal-nav-item-coordinacion:active i,
+.portal-nav-item-coordinacion.active i,
+.portal-nav-item-indigo:active i,
+.portal-nav-item-indigo.active i {
+  color: #4338ca;
+}
+
+/* Módulo Activo: Evaluaciones Finales (Violeta) */
+.portal-nav-item-evaluaciones:hover:not(.active),
+.portal-nav-item-violet:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.portal-nav-item-evaluaciones:hover:not(.active) i,
+.portal-nav-item-violet:hover:not(.active) i {
+  color: #6d28d9;
+}
+
+.portal-nav-item-evaluaciones:active,
+.portal-nav-item-evaluaciones.active,
+.portal-nav-item-violet:active,
+.portal-nav-item-violet.active {
+  background-color: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6d28d9;
+  font-weight: 700;
+}
+
+.portal-nav-item-evaluaciones:active i,
+.portal-nav-item-evaluaciones.active i,
+.portal-nav-item-violet:active i,
+.portal-nav-item-violet.active i {
+  color: #6d28d9;
+}
+
+/* Módulo Activo: Matrículas & Censo (Esmeralda) */
+.portal-nav-item-matriculas:hover:not(.active),
+.portal-nav-item-emerald:hover:not(.active) {
+  background-color: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.portal-nav-item-matriculas:hover:not(.active) i,
+.portal-nav-item-emerald:hover:not(.active) i {
+  color: #047857;
 }
 
 /* ==========================================================================

@@ -25,6 +25,12 @@ export default function PortalNavbar({
   const userRole = currentUser?.label || currentUser?.role || 'Personal Institucional';
   const userInitial = currentUser?.initial || (userName ? userName.charAt(0).toUpperCase() : 'U');
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
+  const isInduccionProfile = currentUser && (
+    currentUser.role === 'induccion' || 
+    currentUser.role === 'induccion_rectora' || 
+    currentUser.key === 'induccion' || 
+    currentUser.key === 'induccion_rectora'
+  );
 
   return (
     <header className="portal-navbar">
@@ -112,8 +118,8 @@ export default function PortalNavbar({
           {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}
         </div>
 
-        {/* 3. Guía de Inducción Paso a Paso */}
-        {onOpenTour && (
+        {/* 3. Guía de Inducción Paso a Paso (Exclusivo para perfiles de Inducción) */}
+        {onOpenTour && isInduccionProfile && (
           <button 
             type="button" 
             className="btn-nav-guide" 
