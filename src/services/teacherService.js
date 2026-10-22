@@ -715,7 +715,8 @@ class TeacherService {
       { key: 'claudia', label: USERS.claudia?.name || 'Claudia (Rectora)' },
       { key: 'coordinacion', label: 'Coordinación Académica' },
       ...this.getTeachers().map(t => {
-        const gradeBadge = t.directedGrade || (t.label?.match(/(Pre-Jardín|Transición|[1-5]°(?:\s*Primaria)?)/i)?.[0]) || 'Docente';
+        const rawGrade = t.directedGrade || (t.label?.match(/(Pre-Jardín|Transición|[1-5]°(?:\s*Primaria)?)/i)?.[0]) || 'Docente';
+        const gradeBadge = rawGrade.replace(/\s*Primaria/gi, '').trim();
         const displayLabel = t.name.toLowerCase().includes(gradeBadge.toLowerCase())
           ? t.name
           : `${t.name} (${gradeBadge})`;
