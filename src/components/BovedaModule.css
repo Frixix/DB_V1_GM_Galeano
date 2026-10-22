@@ -96,7 +96,8 @@
   flex: 1;
   padding: 2.25rem 2.5rem;
   width: 100%;
-  max-width: 1440px;
+  max-width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
 }
 
