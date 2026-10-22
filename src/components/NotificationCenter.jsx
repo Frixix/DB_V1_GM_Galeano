@@ -70,6 +70,9 @@ export default function NotificationCenter({
           date: doc.uploadedAt || 'Reciente',
           isRead,
           isCircular,
+          isOverdue: false,
+          isToday: false,
+          isResolved: true,
           // METADATOS DE RUTA (DEEP-LINKING)
           route: {
             module: 'docs',
@@ -154,6 +157,9 @@ export default function NotificationCenter({
         isRead,
         isCircular: false,
         isActa,
+        isOverdue,
+        isToday,
+        isResolved,
         // METADATOS DE RUTA (DEEP-LINKING)
         route: {
           module: 'observador',
@@ -167,18 +173,27 @@ export default function NotificationCenter({
       });
     });
 
-    // Ordenar: primero no leídas y de prioridad crítica, luego fecha
+    // Ordenar: Plazos vencidos y casos críticos de hoy primero, luego alertas no leídas
     return result.sort((a, b) => {
+      const aCritical = a.isOverdue || a.isToday || a.urgency === 'critical';
+      const bCritical = b.isOverdue || b.isToday || b.urgency === 'critical';
+      if (aCritical && !bCritical) return -1;
+      if (bCritical && !aCritical) return 1;
+
       if (a.isRead !== b.isRead) {
         return a.isRead ? 1 : -1;
       }
-      if (a.urgency === 'critical' && b.urgency !== 'critical') return -1;
-      if (b.urgency === 'critical' && a.urgency !== 'critical') return 1;
       return 0;
     });
   }, [documents, observadorRecords, currentUser, readCircularIds]);
 
   // Listas filtradas por categoría
+  // Coherencia institucional: Una alerta con Plazo Vencido o Vence Hoy SIEMPRE es pendiente
+  // hasta que el caso sea resuelto o atendido, independientemente de si ya se leyó la notificación.
+  const pendingList = useMemo(() => {
+    return notifications.filter((n) => !n.isRead || n.isOverdue || n.isToday);
+  }, [notifications]);
+
   const unreadList = useMemo(() => notifications.filter((n) => !n.isRead), [notifications]);
   const circularesList = useMemo(() => notifications.filter((n) => n.category === 'circulares'), [notifications]);
   const actasList = useMemo(() => notifications.filter((n) => n.category === 'actas'), [notifications]);
@@ -188,7 +203,7 @@ export default function NotificationCenter({
   const displayedNotifications = useMemo(() => {
     switch (activeTab) {
       case 'pendientes':
-        return unreadList;
+        return pendingList;
       case 'circulares':
         return circularesList;
       case 'actas':
@@ -199,7 +214,7 @@ export default function NotificationCenter({
       default:
         return notifications;
     }
-  }, [activeTab, notifications, unreadList, circularesList, actasList, observadorList]);
+  }, [activeTab, notifications, pendingList, circularesList, actasList, observadorList]);
 
   if (!isOpen) return null;
 
@@ -252,13 +267,13 @@ export default function NotificationCenter({
           <div className="notif-center-title-group">
             <div className="notif-center-icon-wrap">
               <i className="ph-bold ph-bell-ringing"></i>
-              {unreadList.length > 0 && <span className="notif-pulse-dot"></span>}
+              {pendingList.length > 0 && <span className="notif-pulse-dot"></span>}
             </div>
             <div>
               <h3 className="notif-center-title">Centro de Notificaciones</h3>
               <p className="notif-center-subtitle">
-                {unreadList.length > 0
-                  ? `${unreadList.length} alerta(s) institucional(es) por revisar`
+                {pendingList.length > 0
+                  ? `${pendingList.length} alerta(s) institucional(es) pendiente(s)`
                   : 'Todas las alertas al día'}
               </p>
             </div>
@@ -296,8 +311,8 @@ export default function NotificationCenter({
             onClick={() => setActiveTab('pendientes')}
           >
             <span>Pendientes</span>
-            {unreadList.length > 0 && (
-              <span className="notif-tab-badge unread">{unreadList.length}</span>
+            {pendingList.length > 0 && (
+              <span className="notif-tab-badge unread">{pendingList.length}</span>
             )}
           </button>
           <button
@@ -415,6 +430,14 @@ export default function NotificationCenter({
                           <i className="ph-bold ph-check-circle"></i>
                           <span>Confirmar lectura</span>
                         </button>
+                      ) : notif.isOverdue ? (
+                        <span className="notif-confirmed-tag tag-urgent-pending">
+                          <i className="ph-bold ph-warning-octagon"></i> Plazo por resolver
+                        </span>
+                      ) : notif.isToday ? (
+                        <span className="notif-confirmed-tag tag-urgent-pending">
+                          <i className="ph-bold ph-alarm"></i> Vence hoy
+                        </span>
                       ) : (
                         <span className="notif-confirmed-tag">
                           <i className="ph-bold ph-check"></i> Revisada
@@ -437,7 +460,7 @@ export default function NotificationCenter({
               </h4>
               <p className="notif-empty-desc">
                 {activeTab === 'pendientes'
-                  ? 'No tienes circulares, actas vencidas ni registros de observador pendientes por confirmar.'
+                  ? 'No tienes circulares por leer, actas vencidas ni compromisos con plazo expirado.'
                   : 'Las novedades y llamados de atención generados aparecerán aquí.'}
               </p>
             </div>

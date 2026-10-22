@@ -1422,8 +1422,8 @@ export default function GradesModule({
           onClick={handleSaveAction}
           title="Guardar notas y actividades docentes en la nube (Supabase)"
           style={{
-            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-            boxShadow: '0 10px 25px -5px rgba(217, 119, 6, 0.45), 0 8px 10px -6px rgba(217, 119, 6, 0.25)',
+            background: 'linear-gradient(135deg, #b45309 0%, #92400e 100%)',
+            boxShadow: '0 8px 20px -4px rgba(180, 83, 9, 0.3), 0 4px 6px -2px rgba(180, 83, 9, 0.15)',
             cursor: 'pointer'
           }}
         >

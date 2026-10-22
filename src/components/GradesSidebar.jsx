@@ -91,7 +91,7 @@ export default function GradesSidebar({
       defaultExpanded={true}
       sectionId="gradesTeacherSection"
       ownCardTitle="Mi Grado & Rol"
-      accentColor="#d97706"
+      accentColor="#b45309"
       id="gradesSidebar"
     >
       {/* Sección 2: Selector de Periodo Académico Activo */}

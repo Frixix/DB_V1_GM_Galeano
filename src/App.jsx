@@ -237,9 +237,12 @@ export default function App() {
 
       const meta = getDeadlineMeta(rec);
       const isResolved = meta.isResolved || rec.status === 'resuelto' || rec.semaforo === 'verde';
-      if (isResolved && !meta.isOverdue) return false;
+      if (isResolved) return false;
 
-      return !readCircularIds.includes(rec.id);
+      const isUnread = !readCircularIds.includes(rec.id);
+      const isOverdueOrToday = meta.isOverdue || meta.isExpiringToday;
+
+      return isUnread || isOverdueOrToday;
     }).length;
   }, [currentUser, observadorRecords, readCircularIds]);
 

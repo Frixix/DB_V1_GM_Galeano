@@ -1,11 +1,11 @@
 export const MODULE_THEMES = {
-  // Notas & Calificaciones: Ámbar Miel Cálido (contraste académico sobrio, sin naranja chillón)
+  // Notas & Calificaciones: Ámbar Miel Ultra Sutil (cálido apergaminado, sobrio y discreto)
   notas: {
-    accent: '#d97706',       // amber-600
-    accentHover: '#b45309',  // amber-700
-    soft: 'rgba(254, 243, 199, 0.7)', // amber-50/70
-    border: '#fde68a',       // amber-200
-    text: '#78350f'          // amber-900
+    accent: '#b45309',       // amber-700 refinado y sobrio
+    accentHover: '#92400e',  // amber-800
+    soft: 'rgba(254, 243, 199, 0.35)', // velo apergaminado muy sutil
+    border: '#fef3c7',       // amber-100 tenue
+    text: '#78350f'          // amber-900 sobrio
   },
   // Recursos & Circulares: Verde Esmeralda Institucional Puro
   recursos: {

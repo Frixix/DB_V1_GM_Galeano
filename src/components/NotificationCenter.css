@@ -400,6 +400,13 @@
   border-radius: 4px;
 }
 
+.notif-confirmed-tag.tag-urgent-pending {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  font-weight: 700;
+}
+
 /* Estado Vacío */
 .notif-empty-state {
   padding: 3rem 1.5rem;
