@@ -308,10 +308,7 @@ export default function App() {
 
   // Manejador para abrir la guía interactiva desde la barra superior unificada
   const handleOpenTour = useCallback(() => {
-    setActiveModule('docs');
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('gmg_open_tour'));
-    }, 150);
+    window.dispatchEvent(new CustomEvent('gmg_open_tour'));
   }, []);
 
   // Manejador del clic en carpetas de Gestión Documental
@@ -397,9 +394,10 @@ export default function App() {
     );
   }
 
-  // Verificación obligatoria de primer ingreso institucional (no se puede saltar)
+  // Verificación obligatoria de primer ingreso institucional (no se puede saltar, salvo cuentas de inducción guiada)
   const currentAccountKey = currentUser.key || currentUser.role;
-  if (!hasCustomPassword(currentAccountKey)) {
+  const isInduccionUser = currentUser.role === 'induccion' || currentUser.role === 'induccion_rectora';
+  if (!isInduccionUser && !hasCustomPassword(currentAccountKey)) {
     const handleCancelFirstLogin = async () => {
       setIsLogoutModalOpen(false);
       try {
@@ -429,6 +427,7 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
+        <TourSpotlight currentUser={currentUser} />
       </>
     );
   }
@@ -533,6 +532,7 @@ export default function App() {
           onConfirm={executeLogout}
           currentUser={currentUser}
         />
+        <TourSpotlight currentUser={currentUser} />
       </>
     );
   }

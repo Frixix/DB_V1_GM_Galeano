@@ -110,18 +110,18 @@ export default function PortalNavbar({
           {circularesCount > 0 && <span className="whatsapp-badge">{circularesCount}</span>}
         </div>
 
-        {/* 3. Guía de Sistema (Comentado temporalmente por requerimiento del sistema; listo para reactivar en el futuro) */}
-        {/* {onOpenTour && (
+        {/* 3. Guía de Inducción Paso a Paso */}
+        {onOpenTour && (
           <button 
             type="button" 
             className="btn-nav-guide" 
             onClick={onOpenTour}
-            title="Abrir Guía Interactiva del Sistema"
+            title="Abrir Guía Interactiva Paso a Paso"
           >
             <i className="ph-bold ph-compass"></i>
-            <span>Guía de Sistema</span>
+            <span>Guía de Inducción</span>
           </button>
-        )} */}
+        )}
 
         {/* 4. Chip Interactivo de Usuario y Rol (Admin, Rectora, Docentes) */}
         <div 

@@ -82,10 +82,35 @@ export default function TourSpotlight({ currentUser }) {
       Megaphone: 'ph-megaphone',
       Vault: 'ph-vault',
       HardDrive: 'ph-hard-drive',
+      ChartLineUp: 'ph-chart-line-up',
+      BellRinging: 'ph-bell-ringing',
+      UserList: 'ph-user-list',
+      Sparkle: 'ph-sparkle',
+      CheckCircle: 'ph-check-circle',
+      IdentificationBadge: 'ph-identification-badge',
+      Broadcast: 'ph-broadcast',
+      GraduationCap: 'ph-graduation-cap',
+      ChalkboardTeacher: 'ph-chalkboard-teacher'
     };
     const cls = map[iconName] || 'ph-info';
     return <i className={`ph-bold ${cls}`}></i>;
   };
+
+  // Teclas de navegación en el tour (Flechas / Enter / Escape)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, currentStepIndex, steps.length]);
 
   return (
     <>
@@ -124,7 +149,7 @@ export default function TourSpotlight({ currentUser }) {
                   </button>
                 )}
                 <button type="button" className="btn btn-primary" onClick={handleNext}>
-                  {currentStepIndex === steps.length - 1 ? '¡Entendido!' : 'Siguiente'}
+                  {currentStepIndex === steps.length - 1 ? '¡Listo, entendido!' : 'Siguiente'}
                 </button>
               </div>
             </div>
