@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import gradesService from '../services/gradesService';
 import { GRADES_LIST, ALL_SUBJECTS, subjectHasFinalExam } from '../data/gradesTreeData';
 import { USERS } from '../data/users';
@@ -21,6 +21,21 @@ export default function EvaluationCalendarModal({ isOpen, onClose, currentUser, 
   const [hours, setHours] = useState('48');
   const [reason, setReason] = useState('Incapacidad médica justificada');
   const [statusMsg, setStatusMsg] = useState(null);
+
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

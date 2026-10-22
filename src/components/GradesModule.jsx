@@ -471,8 +471,13 @@ export default function GradesModule({
         return s;
       }));
 
-      const nextCount = activeStudentsCount + 1;
-      setToastMessage(`${student.name} reactivado. Sugerencia N+1 recalculada a ${nextCount + 1} copias.`);
+      const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+      if (isInduccion) {
+        setToastMessage("Acción en modo demostración: los datos maestros están protegidos.");
+      } else {
+        const nextCount = activeStudentsCount + 1;
+        setToastMessage(`${student.name} reactivado. Sugerencia N+1 recalculada a ${nextCount + 1} copias.`);
+      }
       setTimeout(() => setToastMessage(null), 3500);
     } catch (err) {
       alert(`Error al reactivar estudiante: ${err.message}`);
@@ -543,6 +548,15 @@ export default function GradesModule({
     }
 
     gradesService.saveBranchStudents(selectedYear, selectedPeriod, selectedGrade, selectedSubject, students, currentUser, activities);
+
+    const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+    if (isInduccion) {
+      setToastMessage("Acción en modo demostración: los datos maestros están protegidos.");
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 4500);
+      return;
+    }
 
     if (canEditScores) {
       setToastMessage(`¡Planilla guardada! Notas y retroalimentación de ${selectedSubject} registradas por ${currentUser?.name || 'la docente'}.`);
@@ -1483,7 +1497,12 @@ export default function GradesModule({
             return s;
           }));
           const nextCount = Math.max(0, activeStudentsCount - 1);
-          setToastMessage(`${result.studentName} marcado como Retirado. Tiraje N+1 actualizado a ${nextCount + 1} copias.`);
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            setToastMessage("Acción en modo demostración: los datos maestros están protegidos.");
+          } else {
+            setToastMessage(`${result.studentName} marcado como Retirado. Tiraje N+1 actualizado a ${nextCount + 1} copias.`);
+          }
           setTimeout(() => setToastMessage(null), 4000);
         }}
       />

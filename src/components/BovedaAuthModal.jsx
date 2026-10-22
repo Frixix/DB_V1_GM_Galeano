@@ -1,10 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { verifyBovedaPassword, getBovedaCredentials } from '../services/authService';
 
 export default function BovedaAuthModal({ isOpen, onClose, onSuccess, currentUser }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

@@ -48,6 +48,15 @@ export default function ObservadorModule({
   const [isCommitteeModalOpen, setIsCommitteeModalOpen] = useState(false);
   const [committeesTick, setCommitteesTick] = useState(0);
 
+  // Notificación Toast Flotante
+  const [toastMessage, setToastMessage] = useState(null);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(curr => (curr === msg ? null : curr));
+    }, 4000);
+  };
+
   useEffect(() => {
     const handleCommitteesUpdate = () => setCommitteesTick((t) => t + 1);
     window.addEventListener('gmg_committees_updated', handleCommitteesUpdate);
@@ -280,6 +289,12 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
       if (selectedRecordForView?.id === id) {
         setIsViewModalOpen(false);
         setSelectedRecordForView(null);
+      }
+      const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+      if (isInduccion) {
+        showToast("Acción en modo demostración: los datos maestros están protegidos.");
+      } else {
+        showToast("✓ Registro eliminado del sistema.");
       }
     }
   };
@@ -649,6 +664,10 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         onUpdateStatus={(id, fields) => {
           updateRecord(id, fields);
           setSelectedRecordForView((prev) => (prev ? { ...prev, ...fields } : null));
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          }
         }}
       />
 
@@ -659,6 +678,10 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         currentUser={currentUser}
         onRecordCreated={(newRec, shouldOpenView = false) => {
           addRecord(newRec);
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          }
           if (shouldOpenView) {
             setSelectedRecordForView(newRec);
             setIsViewModalOpen(true);
@@ -672,8 +695,22 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         isOpen={isCommitteeModalOpen}
         onClose={() => setIsCommitteeModalOpen(false)}
         currentUser={currentUser}
-        onAssignmentsUpdated={() => setCommitteesTick((t) => t + 1)}
+        onAssignmentsUpdated={() => {
+          setCommitteesTick((t) => t + 1);
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          }
+        }}
       />
+
+      {/* Notificación Toast Flotante */}
+      {toastMessage && (
+        <div className="grades-toast">
+          <i className="ph-bold ph-shield-check" style={{ fontSize: '1.25rem', color: '#10b981' }}></i>
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

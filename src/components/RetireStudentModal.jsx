@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import gradesService from '../services/gradesService';
 import './RetireStudentModal.css';
 
@@ -24,6 +24,21 @@ export default function RetireStudentModal({
   const [fechaRetiro, setFechaRetiro] = useState(() => new Date().toISOString().split('T')[0]);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isSubmitting) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isSubmitting, onClose]);
 
   if (!isOpen || !student) return null;
 

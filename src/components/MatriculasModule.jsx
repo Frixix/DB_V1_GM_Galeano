@@ -156,7 +156,12 @@ export default function MatriculasModule({
     }
     try {
       gradesService.reactivateStudent(student.grade, student.id, currentUser);
-      showToast(`¡Estudiante ${student.name} reactivado con éxito! El tiraje N+1 se ha recalculado.`);
+      const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+      if (isInduccion) {
+        showToast("Acción en modo demostración: los datos maestros están protegidos.");
+      } else {
+        showToast(`¡Estudiante ${student.name} reactivado con éxito! El tiraje N+1 se ha recalculado.`);
+      }
     } catch (err) {
       alert(`Error al reactivar estudiante: ${err.message}`);
     }
@@ -677,7 +682,12 @@ export default function MatriculasModule({
         initialGrade={selectedGrade !== 'all' ? selectedGrade : '1° Primaria'}
         currentUser={currentUser}
         onStudentEnrolled={(newStudent) => {
-          showToast(`¡Estudiante ${newStudent.name} matriculado con éxito! Tiraje N+1 actualizado.`);
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          } else {
+            showToast(`¡Estudiante ${newStudent.name} matriculado con éxito! Tiraje N+1 actualizado.`);
+          }
         }}
       />
 
@@ -692,7 +702,12 @@ export default function MatriculasModule({
         grade={selectedStudentForAction?.grade || selectedGrade}
         currentUser={currentUser}
         onStudentRetired={(result) => {
-          showToast(`Estudiante ${result.studentName} marcado como Retirado. Notas previas preservadas y cálculo N+1 ajustado.`);
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          } else {
+            showToast(`Estudiante ${result.studentName} marcado como Retirado. Notas previas preservadas y cálculo N+1 ajustado.`);
+          }
         }}
       />
 

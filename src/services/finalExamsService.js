@@ -736,11 +736,13 @@ class FinalExamsService {
     const printInfo = this.getPrintingCopiesSuggestion(grade);
     const cleanGrade = grade.replace(/[\s°]+/g, '').slice(0, 4).toUpperCase();
     const cleanSubj = subject.replace(/[\s&]+/g, '_');
-    const radicado = this.evaluations[period]?.[grade]?.[subject]?.id || `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
+    const existingEval = this.evaluations[period]?.[grade]?.[subject];
+    const oldStorageKey = existingEval?.storageKey;
+    const radicado = existingEval?.id || `EVAL-${cleanGrade}-${Date.now().toString().slice(-4)}`;
 
     const isInduccion = user?.role === 'induccion' || user?.role === 'induccion_rectora';
-    let storageKey = this.evaluations[period]?.[grade]?.[subject]?.storageKey || null;
-    let downloadUrl = this.evaluations[period]?.[grade]?.[subject]?.downloadUrl || null;
+    let storageKey = existingEval?.storageKey || null;
+    let downloadUrl = existingEval?.downloadUrl || null;
 
     // Subida binaria a Cloudflare R2 / Supabase Storage si se suministró archivo (omitido en modo inducción)
     if (file) {
@@ -750,6 +752,11 @@ class FinalExamsService {
           if (!uploadRes.error && uploadRes.storageKey) {
             storageKey = uploadRes.storageKey;
             downloadUrl = getDocumentPublicUrl(storageKey);
+
+            // Limpieza preventiva: si el archivo sustituido tenía una ruta diferente en R2, se elimina para no dejar huérfanos
+            if (oldStorageKey && oldStorageKey !== storageKey) {
+              deleteDocumentFile(oldStorageKey).catch(e => console.warn('[FinalExamsService] Limpieza archivo previo:', e));
+            }
           }
         } catch (err) {
           console.warn('[FinalExamsService] Advertencia subiendo archivo a R2/Storage:', err);

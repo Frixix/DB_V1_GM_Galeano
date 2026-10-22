@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useEffect, useId } from 'react';
 import gradesService from '../services/gradesService';
 import { GRADES_LIST, normalizeGrade } from '../data/gradesTreeData';
 import './EnrollStudentModal.css';
@@ -26,8 +26,6 @@ export default function EnrollStudentModal({
   const [errorMsg, setErrorMsg] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isOpen) return null;
-
   const resetForm = () => {
     setName('');
     setNombreMadre('');
@@ -43,6 +41,23 @@ export default function EnrollStudentModal({
     resetForm();
     onClose();
   };
+
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isSubmitting) {
+        handleClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isSubmitting]);
+
+  if (!isOpen) return null;
 
   // Regla para teléfono de la madre: solo números y exactamente hasta 10 dígitos
   const handlePhoneChange = (e) => {

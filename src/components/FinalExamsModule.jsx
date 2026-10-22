@@ -845,7 +845,12 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
           setIsUploadModalOpen(false);
           setUploadTargetSubject(null);
           setUploadTargetGrade(null);
-          showToast(msg);
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          } else {
+            showToast(msg);
+          }
         }}
       />
 
@@ -861,8 +866,20 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
           setSelectedItemForView(null);
         }}
         onDownload={handleDownloadExam}
-        onDelete={(grade, subj) => handleDeleteEvaluation(grade, subj)}
-        onUpdateCopiesStatus={(grade, subj, st) => handleUpdateCopiesStatus(grade, subj, st)}
+        onDelete={(grade, subj) => {
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          handleDeleteEvaluation(grade, subj);
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          }
+        }}
+        onUpdateCopiesStatus={(grade, subj, st) => {
+          const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+          handleUpdateCopiesStatus(grade, subj, st);
+          if (isInduccion) {
+            showToast("Acción en modo demostración: los datos maestros están protegidos.");
+          }
+        }}
         onReplace={(grade, subj) => {
           setIsViewModalOpen(false);
           handleOpenUpload(subj, grade);
@@ -877,7 +894,12 @@ Gimnasio Martín Galeano - Formando en Valores y Excelencia
           onClose={() => setIsDeadlinesModalOpen(false)}
           onSaved={(msg) => {
             setIsDeadlinesModalOpen(false);
-            showToast(msg);
+            const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+            if (isInduccion) {
+              showToast("Acción en modo demostración: los datos maestros están protegidos.");
+            } else {
+              showToast(msg);
+            }
           }}
         />
       )}
@@ -934,6 +956,17 @@ function UploadExamModal({
     if (initialPeriod) setPeriod(initialPeriod);
   }, [initialGrade, initialPeriod]);
 
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isSubmitting, onClose]);
+
   if (!isOpen) return null;
 
   const assignment = finalExamsService.getTeacherAssignment(grade, subject);
@@ -941,6 +974,19 @@ function UploadExamModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!file) {
+      alert('Por favor selecciona un archivo de evaluación (.pdf o .docx) antes de continuar.');
+      return;
+    }
+
+    const allowedExtensions = ['pdf', 'docx', 'doc'];
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    if (!allowedExtensions.includes(fileExt)) {
+      alert('Formato de archivo no permitido. Solo se aceptan exámenes en formato PDF o Word (.docx, .doc).');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -1051,7 +1097,7 @@ function UploadExamModal({
               <input
                 type="file"
                 id="examFileInput"
-                accept=".pdf,.doc,.docx,.xlsx"
+                accept=".pdf,.doc,.docx"
                 className="final-file-hidden-input"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
@@ -1119,6 +1165,17 @@ function ViewExamModal({
   onUpdateCopiesStatus,
   onReplace
 }) {
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !item) return null;
 
   const canUpload = finalExamsService.canUploadForSubject(currentUser, item.grade, item.subject);
@@ -1273,6 +1330,17 @@ function DeadlinesModal({ isOpen, currentUser, onClose, onSaved }) {
     setStatus(data.status || 'en_plazo');
     setDescription(data.description || '');
   }, [activePeriod, deadlines]);
+
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

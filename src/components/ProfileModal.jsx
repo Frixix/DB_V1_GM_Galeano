@@ -112,6 +112,21 @@ export default function ProfileModal({
     setShowSavedChulito(false);
   };
 
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isSubmittingPassword) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isSubmittingPassword, onClose]);
+
   if (!isOpen || !currentUser) return null;
 
   const isRectora = currentUser.role === 'rectora' || currentUser.role === 'induccion_rectora';

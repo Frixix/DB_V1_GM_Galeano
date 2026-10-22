@@ -258,6 +258,21 @@ export default function UploadObservadorModal({
     setIsSubmittedSuccess(true);
   };
 
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isUploading) {
+        handleModalClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isUploading]);
+
   if (!isOpen) return null;
 
   return (

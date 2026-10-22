@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import gradesService, { calculateGrade80_20 } from '../services/gradesService';
 import { ACADEMIC_PERIODS } from '../data/gradesTreeData';
 import './StudentAuditDetailModal.css';
@@ -20,6 +20,21 @@ export default function StudentAuditDetailModal({
   onOpenRetireModal,
   onReactivateStudent
 }) {
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !student) return null;
 
   const isRetired = student.active === false || student.status === 'inactivo' || student.status === 'retirado' || student.inhabilitado;

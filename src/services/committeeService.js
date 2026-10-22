@@ -136,8 +136,9 @@ class CommitteeService {
 
     this.persistCommittees();
 
-    // Sincronización en la nube (institutional_vault)
-    if (isSupabaseConfigured && supabase) {
+    // Sincronización en la nube (institutional_vault) - Se omite si es perfil de inducción/demo para proteger datos maestros
+    const isInduccion = author?.role === 'induccion' || author?.role === 'induccion_rectora';
+    if (isSupabaseConfigured && supabase && !isInduccion) {
       try {
         await supabase.from('institutional_vault').upsert({
           user_key: 'institutional_committees_config',

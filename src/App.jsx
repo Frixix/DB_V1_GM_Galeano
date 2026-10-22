@@ -38,6 +38,52 @@ import { syncVaultWithSupabase, subscribeToVaultChanges, hasCustomPassword, hasB
 import { syncAvatarsFromCloud, subscribeToAvatarChanges } from './services/avatarService';
 import gradesService from './services/gradesService';
 
+function GlobalToasts({ avatarToast, onDismissAvatar, inductionToast, onDismissInduction }) {
+  if (!avatarToast && !inductionToast) return null;
+  return (
+    <>
+      {avatarToast && (
+        <div className="avatar-global-toast-notification">
+          <div className="toast-chulito-icon">
+            <i className="ph-bold ph-check"></i>
+          </div>
+          <div className="toast-chulito-content">
+            <strong>¡Foto de perfil actualizada!</strong>
+            <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
+          </div>
+          <button 
+            type="button" 
+            className="toast-close-btn" 
+            onClick={onDismissAvatar} 
+            aria-label="Cerrar notificación"
+          >
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+      )}
+      {inductionToast && (
+        <div className="avatar-global-toast-notification" style={{ borderLeft: '4px solid #10b981' }}>
+          <div className="toast-chulito-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+            <i className="ph-bold ph-shield-check"></i>
+          </div>
+          <div className="toast-chulito-content">
+            <strong>Modo Demostración</strong>
+            <span>{inductionToast}</span>
+          </div>
+          <button 
+            type="button" 
+            className="toast-close-btn" 
+            onClick={onDismissInduction} 
+            aria-label="Cerrar notificación"
+          >
+            <i className="ph-bold ph-x"></i>
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authVaultTick, setAuthVaultTick] = useState(0);
@@ -68,6 +114,12 @@ export default function App() {
   const [profileTargetUserKey, setProfileTargetUserKey] = useState(null);
   const [profileInitialTab, setProfileInitialTab] = useState(null);
   const [avatarToast, setAvatarToast] = useState(null);
+  const [inductionToast, setInductionToast] = useState(null);
+
+  const showInductionToast = useCallback(() => {
+    setInductionToast("Acción en modo demostración: los datos maestros están protegidos.");
+    setTimeout(() => setInductionToast(null), 4500);
+  }, []);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [selectedDocForView, setSelectedDocForView] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -375,6 +427,9 @@ export default function App() {
 
     if (window.confirm(confirmMessage)) {
       deleteDocument(id, isInduccionUser);
+      if (isInduccionUser) {
+        showInductionToast();
+      }
       setSelectedDocForView(prev => {
         if (prev?.id === id) {
           setIsViewModalOpen(false);
@@ -383,12 +438,16 @@ export default function App() {
         return prev;
       });
     }
-  }, [documents, deleteDocument, isInduccionUser]);
+  }, [documents, deleteDocument, isInduccionUser, showInductionToast]);
 
   // Manejador para registrar nuevo documento
   const handleUploadSuccess = useCallback(async (newDoc) => {
-    return await addDocument(isInduccionUser ? { ...newDoc, isSimulated: true } : newDoc);
-  }, [addDocument, isInduccionUser]);
+    const res = await addDocument(isInduccionUser ? { ...newDoc, isSimulated: true } : newDoc);
+    if (isInduccionUser) {
+      showInductionToast();
+    }
+    return res;
+  }, [addDocument, isInduccionUser, showInductionToast]);
 
   if (!currentUser) {
     return (
@@ -500,25 +559,12 @@ export default function App() {
           loading={presenceLoading}
         />
         <TrialWatermark documents={documents} />
-        {avatarToast && (
-          <div className="avatar-global-toast-notification">
-            <div className="toast-chulito-icon">
-              <i className="ph-bold ph-check"></i>
-            </div>
-            <div className="toast-chulito-content">
-              <strong>¡Foto de perfil actualizada!</strong>
-              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
-            </div>
-            <button 
-              type="button" 
-              className="toast-close-btn" 
-              onClick={() => setAvatarToast(null)} 
-              aria-label="Cerrar notificación"
-            >
-              <i className="ph-bold ph-x"></i>
-            </button>
-          </div>
-        )}
+        <GlobalToasts 
+          avatarToast={avatarToast} 
+          onDismissAvatar={() => setAvatarToast(null)} 
+          inductionToast={inductionToast} 
+          onDismissInduction={() => setInductionToast(null)} 
+        />
         <NotificationCenter
           isOpen={isNotificationsOpen}
           onClose={handleCloseNotifications}
@@ -764,25 +810,12 @@ export default function App() {
           loading={presenceLoading}
         />
         <TrialWatermark documents={documents} />
-        {avatarToast && (
-          <div className="avatar-global-toast-notification">
-            <div className="toast-chulito-icon">
-              <i className="ph-bold ph-check"></i>
-            </div>
-            <div className="toast-chulito-content">
-              <strong>¡Foto de perfil actualizada!</strong>
-              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
-            </div>
-            <button 
-              type="button" 
-              className="toast-close-btn" 
-              onClick={() => setAvatarToast(null)} 
-              aria-label="Cerrar notificación"
-            >
-              <i className="ph-bold ph-x"></i>
-            </button>
-          </div>
-        )}
+        <GlobalToasts 
+          avatarToast={avatarToast} 
+          onDismissAvatar={() => setAvatarToast(null)} 
+          inductionToast={inductionToast} 
+          onDismissInduction={() => setInductionToast(null)} 
+        />
         <NotificationCenter
           isOpen={isNotificationsOpen}
           onClose={handleCloseNotifications}
@@ -867,25 +900,12 @@ export default function App() {
           loading={presenceLoading}
         />
         <TrialWatermark documents={documents} />
-        {avatarToast && (
-          <div className="avatar-global-toast-notification">
-            <div className="toast-chulito-icon">
-              <i className="ph-bold ph-check"></i>
-            </div>
-            <div className="toast-chulito-content">
-              <strong>¡Foto de perfil actualizada!</strong>
-              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
-            </div>
-            <button 
-              type="button" 
-              className="toast-close-btn" 
-              onClick={() => setAvatarToast(null)} 
-              aria-label="Cerrar notificación"
-            >
-              <i className="ph-bold ph-x"></i>
-            </button>
-          </div>
-        )}
+        <GlobalToasts 
+          avatarToast={avatarToast} 
+          onDismissAvatar={() => setAvatarToast(null)} 
+          inductionToast={inductionToast} 
+          onDismissInduction={() => setInductionToast(null)} 
+        />
         <NotificationCenter
           isOpen={isNotificationsOpen}
           onClose={handleCloseNotifications}
@@ -1074,25 +1094,12 @@ export default function App() {
           }}
         />
         <TrialWatermark documents={documents} />
-        {avatarToast && (
-          <div className="avatar-global-toast-notification">
-            <div className="toast-chulito-icon">
-              <i className="ph-bold ph-check"></i>
-            </div>
-            <div className="toast-chulito-content">
-              <strong>¡Foto de perfil actualizada!</strong>
-              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
-            </div>
-            <button 
-              type="button" 
-              className="toast-close-btn" 
-              onClick={() => setAvatarToast(null)} 
-              aria-label="Cerrar notificación"
-            >
-              <i className="ph-bold ph-x"></i>
-            </button>
-          </div>
-        )}
+        <GlobalToasts 
+          avatarToast={avatarToast} 
+          onDismissAvatar={() => setAvatarToast(null)} 
+          inductionToast={inductionToast} 
+          onDismissInduction={() => setInductionToast(null)} 
+        />
         <NotificationCenter
           isOpen={isNotificationsOpen}
           onClose={handleCloseNotifications}
@@ -1179,25 +1186,12 @@ export default function App() {
           loading={presenceLoading}
         />
         <TrialWatermark documents={documents} />
-        {avatarToast && (
-          <div className="avatar-global-toast-notification">
-            <div className="toast-chulito-icon">
-              <i className="ph-bold ph-check"></i>
-            </div>
-            <div className="toast-chulito-content">
-              <strong>¡Foto de perfil actualizada!</strong>
-              <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
-            </div>
-            <button 
-              type="button" 
-              className="toast-close-btn" 
-              onClick={() => setAvatarToast(null)} 
-              aria-label="Cerrar notificación"
-            >
-              <i className="ph-bold ph-x"></i>
-            </button>
-          </div>
-        )}
+        <GlobalToasts 
+          avatarToast={avatarToast} 
+          onDismissAvatar={() => setAvatarToast(null)} 
+          inductionToast={inductionToast} 
+          onDismissInduction={() => setInductionToast(null)} 
+        />
         <NotificationCenter
           isOpen={isNotificationsOpen}
           onClose={handleCloseNotifications}
@@ -1429,26 +1423,13 @@ export default function App() {
       {/* Marca de Agua Inferior Derecha: Fase de Prueba */}
       <TrialWatermark documents={documents} />
 
-      {/* Notificación Toast Global con Chulito al Cambiar Foto de Perfil */}
-      {avatarToast && (
-        <div className="avatar-global-toast-notification">
-          <div className="toast-chulito-icon">
-            <i className="ph-bold ph-check"></i>
-          </div>
-          <div className="toast-chulito-content">
-            <strong>¡Foto de perfil actualizada!</strong>
-            <span>El cambio de {avatarToast.name} se sincronizó en la nube.</span>
-          </div>
-          <button 
-            type="button" 
-            className="toast-close-btn" 
-            onClick={() => setAvatarToast(null)} 
-            aria-label="Cerrar notificación"
-          >
-            <i className="ph-bold ph-x"></i>
-          </button>
-        </div>
-      )}
+      {/* Notificaciones Toast Globales (Avatar y Modo Demostración) */}
+      <GlobalToasts 
+        avatarToast={avatarToast} 
+        onDismissAvatar={() => setAvatarToast(null)} 
+        inductionToast={inductionToast} 
+        onDismissInduction={() => setInductionToast(null)} 
+      />
 
       <NotificationCenter
         isOpen={isNotificationsOpen}

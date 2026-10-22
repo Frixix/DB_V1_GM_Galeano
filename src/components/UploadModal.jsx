@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatBytes, formatDateTime, generateRadicado } from '../utils/format';
 import { compressFileIfNeeded } from '../utils/compression';
 import { uploadDocumentFile } from '../services/storageService';
@@ -63,6 +63,21 @@ export default function UploadModal({
       }
     }
   };
+
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isProcessing) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isProcessing, onClose]);
 
   if (!isOpen) return null;
 

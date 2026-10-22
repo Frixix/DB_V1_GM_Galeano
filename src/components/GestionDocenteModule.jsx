@@ -107,10 +107,13 @@ export default function GestionDocenteModule({
     return result;
   };
 
+  const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+
   const showToast = (msg) => {
-    setToastMessage(msg);
+    const finalMsg = isInduccion ? "Acción en modo demostración: los datos maestros están protegidos." : msg;
+    setToastMessage(finalMsg);
     setTimeout(() => {
-      setToastMessage((curr) => (curr === msg ? null : curr));
+      setToastMessage((curr) => (curr === finalMsg ? null : curr));
     }, 4000);
   };
 

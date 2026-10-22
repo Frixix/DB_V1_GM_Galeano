@@ -46,6 +46,21 @@ export default function BovedaPasswordModal({ isOpen, onClose, currentUser, onPa
     }
   }, [isOpen, isAdmin]);
 
+  // Atajo de teclado: Cerrar modal con la tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isSubmitting) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isSubmitting, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {

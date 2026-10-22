@@ -41,21 +41,25 @@ export default function ViewModal({
     }
   }, [isOpen, doc?.id]);
 
-  // Manejo de la tecla Escape para cerrar el lightbox sin cerrar el modal principal
+  // Manejo de la tecla Escape: si el lightbox está abierto, cierra el lightbox; si no, cierra el modal
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isLightboxOpen) {
-        e.stopPropagation();
-        setIsLightboxOpen(false);
+      if (e.key === 'Escape' && isOpen) {
+        if (isLightboxOpen) {
+          e.stopPropagation();
+          setIsLightboxOpen(false);
+        } else {
+          onClose();
+        }
       }
     };
-    if (isLightboxOpen) {
+    if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isLightboxOpen]);
+  }, [isOpen, isLightboxOpen, onClose]);
 
   useEffect(() => {
     let active = true;
