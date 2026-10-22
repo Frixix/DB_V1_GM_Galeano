@@ -712,12 +712,18 @@ class TeacherService {
     return [
       { key: 'induccion_rectora', label: '👑 Inducción Rectora' },
       { key: 'induccion', label: '✨ Inducción Profesoras' },
-      { key: 'claudia', label: `${USERS.claudia?.name || 'Claudia'} (Rectora Institucional)` },
+      { key: 'claudia', label: USERS.claudia?.name || 'Claudia (Rectora)' },
       { key: 'coordinacion', label: 'Coordinación Académica' },
-      ...this.getTeachers().map(t => ({
-        key: t.key,
-        label: `${t.name} (${t.label || 'Docente'})`
-      })),
+      ...this.getTeachers().map(t => {
+        const gradeBadge = t.directedGrade || (t.label?.match(/(Pre-Jardín|Transición|[1-5]°(?:\s*Primaria)?)/i)?.[0]) || 'Docente';
+        const displayLabel = t.name.toLowerCase().includes(gradeBadge.toLowerCase())
+          ? t.name
+          : `${t.name} (${gradeBadge})`;
+        return {
+          key: t.key,
+          label: displayLabel
+        };
+      }),
       { key: 'admin', label: 'Administrador General' }
     ];
   }
