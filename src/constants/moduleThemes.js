@@ -54,5 +54,13 @@ export const MODULE_THEMES = {
     soft: '#f0fdfa',         // teal-50
     border: '#5eead4',       // teal-300
     text: '#134e4a'          // teal-900
+  },
+  // Decreto 1075: Archivo Normativo & 9 Pilares Institucionales
+  decreto1075: {
+    accent: '#1e3a8a',       // blue-900
+    accentHover: '#172554',  // blue-950
+    soft: '#eff6ff',         // blue-50
+    border: '#bfdbfe',       // blue-200
+    text: '#1e3a8a'          // blue-900
   }
 };

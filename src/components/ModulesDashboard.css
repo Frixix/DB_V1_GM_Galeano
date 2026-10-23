@@ -352,6 +352,107 @@
 }
 
 /* ==========================================================================
+   SECCIONES Y MÓDULOS PROTAGONISTAS
+   ========================================================================== */
+.portal-section-header {
+  margin-bottom: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.portal-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.portal-section-title-wrap i {
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+.portal-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.portal-section-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.portal-section-featured {
+  margin-bottom: 2.5rem;
+}
+
+.portal-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 1.5rem;
+}
+
+.portal-module-card-hero {
+  border-width: 1.5px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.portal-module-card-hero:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 20px -4px rgba(15, 23, 42, 0.12), 0 6px 8px -4px rgba(0, 0, 0, 0.06);
+}
+
+.portal-card-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  margin-right: 0.4rem;
+}
+
+.portal-card-hero-tag-slate {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+.portal-card-hero-tag-active {
+  background-color: #064e3b;
+  color: #ffffff;
+}
+
+.portal-card-hero-tag-teal {
+  background-color: #0f766e;
+  color: #ffffff;
+}
+
+.portal-section-divider {
+  border: none;
+  border-top: 1px dashed #cbd5e1;
+  margin: 2rem 0 2rem 0;
+}
+
+.portal-section-other {
+  margin-bottom: 2rem;
+}
+
+/* ==========================================================================
    CUADRÍCULA DE TARJETAS DE MÓDULOS
    ========================================================================== */
 .portal-modules-grid {

@@ -48,7 +48,7 @@ export default function AdminReemplazosTab({ currentUser, onCurriculumUpdated })
   // Auto-seleccionar docente titular a reemplazar al cambiar de grado
   useEffect(() => {
     if (currentGradeData) {
-      setPreviousDocenteKey(currentGradeData.director.docente_id || 'profe3');
+      setPreviousDocenteKey(currentGradeData.director.docente_id || 'jessica');
       // Seleccionar un reemplazante diferente por defecto
       const differentTeacher = teacherOptions.find(t => t.key !== currentGradeData.director.docente_id);
       if (differentTeacher) {

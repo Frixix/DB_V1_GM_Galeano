@@ -30,7 +30,7 @@ export const DEFAULT_COMMITTEE_CONFIG = {
     legalBasis: 'Ley 115 de 1994 (Art. 145)',
     icon: 'ph-graduation-cap',
     badgeClass: 'tag-pastel-rose',
-    assignedTeachers: ['profe2', 'profe3'],
+    assignedTeachers: ['blanca', 'nicolle'],
     maxTeachers: 2,
     description: 'Alineación de mallas curriculares y proyectos pedagógicos transversales'
   },
@@ -41,7 +41,7 @@ export const DEFAULT_COMMITTEE_CONFIG = {
     icon: 'ph-chalkboard-teacher',
     badgeClass: 'tag-pastel-cyan',
     isAllTeachers: true, // Todo el claustro docente participa
-    assignedTeachers: ['profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'],
+    assignedTeachers: ['liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'],
     maxTeachers: 6,
     description: 'Jornadas pedagógicas institucionales y cronogramas de aula'
   }

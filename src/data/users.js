@@ -52,73 +52,63 @@ export const USERS = {
     maxUploadBytes: 1 * GB,
     maxUploadLabel: '1 GB',
   },
-  profe0: {
-    name: 'Profe Pre-Jardín',
+  liliana: {
+    name: 'Liliana',
     role: 'docente',
-    label: 'Docente • Dir. Pre-Jardín',
-    initial: 'PJ',
+    label: 'Docente Titular • Dir. Preescolar',
+    initial: 'L',
     avatar: '/images/avatars/profe1.svg',
-    pass: 'prejardin2026',
-    maxUploadBytes: 15 * MB,
-    maxUploadLabel: '15 MB',
-  },
-  profe1: {
-    name: 'Profe 1',
-    role: 'docente',
-    label: 'Docente • Dir. Transición',
-    initial: 'P1',
-    avatar: '/images/avatars/profe1.svg',
-    pass: 'profe12026',
-    maxUploadBytes: 15 * MB,
-    maxUploadLabel: '15 MB',
-  },
-  jessica: {
-    name: 'Jessica',
-    role: 'docente',
-    label: 'Docente de Español • Dir. 1° Primaria',
-    initial: 'J',
-    avatar: '/images/avatars/jessica.svg',
-    pass: 'jessica2026',
+    pass: 'liliana2026',
     maxUploadBytes: 15 * MB,
     maxUploadLabel: '15 MB',
   },
   yuri: {
     name: 'Yuri',
     role: 'docente',
-    label: 'Docente de Ciencias (Naturales & Sociales) • Dir. 2° Primaria',
+    label: 'Docente de Ciencias (Naturales & Sociales) • Dir. 1° Primaria',
     initial: 'Y',
     avatar: '/images/avatars/yuri.svg',
     pass: 'yuri2026',
     maxUploadBytes: 15 * MB,
     maxUploadLabel: '15 MB',
   },
-  profe2: {
-    name: 'Profe 2',
-    role: 'docente',
-    label: 'Docente de Matemáticas • Dir. 3° Primaria',
-    initial: 'P2',
-    avatar: '/images/avatars/profe2.svg',
-    pass: 'profe22026',
-    maxUploadBytes: 15 * MB,
-    maxUploadLabel: '15 MB',
-  },
   elcy: {
     name: 'Elcy',
     role: 'docente',
-    label: 'Docente de Inglés • Dir. 4° Primaria',
+    label: 'Docente de Inglés • Dir. 2° Primaria',
     initial: 'E',
     avatar: '/images/avatars/elcy.svg',
     pass: 'elcy2026',
     maxUploadBytes: 15 * MB,
     maxUploadLabel: '15 MB',
   },
-  profe3: {
-    name: 'Profe 3',
+  blanca: {
+    name: 'Blanca',
     role: 'docente',
-    label: 'Docente • Dir. 5° Primaria',
-    initial: 'P3',
+    label: 'Docente de Matemáticas • Dir. 3° Primaria',
+    initial: 'B',
+    avatar: '/images/avatars/profe2.svg',
+    pass: 'blanca2026',
+    maxUploadBytes: 15 * MB,
+    maxUploadLabel: '15 MB',
+  },
+  nicolle: {
+    name: 'Nicolle',
+    role: 'docente',
+    label: 'Docente de Ciencias Sociales • Dir. 4° Primaria',
+    initial: 'N',
     avatar: '/images/avatars/profe3.svg',
-    pass: 'profe32026',
+    pass: 'nicolle2026',
+    maxUploadBytes: 15 * MB,
+    maxUploadLabel: '15 MB',
+  },
+  jessica: {
+    name: 'Jessica',
+    role: 'docente',
+    label: 'Docente de Español (Lengua Castellana) • Dir. 5° Primaria',
+    initial: 'J',
+    avatar: '/images/avatars/jessica.svg',
+    pass: 'jessica2026',
     maxUploadBytes: 15 * MB,
     maxUploadLabel: '15 MB',
   },
@@ -128,6 +118,7 @@ export const BOVEDA_PASSWORD = 'boveda2026'
 export const SYSTEM_STORAGE_CAPACITY_BYTES = 2 * GB
 
 export const USERS_OVERRIDES_STORAGE_KEY = 'gmg_custom_users_overrides_v1';
+export const TEACHER_RETIREMENT_HISTORY_KEY = 'gmg_teacher_retirements_history_v1';
 
 export function loadUserOverrides() {
   if (typeof window === 'undefined') return;
@@ -136,7 +127,20 @@ export function loadUserOverrides() {
     if (raw) {
       const overrides = JSON.parse(raw);
       Object.entries(overrides).forEach(([key, val]) => {
-        if (USERS[key]) {
+        if (!USERS[key]) {
+          // Si es un nuevo docente registrado dinámicamente
+          USERS[key] = {
+            name: val.name || key,
+            role: val.role || 'docente',
+            label: val.label || 'Docente Titular',
+            initial: val.initial || (val.name ? val.name.slice(0, 1).toUpperCase() : 'D'),
+            avatar: val.avatar || '/images/avatars/profe1.svg',
+            pass: val.pass || `${key}2026`,
+            maxUploadBytes: val.maxUploadBytes || (15 * 1024 * 1024),
+            maxUploadLabel: val.maxUploadLabel || '15 MB',
+            status: val.status || 'activa'
+          };
+        } else {
           Object.assign(USERS[key], val);
         }
       });
@@ -147,7 +151,20 @@ export function loadUserOverrides() {
 }
 
 export function saveUserOverride(userKey, updates) {
-  if (!userKey || !USERS[userKey]) return;
+  if (!userKey) return;
+  if (!USERS[userKey]) {
+    USERS[userKey] = {
+      name: updates.name || userKey,
+      role: updates.role || 'docente',
+      label: updates.label || 'Docente Titular',
+      initial: updates.initial || (updates.name ? updates.name.slice(0, 1).toUpperCase() : 'D'),
+      avatar: updates.avatar || '/images/avatars/profe1.svg',
+      pass: updates.pass || `${userKey}2026`,
+      maxUploadBytes: updates.maxUploadBytes || (15 * 1024 * 1024),
+      maxUploadLabel: updates.maxUploadLabel || '15 MB',
+      status: updates.status || 'activa'
+    };
+  }
   Object.assign(USERS[userKey], updates);
   if (typeof window === 'undefined') return;
   try {

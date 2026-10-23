@@ -16,13 +16,12 @@ import './Login.css';
 const STAFF_MEMBERS = [
   { key: 'claudia', name: 'Claudia (Rectora)', roleTitle: 'Rectora', grade: 'Rectoría Institucional' },
   { key: 'coordinacion', name: 'Coordinación Académica', roleTitle: 'Coordinación', grade: 'Supervisión Institucional' },
-  { key: 'profe0', name: 'Profe Pre-Jardín', roleTitle: 'Docente', grade: 'Dir. Pre-Jardín' },
-  { key: 'profe1', name: 'Profe 1', roleTitle: 'Docente', grade: 'Dir. Transición' },
-  { key: 'jessica', name: 'Jessica', roleTitle: 'Docente Español', grade: 'Dir. 1° Primaria' },
-  { key: 'yuri', name: 'Yuri', roleTitle: 'Docente C. Sociales', grade: 'Dir. 2° Primaria' },
-  { key: 'profe2', name: 'Profe 2', roleTitle: 'Docente Matemáticas', grade: 'Dir. 3° Primaria' },
-  { key: 'elcy', name: 'Elcy', roleTitle: 'Docente Inglés', grade: 'Dir. 4° Primaria' },
-  { key: 'profe3', name: 'Profe 3', roleTitle: 'Docente C. Naturales', grade: 'Dir. 5° Primaria' },
+  { key: 'liliana', name: 'Liliana', roleTitle: 'Docente Titular', grade: 'Dir. Preescolar' },
+  { key: 'yuri', name: 'Yuri', roleTitle: 'Docente Ciencias', grade: 'Dir. 1° Primaria' },
+  { key: 'elcy', name: 'Elcy', roleTitle: 'Docente Inglés', grade: 'Dir. 2° Primaria' },
+  { key: 'blanca', name: 'Blanca', roleTitle: 'Docente Matemáticas', grade: 'Dir. 3° Primaria' },
+  { key: 'nicolle', name: 'Nicolle', roleTitle: 'Docente Sociales', grade: 'Dir. 4° Primaria' },
+  { key: 'jessica', name: 'Jessica', roleTitle: 'Docente Español', grade: 'Dir. 5° Primaria' },
 ];
 
 export default function Login({ onLogin }) {
@@ -144,12 +143,12 @@ export default function Login({ onLogin }) {
       else if (passKey === 'induccion2026') setUserKey('induccion');
       else if (passKey === 'rectora2026') setUserKey('claudia');
       else if (passKey === 'coordinacion2026') setUserKey('coordinacion');
-      else if (passKey === 'jessica2026') setUserKey('jessica');
+      else if (passKey === 'liliana2026') setUserKey('liliana');
       else if (passKey === 'yuri2026') setUserKey('yuri');
       else if (passKey === 'elcy2026') setUserKey('elcy');
-      else if (passKey === 'profe12026') setUserKey('profe1');
-      else if (passKey === 'profe22026') setUserKey('profe2');
-      else if (passKey === 'profe32026') setUserKey('profe3');
+      else if (passKey === 'blanca2026') setUserKey('blanca');
+      else if (passKey === 'nicolle2026') setUserKey('nicolle');
+      else if (passKey === 'jessica2026') setUserKey('jessica');
       else if (passKey === 'admin2026') setUserKey('admin');
     }
   };
@@ -262,7 +261,7 @@ export default function Login({ onLogin }) {
               </div>
               <div className="auth-brand-text">
                 <span className="auth-brand-school-name">Gimnasio Martin Galeano</span>
-                <span className="auth-brand-school-sub">Sistema Integral - Básica Primaria</span>
+                <span className="auth-brand-school-sub">Archivo Institucional, Radicación & Custodia de Actas</span>
               </div>
             </div>
           </div>
@@ -270,10 +269,10 @@ export default function Login({ onLogin }) {
           {/* Center Content Area */}
           <div className="auth-brand-center">
             <h1 className="auth-hero-heading">
-              Todo el colegio,{"\n"}en un solo lugar.
+              Archivo Institucional,{"\n"}Radicación & Custodia de Actas.
             </h1>
             <p className="auth-hero-subtitle">
-              Documentos, calificaciones y gestión académica con la claridad que tu equipo necesita.
+              El primer ecosistema blindado para colegios privados: custodia de actas de consejo, circulares oficiales, trazabilidad legal y respaldo académico SIEE en una sola plataforma.
             </p>
           </div>
 

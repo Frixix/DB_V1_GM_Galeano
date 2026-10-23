@@ -1,0 +1,272 @@
+/* ==========================================================================
+   BOVEDA SIDEBAR CSS: Estilos de la barra lateral izquierda de la Bóveda
+   ========================================================================== */
+
+.boveda-sidebar {
+  width: 280px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1rem;
+  overflow-y: auto;
+  gap: 1.25rem;
+  flex-shrink: 0;
+}
+
+.boveda-directivo-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.boveda-directivo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.boveda-directivo-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #e2e8f0;
+  border: 1.5px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.boveda-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.boveda-avatar-fallback {
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.boveda-directivo-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.boveda-directivo-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.boveda-directivo-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.boveda-directivo-role {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.boveda-directivo-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.boveda-btn-sidebar-key,
+.boveda-btn-sidebar-lock {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.boveda-btn-sidebar-key {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.boveda-btn-sidebar-key:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.boveda-btn-sidebar-lock {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.boveda-btn-sidebar-lock:hover {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.boveda-sidebar-header {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+
+.boveda-pillars-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.boveda-nav-pillar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.65rem;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.boveda-nav-pillar-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.boveda-nav-pillar-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  font-weight: 600;
+}
+
+.boveda-nav-item-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.boveda-nav-item-icon {
+  font-size: 1.1rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.boveda-nav-pillar-btn.active .boveda-nav-item-icon {
+  color: #ffffff;
+}
+
+.boveda-nav-item-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.boveda-pillar-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.boveda-pillar-num.num-active {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.boveda-pillar-texts {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  line-height: 1.15;
+}
+
+.boveda-pillar-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #0f172a;
+}
+
+.boveda-nav-pillar-btn.active .boveda-pillar-label {
+  color: #ffffff;
+}
+
+.boveda-pillar-art {
+  font-size: 0.64rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.boveda-nav-pillar-btn.active .boveda-pillar-art {
+  color: #cbd5e1;
+}
+
+.boveda-nav-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.boveda-nav-pillar-btn.active .boveda-nav-badge {
+  background: #334155;
+  color: #ffffff;
+}
+
+.boveda-nav-check {
+  font-size: 0.85rem;
+  color: #ffffff;
+  margin-left: 0.4rem;
+  flex-shrink: 0;
+}
+
+.boveda-summary-card {
+  margin-top: auto;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.85rem;
+}

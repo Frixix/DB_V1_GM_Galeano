@@ -107,8 +107,8 @@ export const COMMITTEE_MEMBERS = {
     convoker: 'Claudia (Rectora)',
     convokerKey: 'claudia',
     legalBasis: 'Decreto 1290 de 2009',
-    membersKeys: ['claudia', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'],
-    memberNames: ['Claudia (Rectora)', 'Profe 1 (Transición)', 'Jessica (1°)', 'Yuri (2°)', 'Profe 2 (3°)', 'Elcy (4°)', 'Profe 3 (5°)'],
+    membersKeys: ['claudia', 'liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'],
+    memberNames: ['Claudia (Rectora)', 'Liliana (Preescolar)', 'Yuri (1°)', 'Elcy (2°)', 'Blanca (3°)', 'Nicolle (4°)', 'Jessica (5°)'],
     description: 'Cierres de periodo lectivo, análisis de sábanas de calificaciones y planes de superación'
   },
   consejo_academico: {
@@ -117,8 +117,8 @@ export const COMMITTEE_MEMBERS = {
     convoker: 'Claudia (Rectora)',
     convokerKey: 'claudia',
     legalBasis: 'Ley 115 de 1994 (Art. 145)',
-    membersKeys: ['claudia', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'],
-    memberNames: ['Claudia (Rectora)', 'Jessica (Español)', 'Yuri (Ciencias Sociales)', 'Profe 2 (Matemáticas)', 'Elcy (Inglés)', 'Profe 3 (Ciencias Naturales)'],
+    membersKeys: ['claudia', 'liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'],
+    memberNames: ['Claudia (Rectora)', 'Liliana (Preescolar)', 'Yuri (Ciencias)', 'Elcy (Inglés)', 'Blanca (Matemáticas)', 'Nicolle (Sociales)', 'Jessica (Español)'],
     description: 'Alineación de mallas curriculares, Derechos Básicos de Aprendizaje (DBA) y proyectos pedagógicos'
   },
   reuniones_docentes: {
@@ -127,8 +127,8 @@ export const COMMITTEE_MEMBERS = {
     convoker: 'Claudia (Rectora)',
     convokerKey: 'claudia',
     legalBasis: 'Claustro de Profesores',
-    membersKeys: ['claudia', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'],
-    memberNames: ['Claudia (Rectora)', 'Profe 1', 'Jessica', 'Yuri', 'Profe 2', 'Elcy', 'Profe 3'],
+    membersKeys: ['claudia', 'liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'],
+    memberNames: ['Claudia (Rectora)', 'Liliana', 'Yuri', 'Elcy', 'Blanca', 'Nicolle', 'Jessica'],
     description: 'Jornadas pedagógicas institucionales, cronogramas de aula y acuerdos institucionales'
   }
 };
@@ -221,12 +221,12 @@ export const SEMAFORO_CONFIG = {
  * Lista de docentes seleccionables al radicar un hecho (puede ser cualquiera del cuerpo docente)
  */
 export const AVAILABLE_TEACHERS = [
-  { key: 'profe1', name: 'Profe 1', label: 'Docente • Dir. Transición' },
-  { key: 'jessica', name: 'Jessica', label: 'Docente Español • Dir. 1° Primaria' },
-  { key: 'yuri', name: 'Yuri', label: 'Docente C. Sociales • Dir. 2° Primaria' },
-  { key: 'profe2', name: 'Profe 2', label: 'Docente Matemáticas • Dir. 3° Primaria' },
-  { key: 'elcy', name: 'Elcy', label: 'Docente Inglés • Dir. 4° Primaria' },
-  { key: 'profe3', name: 'Profe 3', label: 'Docente C. Naturales • Dir. 5° Primaria' },
+  { key: 'liliana', name: 'Liliana', label: 'Docente Titular • Dir. Preescolar' },
+  { key: 'yuri', name: 'Yuri', label: 'Docente Ciencias • Dir. 1° Primaria' },
+  { key: 'elcy', name: 'Elcy', label: 'Docente Inglés • Dir. 2° Primaria' },
+  { key: 'blanca', name: 'Blanca', label: 'Docente Matemáticas • Dir. 3° Primaria' },
+  { key: 'nicolle', name: 'Nicolle', label: 'Docente Sociales • Dir. 4° Primaria' },
+  { key: 'jessica', name: 'Jessica', label: 'Docente Español • Dir. 5° Primaria' },
   { key: 'claudia', name: 'Claudia (Rectora)', label: 'Rectoría Institucional' }
 ];
 

@@ -8,18 +8,45 @@ import {
   ACADEMIC_PERIODS
 } from '../data/gradesTreeData.js';
 import gradesService from './gradesService.js';
+import { committeeService } from './committeeService.js';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
 
 const TEACHER_AUDIT_LOG_KEY = 'gmg_teacher_management_audit_v1';
+const TEACHER_RETIREMENT_HISTORY_KEY = 'gmg_teacher_retirements_history_v1';
 
 class TeacherService {
   constructor() {
     this.auditLogs = this.loadAuditLogs();
+    this.retirementsHistory = this.loadRetirementsHistory();
     this.realtimeChannel = null;
 
     if (typeof window !== 'undefined') {
       this.initRemoteSync();
     }
+  }
+
+  loadRetirementsHistory() {
+    if (typeof window === 'undefined') return [];
+    try {
+      const data = localStorage.getItem(TEACHER_RETIREMENT_HISTORY_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.warn('Error al cargar historial de bajas docentes:', e);
+      return [];
+    }
+  }
+
+  persistRetirementsHistory() {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(TEACHER_RETIREMENT_HISTORY_KEY, JSON.stringify(this.retirementsHistory));
+    } catch (e) {
+      console.error('Error al guardar historial de bajas docentes:', e);
+    }
+  }
+
+  getRetirementsHistory() {
+    return this.retirementsHistory;
   }
 
   loadAuditLogs() {
@@ -98,10 +125,16 @@ class TeacherService {
   // 1. GESTIÓN DE PLANTA DOCENTE (PERFILES)
   // =========================================================================
 
-  getTeachers() {
-    const teacherOrder = ['profe0', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'];
+  getTeachers(includeRetired = false) {
+    const teacherOrder = ['liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'];
     const teachers = Object.entries(USERS)
-      .filter(([key, u]) => u.role === 'docente' || key.startsWith('profe') || ['jessica', 'yuri', 'elcy'].includes(key))
+      .filter(([key, u]) => {
+        if (['admin', 'claudia', 'coordinacion', 'induccion', 'induccion_rectora'].includes(key)) return false;
+        const isDocenteRole = u.role === 'docente' || ['liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'].includes(key);
+        if (!isDocenteRole) return false;
+        if (!includeRetired && u.status === 'retirada') return false;
+        return true;
+      })
       .map(([key, u]) => {
         // Encontrar grado donde es director(a)
         const directedGrade = GRADES_LIST.find(g => {
@@ -239,7 +272,230 @@ class TeacherService {
   }
 
   // =========================================================================
-  // 2. GESTIÓN DE DIRECTORES DE CURSO
+  // 1.1 GESTIÓN DE BAJAS DOCENTES Y REEMPLAZO OBLIGATORIO DE RESPONSABILIDADES
+  // =========================================================================
+
+  /**
+   * Ejecuta la baja de un(a) docente y el traspaso total e inmediato de todas
+   * sus responsabilidades (dirección de curso, materias curriculares, comités de ley)
+   * a un(a) nuevo(a) docente entrante o existente.
+   */
+  async processTeacherDischarge({
+    retiredKey,
+    reason,
+    dischargeDate,
+    replacementMode, // 'new' | 'existing'
+    existingReplacementKey,
+    newTeacherData, // { name, label, pass }
+    author
+  }) {
+    if (!retiredKey || !USERS[retiredKey]) {
+      throw new Error(`Docente a dar de baja no encontrado: ${retiredKey}`);
+    }
+
+    if (!reason || !reason.trim()) {
+      throw new Error('Debe especificar el motivo formal de la baja/retiro del docente.');
+    }
+
+    const retiredDocente = { ...USERS[retiredKey] };
+    const now = new Date().toISOString();
+    const effectiveDate = dischargeDate || now.split('T')[0];
+
+    let replacementKey = null;
+    let replacementName = '';
+
+    if (replacementMode === 'new') {
+      if (!newTeacherData || !newTeacherData.name || !newTeacherData.name.trim()) {
+        throw new Error('Debe ingresar el nombre del nuevo docente que asume el cargo.');
+      }
+      
+      const cleanName = newTeacherData.name.trim();
+      // Generar una clave única para el nuevo usuario docente (ej. 'camila', 'laura_gomez')
+      let baseKey = cleanName.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, '_')
+        .split('_')[0];
+      
+      if (!baseKey || baseKey.length < 3) baseKey = 'docente';
+      let candidateKey = baseKey;
+      let counter = 1;
+      while (USERS[candidateKey] && candidateKey !== retiredKey) {
+        candidateKey = `${baseKey}_${counter}`;
+        counter++;
+      }
+
+      replacementKey = candidateKey;
+      replacementName = cleanName;
+
+      // Crear nuevo usuario docente en el sistema
+      saveUserOverride(replacementKey, {
+        name: cleanName,
+        role: 'docente',
+        label: newTeacherData.label || `Docente Reemplazo de ${retiredDocente.name}`,
+        initial: cleanName.slice(0, 1).toUpperCase(),
+        avatar: '/images/avatars/profe1.svg',
+        pass: newTeacherData.pass || `${replacementKey}2026`,
+        maxUploadBytes: 15 * 1024 * 1024,
+        maxUploadLabel: '15 MB',
+        status: 'activa'
+      });
+    } else {
+      if (!existingReplacementKey || !USERS[existingReplacementKey]) {
+        throw new Error('Debe seleccionar un docente existente de la planta para transferir las responsabilidades.');
+      }
+      if (existingReplacementKey === retiredKey) {
+        throw new Error('El docente sustituto no puede ser el mismo docente dado de baja.');
+      }
+      replacementKey = existingReplacementKey;
+      replacementName = USERS[replacementKey].name;
+    }
+
+    // 1. Marcar al docente saliente como 'retirada'
+    saveUserOverride(retiredKey, {
+      status: 'retirada',
+      retiredAt: effectiveDate,
+      retirementReason: reason.trim(),
+      replacedBy: replacementKey,
+      replacedByName: replacementName
+    });
+
+    // 2. Traspasar Dirección de Curso si el docente retirado era director
+    const transferredDirectorGrades = [];
+    GRADES_LIST.forEach(grade => {
+      const currentDir = gradesService.getGradeDirector(grade);
+      if (currentDir.docente_id === retiredKey) {
+        gradesService.customDirectors[grade] = {
+          docente_id: replacementKey,
+          teacherName: replacementName,
+          replacedFrom: retiredKey,
+          replacedFromName: retiredDocente.name,
+          updatedAt: now
+        };
+        transferredDirectorGrades.push(grade);
+      }
+    });
+
+    // 3. Traspasar todas las materias asignadas en la Malla Curricular
+    const transferredSubjects = [];
+    GRADES_LIST.forEach(grade => {
+      const gradeSubjects = gradesService.getSubjectsForGrade(grade);
+      gradeSubjects.forEach(subj => {
+        const assign = gradesService.getTeacherAssignment(grade, subj);
+        if (assign.docente_id === retiredKey) {
+          if (!gradesService.customAssignments[grade]) gradesService.customAssignments[grade] = {};
+          gradesService.customAssignments[grade][subj] = {
+            docente_id: replacementKey,
+            teacherName: replacementName,
+            previousDocenteKey: retiredKey,
+            previousTeacherName: retiredDocente.name,
+            updatedAt: now
+          };
+          transferredSubjects.push({ grade, subject: subj });
+
+          // Sincronizar en el árbol relacional SIEE de planillas y evaluaciones
+          ACADEMIC_YEARS.forEach(y => {
+            ACADEMIC_PERIODS.forEach(p => {
+              if (gradesService.tree[y]?.[p]?.[grade]?.[subj]) {
+                gradesService.tree[y][p][grade][subj].docente_id = replacementKey;
+                gradesService.tree[y][p][grade][subj].teacherName = replacementName;
+                gradesService.tree[y][p][grade][subj].lastUpdated = now;
+                gradesService.tree[y][p][grade][subj].lastUpdatedBy = `Baja Docente: ${retiredDocente.name} -> ${replacementName}`;
+              }
+            });
+          });
+        }
+      });
+    });
+
+    // Persistir el árbol relacional y directores
+    gradesService.persistCustomState();
+    gradesService.persistTree();
+
+    // 4. Traspasar Comités Institucionales de Ley (Ley 1620, Dec. 1290, Ley 115)
+    const transferredCommittees = [];
+    try {
+      const allCommittees = committeeService.getCommittees();
+      Object.entries(allCommittees).forEach(([cId, cData]) => {
+        if (cData.assignedTeachers && cData.assignedTeachers.includes(retiredKey)) {
+          const updatedTeachers = cData.assignedTeachers.map(k => k === retiredKey ? replacementKey : k);
+          committeeService.setAssignedTeachers(cId, updatedTeachers, author);
+          transferredCommittees.push(cData.name);
+        }
+      });
+    } catch (err) {
+      console.warn('[TeacherService] Error actualizando comités tras baja docente:', err);
+    }
+
+    // 5. Registrar en el Historial Permanente de Bajas Docentes
+    const retirementEntry = {
+      id: `BAJA-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      timestamp: now,
+      effectiveDate,
+      retiredKey,
+      retiredName: retiredDocente.name,
+      retiredLabel: retiredDocente.label || 'Docente',
+      reason: reason.trim(),
+      replacementKey,
+      replacementName,
+      replacementMode,
+      author: author?.name || 'Dirección',
+      authorRole: author?.role || 'admin',
+      transferredDirectorGrades,
+      transferredSubjectsCount: transferredSubjects.length,
+      transferredCommittees
+    };
+
+    this.retirementsHistory.unshift(retirementEntry);
+    this.persistRetirementsHistory();
+
+    // 6. Auditoría institucional
+    this.addAuditLog(
+      'Baja Docente y Reemplazo Obligatorio',
+      `Baja de ${retiredDocente.name}. Motivo: "${reason.trim()}". Entra en su lugar: ${replacementName}. Transferidas ${transferredSubjects.length} materias, directores: [${transferredDirectorGrades.join(', ')}] y comités: [${transferredCommittees.join(', ')}].`,
+      author
+    );
+
+    this.notifyUpdates();
+
+    // 7. Sincronizar en Supabase si está disponible
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('institutional_vault').upsert({
+          user_key: `teacher_retirement_${retirementEntry.id}`,
+          cipher: JSON.stringify(retirementEntry),
+          default_invalidated: true,
+          updated_at: now
+        }, { onConflict: 'user_key' });
+
+        // Actualizar perfiles remotos
+        await supabase.from('docentes_perfiles').upsert([
+          {
+            user_key: retiredKey,
+            name: retiredDocente.name,
+            label: retiredDocente.label,
+            status: 'retirada',
+            updated_at: now,
+            updated_by: author?.name || 'Dirección'
+          },
+          {
+            user_key: replacementKey,
+            name: replacementName,
+            label: USERS[replacementKey]?.label || '',
+            status: 'activa',
+            updated_at: now,
+            updated_by: author?.name || 'Dirección'
+          }
+        ], { onConflict: 'user_key' });
+      } catch (e) {
+        console.warn('[TeacherService] Error sincronizando baja en Supabase:', e);
+      }
+    }
+
+    return {
+      success: true,
+      entry: retirementEntry
+    };
+  }
   // =========================================================================
 
   getGradeDirectorsMap() {
@@ -492,13 +748,13 @@ class TeacherService {
 
     // 1. Asignar Directores Oficiales
     const officialDirectors = {
-      'Pre-Jardín': 'profe0',
-      'Transición': 'profe1',
-      '1° Primaria': 'jessica',
-      '2° Primaria': 'yuri',
-      '3° Primaria': 'profe2',
-      '4° Primaria': 'elcy',
-      '5° Primaria': 'profe3'
+      'Pre-Jardín': 'liliana',
+      'Transición': 'liliana',
+      '1° Primaria': 'yuri',
+      '2° Primaria': 'elcy',
+      '3° Primaria': 'blanca',
+      '4° Primaria': 'nicolle',
+      '5° Primaria': 'jessica'
     };
 
     Object.entries(officialDirectors).forEach(([grade, docKey]) => {
@@ -522,17 +778,17 @@ class TeacherService {
 
       let assignments = {};
       if (isPreschool) {
-        // En Preescolar (Pre-Jardín y Transición), la Directora de Curso no rota y tiene el control total de sus alumnos y evaluaciones
+        // En Preescolar (Pre-Jardín y Transición), Liliana a cargo de todas las asignaturas
         ALL_SUBJECTS.forEach(subj => {
-          assignments[subj] = { docente_id: dirKey, teacherName: dirTeacher.name };
+          assignments[subj] = { docente_id: 'liliana', teacherName: USERS.liliana.name };
         });
       } else {
         assignments = {
           'Lengua Castellana': { docente_id: 'jessica', teacherName: USERS.jessica.name },
-          'Inglés': { docente_id: 'elcy', teacherName: USERS.elcy.name },
-          'Ciencias Sociales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
+          'Matemáticas': { docente_id: 'blanca', teacherName: USERS.blanca.name },
           'Ciencias Naturales': { docente_id: 'yuri', teacherName: USERS.yuri.name },
-          'Matemáticas': { docente_id: 'profe2', teacherName: USERS.profe2.name },
+          'Ciencias Sociales': { docente_id: 'nicolle', teacherName: USERS.nicolle.name },
+          'Inglés': { docente_id: 'elcy', teacherName: USERS.elcy.name },
           // Materias formativas vinculadas a Directora de Curso:
           'Educación Artística': { docente_id: dirKey, teacherName: dirTeacher.name },
           'Religión': { docente_id: dirKey, teacherName: dirTeacher.name },
@@ -562,20 +818,19 @@ class TeacherService {
     });
 
     // 3. Actualizar Etiquetas de Perfil
-    saveUserOverride('profe0', { label: 'Docente • Dir. Pre-Jardín' });
-    saveUserOverride('profe1', { label: 'Docente • Dir. Transición' });
-    saveUserOverride('jessica', { label: 'Docente de Español • Dir. 1° Primaria' });
-    saveUserOverride('yuri', { label: 'Docente de Ciencias (Naturales & Sociales) • Dir. 2° Primaria' });
-    saveUserOverride('profe2', { label: 'Docente de Matemáticas • Dir. 3° Primaria' });
-    saveUserOverride('elcy', { label: 'Docente de Inglés • Dir. 4° Primaria' });
-    saveUserOverride('profe3', { label: 'Docente • Dir. 5° Primaria' });
+    saveUserOverride('liliana', { label: 'Docente Titular • Dir. Preescolar' });
+    saveUserOverride('yuri', { label: 'Docente de Ciencias (Naturales & Sociales) • Dir. 1° Primaria' });
+    saveUserOverride('elcy', { label: 'Docente de Inglés • Dir. 2° Primaria' });
+    saveUserOverride('blanca', { label: 'Docente de Matemáticas • Dir. 3° Primaria' });
+    saveUserOverride('nicolle', { label: 'Docente de Ciencias Sociales • Dir. 4° Primaria' });
+    saveUserOverride('jessica', { label: 'Docente de Español (Lengua Castellana) • Dir. 5° Primaria' });
 
     gradesService.persistCustomState();
     gradesService.persistTree();
 
     this.addAuditLog(
       'Aplicación de Preset Institucional Galeano 2026',
-      'Configuración integral: Preescolar sin rotación (Pre-Jardín y Transición con Directoras titulares a cargo total), Primaria con especialistas (Elcy, Jessica, Yuri, Profe 2).',
+      'Configuración integral: Preescolar con Liliana (todas las materias), 1° Yuri (Ciencias), 2° Elcy (Inglés), 3° Blanca (Matemáticas), 4° Nicolle (Sociales), 5° Jessica (Español).',
       adminUser
     );
 
@@ -593,7 +848,7 @@ class TeacherService {
         }));
         await supabase.from('directores_curso').upsert(directorsPayload, { onConflict: 'grade' });
 
-        const profilesPayload = ['profe0', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'].map(k => ({
+        const profilesPayload = ['liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'].map(k => ({
           user_key: k,
           name: USERS[k].name,
           label: USERS[k].label,

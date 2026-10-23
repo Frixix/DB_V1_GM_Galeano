@@ -5,6 +5,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 
 const GradesModule = lazy(() => import('./components/GradesModule'));
 const BovedaModule = lazy(() => import('./components/BovedaModule'));
+const Decreto1075Module = lazy(() => import('./components/Decreto1075Module'));
 const ObservadorModule = lazy(() => import('./components/ObservadorModule'));
 const FinalExamsModule = lazy(() => import('./components/FinalExamsModule'));
 const GestionDocenteModule = lazy(() => import('./components/GestionDocenteModule'));
@@ -125,6 +126,7 @@ export default function App() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [observadorDeepLink, setObservadorDeepLink] = useState(null);
+  const [decretoInitialPillar, setDecretoInitialPillar] = useState('all');
 
   const handleOpenProfile = useCallback((targetUserKey = null, initialTab = null) => {
     const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
@@ -501,9 +503,43 @@ export default function App() {
       <>
         <ModulesDashboard 
           currentUser={currentUser}
-          onSelectModule={(moduleId) => {
+          onSelectModule={(moduleId, options) => {
             if (moduleId === 'reemplazos') {
               setActiveModule(null);
+              return;
+            }
+            if (moduleId === 'docs') {
+              if (options?.folder) {
+                setCurrentFolder(options.folder);
+              }
+              setActiveModule('docs');
+              return;
+            }
+            if (moduleId === 'boveda') {
+              setActiveModule('boveda');
+              return;
+            }
+            if (moduleId === 'decreto1075' || moduleId === 'decreto_1075') {
+              if (options?.pillarId) {
+                setDecretoInitialPillar(options.pillarId);
+              } else {
+                setDecretoInitialPillar('all');
+              }
+              setActiveModule('decreto1075');
+              return;
+            }
+            if (moduleId === 'observador') {
+              if (options?.routeTab) {
+                setObservadorDeepLink({ routeTab: options.routeTab });
+              } else {
+                setObservadorDeepLink({ routeTab: 'observador' });
+              }
+              setActiveModule('observador');
+              return;
+            }
+            if (moduleId === 'comites') {
+              setObservadorDeepLink({ routeTab: options?.routeTab || 'comite_convivencia' });
+              setActiveModule('observador');
               return;
             }
             setActiveModule(moduleId);
@@ -1011,6 +1047,30 @@ export default function App() {
             isPrivileged={isPrivileged}
           />
         </Suspense>
+        {/* Modal para Ver Documento */}
+        <ViewModal 
+          key={`view_${selectedDocForView?.id}_${rosterTick}`}
+          isOpen={isViewModalOpen}
+          doc={selectedDocForView}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setSelectedDocForView(null);
+          }}
+          onDownload={handleDownloadDocument}
+          isUnread={selectedDocForView ? isDocUnread(selectedDocForView) : false}
+          onConfirmRead={handleConfirmRead}
+        />
+        {/* Modal para Subir / Radicar Documento en Bóveda */}
+        <UploadModal 
+          key={isUploadModalOpen ? `upload_modal_boveda_${currentFolder}_${rosterTick}` : 'upload_modal_boveda_closed'}
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          currentUser={currentUser}
+          onUploadSuccess={handleUploadSuccess}
+          existingCount={documents}
+          initialFolder={currentFolder}
+          totalUsedBytes={totalUsedBytes}
+        />
         {!hasBovedaCustomPassword(currentUser) && (
           <ForceBovedaPasswordModal
             currentUser={currentUser}
@@ -1064,7 +1124,65 @@ export default function App() {
           onRefresh={refreshPresence}
           loading={presenceLoading}
         />
+        <TrialWatermark documents={documents} />
+        <GlobalToasts 
+          avatarToast={avatarToast} 
+          onDismissAvatar={() => setAvatarToast(null)} 
+          inductionToast={inductionToast} 
+          onDismissInduction={() => setInductionToast(null)} 
+        />
+        <NotificationCenter
+          isOpen={isNotificationsOpen}
+          onClose={handleCloseNotifications}
+          currentUser={currentUser}
+          documents={documents}
+          observadorRecords={observadorRecords}
+          readCircularIds={readCircularIds}
+          onSelectNotification={handleSelectNotification}
+          onConfirmRead={handleConfirmRead}
+          onConfirmAllReads={handleConfirmAllReads}
+        />
+        <LogoutConfirmModal 
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={executeLogout}
+          currentUser={currentUser}
+        />
+      </ModuleThemeWrapper>
+    );
+  }
+
+  // Módulo Nuevo: Decreto 1075 de 2015 (9 Pilares Normativos de Inspección & Vigilancia)
+  if (activeModule === 'decreto1075' || activeModule === 'decreto_1075') {
+    return (
+      <ModuleThemeWrapper themeKey="decreto1075">
+        <Suspense fallback={<LoadingSpinner message="Cargando Módulo Decreto 1075 de 2015..." />}>
+          <Decreto1075Module 
+            currentUser={currentUser}
+            documents={documents}
+            initialPillar={decretoInitialPillar}
+            onBackToModules={() => setActiveModule(null)}
+            onOpenProfile={handleOpenProfile}
+            onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
+            onlineCount={onlineCount}
+            circularesCount={totalUnreadCount}
+            isNotificationsOpen={isNotificationsOpen}
+            onOpenCirculares={handleOpenCircularesBell}
+            onOpenTour={handleOpenTour}
+            onLogout={handleLogout}
+            onViewDocument={handleViewDocument}
+            onDownloadDocument={handleDownloadDocument}
+            onDeleteDocument={handleDeleteDocument}
+            onOpenUploadModal={() => {
+              setCurrentFolder('institucional');
+              setIsUploadModalOpen(true);
+            }}
+            isPrivileged={isPrivileged}
+          />
+        </Suspense>
+        {/* Modal para Ver Documento */}
         <ViewModal 
+          key={`view_${selectedDocForView?.id}_${rosterTick}`}
           isOpen={isViewModalOpen}
           doc={selectedDocForView}
           onClose={() => {
@@ -1075,23 +1193,57 @@ export default function App() {
           isUnread={selectedDocForView ? isDocUnread(selectedDocForView) : false}
           onConfirmRead={handleConfirmRead}
         />
+        {/* Modal para Subir / Radicar Documento */}
         <UploadModal 
-          key={isUploadModalOpen ? `upload_modal_${currentFolder}` : 'upload_modal_closed'}
+          key={isUploadModalOpen ? `upload_modal_decreto_${currentFolder}_${rosterTick}` : 'upload_modal_decreto_closed'}
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
           currentUser={currentUser}
           onUploadSuccess={handleUploadSuccess}
           existingCount={documents}
-          initialFolder="boveda"
+          initialFolder={currentFolder}
           totalUsedBytes={totalUsedBytes}
         />
-        <BovedaPasswordModal 
-          isOpen={isChangeBovedaModalOpen}
-          onClose={() => setIsChangeBovedaModalOpen(false)}
+        <ProfileModal 
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
           currentUser={currentUser}
-          onPasswordChanged={() => {
-            console.log('Clave de Bóveda actualizada exitosamente.');
+          initialTargetUserKey={profileTargetUserKey}
+          initialTab={profileInitialTab}
+          onProfileUpdated={(updatedUser) => {
+            setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
           }}
+          onAvatarUpdated={(targetKey, newAvatar) => {
+            const targetName = USERS[targetKey]?.name || targetKey;
+            setCurrentUser((prev) => {
+              if (prev && (prev.key === targetKey || prev.role === targetKey)) {
+                return { ...prev, avatar: newAvatar };
+              }
+              return prev;
+            });
+            setAvatarTick((t) => t + 1);
+            setAvatarToast({ name: targetName });
+            setTimeout(() => {
+              setAvatarToast(null);
+            }, 4500);
+
+            if (typeof refreshPresence === 'function') {
+              refreshPresence();
+            }
+          }}
+        />
+        <ConnectionsModal 
+          isOpen={isConnectionsModalOpen}
+          onClose={() => setIsConnectionsModalOpen(false)}
+          presenceData={presenceData}
+          currentUser={currentUser}
+          onSelectTeacher={(teacherName) => {
+            setCurrentTeacher(teacherName);
+            setCurrentFolder('all');
+            setActiveModule('docs');
+          }}
+          onRefresh={refreshPresence}
+          loading={presenceLoading}
         />
         <TrialWatermark documents={documents} />
         <GlobalToasts 

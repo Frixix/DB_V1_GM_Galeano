@@ -110,8 +110,8 @@ const createInitialEvaluationsData = () => {
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 09:30',
-        uploadedBy: 'Profe Pre-Jardín',
-        teacherId: 'profe0',
+        uploadedBy: 'Liliana',
+        teacherId: 'liliana',
         copiesNeeded: (STUDENTS_BY_GRADE['Pre-Jardín'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Guía de trazos iniciales, aprestamiento y discriminación fonológica.',
@@ -119,7 +119,7 @@ const createInitialEvaluationsData = () => {
       };
     }
 
-    // 1. Profe 1: Matemáticas en Transición (Directora no rota)
+    // 1. Liliana: Matemáticas en Transición (Preescolar)
     if (initialData[p1]['Transición']?.['Matemáticas']) {
       initialData[p1]['Transición']['Matemáticas'] = {
         id: 'EVAL-TRA-01',
@@ -127,13 +127,13 @@ const createInitialEvaluationsData = () => {
         grade: 'Transición',
         subject: 'Matemáticas',
         title: 'Evaluación de Matemáticas - Transición',
-        fileName: 'Evaluacion_Matematicas_Transicion_Profe1.pdf',
+        fileName: 'Evaluacion_Matematicas_Transicion_Liliana.pdf',
         fileSize: '1.2 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 10:15',
-        uploadedBy: 'Profe 1',
-        teacherId: 'profe1',
+        uploadedBy: 'Liliana',
+        teacherId: 'liliana',
         copiesNeeded: (STUDENTS_BY_GRADE['Transición'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Guía institucional de nociones lógicas, conteo inicial, conjuntos y figuras geométricas.',
@@ -141,51 +141,51 @@ const createInitialEvaluationsData = () => {
       };
     }
 
-    // 2. Jessica: Lengua Castellana (Español) en 1° Primaria
-    if (initialData[p1]['1° Primaria']?.['Lengua Castellana']) {
-      initialData[p1]['1° Primaria']['Lengua Castellana'] = {
+    // 2. Yuri: Ciencias Naturales en 1° Primaria
+    if (initialData[p1]['1° Primaria']?.['Ciencias Naturales']) {
+      initialData[p1]['1° Primaria']['Ciencias Naturales'] = {
         id: 'EVAL-1PRI-01',
         uploaded: true,
         grade: '1° Primaria',
-        subject: 'Lengua Castellana',
-        title: 'Evaluación de Lengua Castellana - 1° Primaria',
-        fileName: 'Evaluacion_Lengua_1Primaria_Jessica.pdf',
+        subject: 'Ciencias Naturales',
+        title: 'Evaluación de Ciencias Naturales - 1° Primaria',
+        fileName: 'Evaluacion_Naturales_1Primaria_Yuri.pdf',
         fileSize: '1.5 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 11:30',
-        uploadedBy: 'Jessica',
-        teacherId: 'jessica',
+        uploadedBy: 'Yuri',
+        teacherId: 'yuri',
         copiesNeeded: (STUDENTS_BY_GRADE['1° Primaria'] || []).length + 1,
         copiesStatus: 'impreso',
-        notes: 'Evaluación de lectoescritura inicial, comprensión silábica y fonemas básicos.',
+        notes: 'Evaluación de seres vivos, entorno natural y cuidado del medio ambiente.',
         downloadUrl: null
       };
     }
 
-    // 3. Yuri: Ciencias Sociales en 2° Primaria
-    if (initialData[p1]['2° Primaria']?.['Ciencias Sociales']) {
-      initialData[p1]['2° Primaria']['Ciencias Sociales'] = {
+    // 3. Elcy: Inglés en 2° Primaria
+    if (initialData[p1]['2° Primaria']?.['Inglés']) {
+      initialData[p1]['2° Primaria']['Inglés'] = {
         id: 'EVAL-2PRI-01',
         uploaded: true,
         grade: '2° Primaria',
-        subject: 'Ciencias Sociales',
-        title: 'Evaluación de Ciencias Sociales - 2° Primaria',
-        fileName: 'Evaluacion_Sociales_2Primaria_Yuri.pdf',
+        subject: 'Inglés',
+        title: 'Evaluación de Inglés - 2° Primaria',
+        fileName: 'Evaluacion_Ingles_2Primaria_Elcy.pdf',
         fileSize: '1.3 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 14:20',
-        uploadedBy: 'Yuri',
-        teacherId: 'yuri',
+        uploadedBy: 'Elcy',
+        teacherId: 'elcy',
         copiesNeeded: (STUDENTS_BY_GRADE['2° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
-        notes: 'Espacios geográficos cercanos, noción de comunidad y deberes ciudadanos.',
+        notes: 'Vocabulario temático en inglés, saludos, números y animales.',
         downloadUrl: null
       };
     }
 
-    // 4. Profe 2: Matemáticas en 3° Primaria
+    // 4. Blanca: Matemáticas en 3° Primaria
     if (initialData[p1]['3° Primaria']?.['Matemáticas']) {
       initialData[p1]['3° Primaria']['Matemáticas'] = {
         id: 'EVAL-3PRI-01',
@@ -193,13 +193,13 @@ const createInitialEvaluationsData = () => {
         grade: '3° Primaria',
         subject: 'Matemáticas',
         title: 'Evaluación de Matemáticas - 3° Primaria',
-        fileName: 'Evaluacion_Matematicas_3Primaria_Profe2.pdf',
+        fileName: 'Evaluacion_Matematicas_3Primaria_Blanca.pdf',
         fileSize: '1.4 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 16:10',
-        uploadedBy: 'Profe 2',
-        teacherId: 'profe2',
+        uploadedBy: 'Blanca',
+        teacherId: 'blanca',
         copiesNeeded: (STUDENTS_BY_GRADE['3° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
         notes: 'Resolución de problemas con operaciones multiplicativas y tablas de datos.',
@@ -207,46 +207,46 @@ const createInitialEvaluationsData = () => {
       };
     }
 
-    // 5. Elcy: Inglés en 4° Primaria
-    if (initialData[p1]['4° Primaria']?.['Inglés']) {
-      initialData[p1]['4° Primaria']['Inglés'] = {
+    // 5. Nicolle: Ciencias Sociales en 4° Primaria
+    if (initialData[p1]['4° Primaria']?.['Ciencias Sociales']) {
+      initialData[p1]['4° Primaria']['Ciencias Sociales'] = {
         id: 'EVAL-4PRI-01',
         uploaded: true,
         grade: '4° Primaria',
-        subject: 'Inglés',
-        title: 'Evaluación de Inglés - 4° Primaria',
-        fileName: 'Evaluacion_Ingles_4Primaria_Elcy.pdf',
+        subject: 'Ciencias Sociales',
+        title: 'Evaluación de Ciencias Sociales - 4° Primaria',
+        fileName: 'Evaluacion_Sociales_4Primaria_Nicolle.pdf',
         fileSize: '1.8 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 15:45',
-        uploadedBy: 'Elcy',
-        teacherId: 'elcy',
+        uploadedBy: 'Nicolle',
+        teacherId: 'nicolle',
         copiesNeeded: (STUDENTS_BY_GRADE['4° Primaria'] || []).length + 1,
         copiesStatus: 'impreso',
-        notes: 'Vocabulario temático en inglés, comprensión lectora y estructuras de preguntas.',
+        notes: 'Geografía de Colombia, regiones naturales y división político-administrativa.',
         downloadUrl: null
       };
     }
 
-    // 6. Yuri: Ciencias Naturales en 5° Primaria
-    if (initialData[p1]['5° Primaria']?.['Ciencias Naturales']) {
-      initialData[p1]['5° Primaria']['Ciencias Naturales'] = {
+    // 6. Jessica: Lengua Castellana en 5° Primaria
+    if (initialData[p1]['5° Primaria']?.['Lengua Castellana']) {
+      initialData[p1]['5° Primaria']['Lengua Castellana'] = {
         id: 'EVAL-5PRI-01',
         uploaded: true,
         grade: '5° Primaria',
-        subject: 'Ciencias Naturales',
-        title: 'Evaluación de Ciencias Naturales - 5° Primaria',
-        fileName: 'Evaluacion_Naturales_5Primaria_Yuri.pdf',
+        subject: 'Lengua Castellana',
+        title: 'Evaluación de Lengua Castellana - 5° Primaria',
+        fileName: 'Evaluacion_Lengua_5Primaria_Jessica.pdf',
         fileSize: '1.6 MB',
         fileType: 'application/pdf',
         storageKey: null,
         uploadedAt: '2026-03-24 17:00',
-        uploadedBy: 'Yuri',
-        teacherId: 'yuri',
+        uploadedBy: 'Jessica',
+        teacherId: 'jessica',
         copiesNeeded: (STUDENTS_BY_GRADE['5° Primaria'] || []).length + 1,
         copiesStatus: 'aprobado',
-        notes: 'Sistemas biológicos humanos, nutrición y ecosistemas de Colombia.',
+        notes: 'Comprensión textual analítica, producción escrita y figuras literarias.',
         downloadUrl: null
       };
     }

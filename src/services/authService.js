@@ -491,13 +491,12 @@ export const DEFAULT_PASSWORDS = {
   admin: 'admin2026',
   claudia: 'rectora2026',
   coordinacion: 'coordinacion2026',
-  profe0: 'prejardin2026',
-  profe1: 'profe12026',
-  jessica: 'jessica2026',
+  liliana: 'liliana2026',
   yuri: 'yuri2026',
-  profe2: 'profe22026',
   elcy: 'elcy2026',
-  profe3: 'profe32026'
+  blanca: 'blanca2026',
+  nicolle: 'nicolle2026',
+  jessica: 'jessica2026'
 };
 
 /**
@@ -551,7 +550,7 @@ export async function resetUserPasswordToDefault(userKey) {
  * Restablece masivamente las contraseñas de todas las profesoras y rectora a sus valores por defecto
  */
 export async function resetAllStaffPasswordsToDefault() {
-  const staffKeys = ['claudia', 'profe1', 'jessica', 'yuri', 'profe2', 'elcy', 'profe3'];
+  const staffKeys = ['claudia', 'liliana', 'yuri', 'elcy', 'blanca', 'nicolle', 'jessica'];
   const results = [];
   for (const k of staffKeys) {
     const res = await resetUserPasswordToDefault(k);

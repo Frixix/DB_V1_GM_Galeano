@@ -444,12 +444,12 @@ export default function ProfileModal({
                     onChange={(e) => handleSelectTargetUser(e.target.value)}
                   >
                     <option value="claudia">Claudia (Rectora Institucional)</option>
-                    <option value="profe1">Profe 1 (Dir. Transición)</option>
-                    <option value="jessica">Jessica (Español • Dir. 1° Primaria)</option>
-                    <option value="yuri">Yuri (Ciencias Sociales • Dir. 2° Primaria)</option>
-                    <option value="profe2">Profe 2 (Matemáticas • Dir. 3° Primaria)</option>
-                    <option value="elcy">Elcy (Inglés • Dir. 4° Primaria)</option>
-                    <option value="profe3">Profe 3 (Ciencias Naturales • Dir. 5° Primaria)</option>
+                    <option value="liliana">Liliana (Dir. Preescolar)</option>
+                    <option value="yuri">Yuri (Ciencias • Dir. 1° Primaria)</option>
+                    <option value="elcy">Elcy (Inglés • Dir. 2° Primaria)</option>
+                    <option value="blanca">Blanca (Matemáticas • Dir. 3° Primaria)</option>
+                    <option value="nicolle">Nicolle (Sociales • Dir. 4° Primaria)</option>
+                    <option value="jessica">Jessica (Español • Dir. 5° Primaria)</option>
                     <option value="admin">Administrador General</option>
                     <option value="induccion_rectora">Claudia (Inducción Rectora)</option>
                     <option value="induccion">Inducción Profesoras</option>

@@ -3,14 +3,12 @@ import PortalNavbar from './PortalNavbar';
 import { verifyBovedaPassword, getBovedaCredentials } from '../services/authService';
 import DocumentCard from './DocumentCard';
 import DocumentTable from './DocumentTable';
+import BovedaSidebar from './BovedaSidebar';
 import './BovedaModule.css';
 
 /**
- * MÓDULO INSTITUCIONAL: BÓVEDA DIRECTIVA DE ALTA CAPACIDAD
- * Cero salto visual respecto a Gestión de Módulos (altura de navbar, padding y tipografía idénticos).
- * Tipografía: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
- * Color procedimental: Gris Pastel (#f1f5f9 / #e2e8f0 / #cbd5e1)
- * Texto: Negro formal institucional (#0f172a)
+ * MÓDULO INSTITUCIONAL: BÓVEDA CONFIDENCIAL
+ * Exclusivo para la Rectora y el Administrador: custodia privada de nóminas, balances, contratos y resoluciones.
  */
 export default function BovedaModule({
   currentUser,
@@ -43,55 +41,74 @@ export default function BovedaModule({
   const [showPassword, setShowPassword] = useState(false);
   const [unlockError, setUnlockError] = useState('');
 
-  const userName = currentUser?.name || 'Usuario Directivo';
-  const userRole = currentUser?.label || currentUser?.role || 'Personal Institucional';
-  const userInitial = currentUser?.initial || (userName ? userName.charAt(0).toUpperCase() : 'U');
-
   const bovedaCreds = getBovedaCredentials();
 
-  // Filtrado de documentos de Bóveda
+  // Filtrado de documentos pertenecientes a la Bóveda Directiva
   const bovedaDocs = useMemo(() => {
     return documents.filter((doc) => {
+      // Debe pertenecer a la bóveda
       if (doc.folder !== 'boveda') return false;
-      if (bovedaYear !== 'all' && doc.bovedaYear !== bovedaYear) return false;
-      if (bovedaSubfolder !== 'all' && doc.bovedaSubfolder !== bovedaSubfolder) return false;
 
-      if (search) {
-        const q = search.toLowerCase();
-        const match =
-          (doc.title && doc.title.toLowerCase().includes(q)) ||
-          (doc.teacher && doc.teacher.toLowerCase().includes(q)) ||
-          (doc.notes && doc.notes.toLowerCase().includes(q)) ||
-          (doc.id && doc.id.toLowerCase().includes(q));
-        if (!match) return false;
+      // Filtro por Año
+      if (bovedaYear !== 'all' && doc.bovedaYear !== bovedaYear) {
+        return false;
       }
+
+      // Filtro por Subcarpeta Confidencial
+      if (bovedaSubfolder !== 'all' && doc.bovedaSubfolder !== bovedaSubfolder) {
+        return false;
+      }
+
+      // Filtro por Texto de Búsqueda
+      if (search.trim()) {
+        const query = search.toLowerCase();
+        const matchesTitle = doc.title?.toLowerCase().includes(query);
+        const matchesTeacher = doc.teacher?.toLowerCase().includes(query);
+        const matchesSubject = doc.subject?.toLowerCase().includes(query);
+        const matchesId = doc.id?.toLowerCase().includes(query);
+        if (!matchesTitle && !matchesTeacher && !matchesSubject && !matchesId) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [documents, bovedaYear, bovedaSubfolder, search]);
 
+  // Almacenamiento total de la bóveda
   const totalBovedaBytes = useMemo(() => {
     return documents
-      .filter((d) => d.folder === 'boveda')
-      .reduce((sum, d) => sum + (d.rawBytes || 0), 0);
+      .filter((doc) => doc.folder === 'boveda')
+      .reduce((acc, curr) => acc + (curr.rawBytes || 0), 0);
   }, [documents]);
 
   const formatStorageMB = (bytes) => {
     return (bytes / (1024 * 1024)).toFixed(1);
   };
 
+  // Manejo de envío de contraseña
   const handleUnlockSubmit = (e) => {
     e.preventDefault();
     setUnlockError('');
 
-    const res = verifyBovedaPassword(password, currentUser);
-    if (res.valid) {
+    const isValid = verifyBovedaPassword(password, currentUser);
+    if (isValid) {
+      setIsBovedaUnlocked(true);
       setPassword('');
       setUnlockError('');
-      setIsBovedaUnlocked(true);
     } else {
-      setUnlockError(res.error || 'Clave de seguridad incorrecta. Acceso a la bóveda denegado.');
+      setUnlockError('Contraseña incorrecta. Recuerde que el acceso a la Bóveda está reservado exclusivamente para la Rectora y el Administrador.');
       setPassword('');
     }
+  };
+
+  const getSubfolderTitle = () => {
+    if (bovedaSubfolder === 'financiero') return 'Financiero & Balances Privados';
+    if (bovedaSubfolder === 'contratos') return 'Contratos & Nómina Docente';
+    if (bovedaSubfolder === 'legal') return 'Resoluciones & Legalidad Institucional';
+    if (bovedaSubfolder === 'consejo') return 'Actas de Consejo Directivo';
+    if (bovedaSubfolder === 'pei_soporte') return 'Soportes de Licencia & Despacho';
+    return 'Archivo Ultraconfidencial de Despacho';
   };
 
   return (
@@ -99,8 +116,8 @@ export default function BovedaModule({
       {/* Navbar Superior Unificado */}
       <PortalNavbar
         currentUser={currentUser}
-        moduleTitle="Bóveda Directiva"
-        moduleSubtitle="Custodia Confidencial de Alta Seguridad"
+        moduleTitle="Bóveda Confidencial"
+        moduleSubtitle="Custodia Privada de Despacho (Solo Rectora & Admin)"
         onBackToModules={onBackToModules}
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
@@ -112,10 +129,9 @@ export default function BovedaModule({
         onLogout={onLogout}
       />
 
-      {/* Área de Contenido Principal (Mismo fondo y alineación) */}
-      <div className="boveda-content-area">
-        {!isBovedaUnlocked ? (
-          /* CASO 1: BLOQUEADA (Tarjeta de Autorización integrada con fluidez) */
+      {!isBovedaUnlocked ? (
+        /* CASO 1: BLOQUEADA (Tarjeta de Autorización integrada) */
+        <div className="boveda-content-area">
           <section className="boveda-lock-container">
             <div className="boveda-lock-card">
               <div className="boveda-lock-icon-container">
@@ -123,7 +139,7 @@ export default function BovedaModule({
               </div>
               <h2>Bóveda Institucional Protegida</h2>
               <p>
-                Espacio confidencial reservado para custodia de actas de consejo directivo, resoluciones, estados financieros y contratos docentes.
+                Espacio ultraconfidencial reservado para la Rectora y el Administrador: custodia privada de balances contables, contratos y nómina docente.
               </p>
 
               <div className="boveda-dual-key-row">
@@ -191,19 +207,35 @@ export default function BovedaModule({
               </form>
             </div>
           </section>
-        ) : (
-          /* CASO 2: DESBLOQUEADA (Consola y Cuadrícula de Archivos) */
-          <>
-            {/* Banner de Control Superior de Bóveda */}
+        </div>
+      ) : (
+        /* CASO 2: DESBLOQUEADA (Barra Lateral Izquierda + Panel Central Principal) */
+        <div className="boveda-layout">
+          {/* Barra Lateral Izquierda: Subcarpetas de Despacho Directivo */}
+          <BovedaSidebar
+            currentUser={currentUser}
+            selectedSubfolder={bovedaSubfolder}
+            onSelectSubfolder={(subfolderId) => setBovedaSubfolder(subfolderId)}
+            onBackToModules={onBackToModules}
+            onOpenProfile={onOpenProfile}
+            bovedaDocsCount={bovedaDocs.length}
+            totalBovedaBytes={totalBovedaBytes}
+            onOpenChangeBovedaModal={onOpenChangeBovedaModal}
+            onLockBoveda={() => setIsBovedaUnlocked(false)}
+          />
+
+          {/* Área Central de Contenido */}
+          <main className="boveda-main-content">
+            {/* Banner de Cabecera */}
             <section className="boveda-banner-card">
               <div className="boveda-banner-left">
                 <div className="boveda-banner-icon-box">
                   <i className="ph-bold ph-shield-check"></i>
                 </div>
                 <div>
-                  <h2 className="boveda-banner-title">Bóveda Directiva de Alta Capacidad</h2>
+                  <h2 className="boveda-banner-title">{getSubfolderTitle()}</h2>
                   <p className="boveda-banner-sub">
-                    Custodia y auditoría de archivos de alta seguridad (hasta 2 GB). Almacenamiento usado: <strong>{formatStorageMB(totalBovedaBytes)} MB</strong> en <strong>{bovedaDocs.length}</strong> {bovedaDocs.length === 1 ? 'documento' : 'documentos'}.
+                    Custodia privada y auditoría de archivos de alta seguridad (hasta 2 GB). Almacenamiento usado: <strong>{formatStorageMB(totalBovedaBytes)} MB</strong> en <strong>{bovedaDocs.length}</strong> {bovedaDocs.length === 1 ? 'documento' : 'documentos'}.
                   </p>
                 </div>
               </div>
@@ -252,30 +284,11 @@ export default function BovedaModule({
                   </select>
                 </div>
 
-                <div className="boveda-filter-unit">
-                  <label htmlFor="bovedaFilterSubfolder">
-                    <i className="ph-bold ph-folder-notch-open"></i> Subcarpeta:
-                  </label>
-                  <select
-                    id="bovedaFilterSubfolder"
-                    className="boveda-select-control"
-                    value={bovedaSubfolder}
-                    onChange={(e) => setBovedaSubfolder(e.target.value)}
-                  >
-                    <option value="all">Todas las subcarpetas</option>
-                    <option value="consejo">Actas de Consejo Directivo</option>
-                    <option value="financiero">Financiero & Contable</option>
-                    <option value="legal">Resoluciones & Legalidad</option>
-                    <option value="contratos">Contratos & Nómina Docente</option>
-                    <option value="pei_soporte">Soportes PEI & Licencias</option>
-                  </select>
-                </div>
-
                 <div className="boveda-search-box">
                   <i className="ph-bold ph-magnifying-glass"></i>
                   <input
                     type="text"
-                    placeholder="Buscar en la bóveda..."
+                    placeholder="Buscar en el archivo confidencial..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -337,7 +350,7 @@ export default function BovedaModule({
                   <div className="boveda-empty-icon">
                     <i className="ph-bold ph-vault"></i>
                   </div>
-                  <h3>No hay archivos en la Bóveda con los filtros seleccionados</h3>
+                  <h3>No hay archivos confidenciales con los filtros seleccionados</h3>
                   <p>Puedes subir documentos de alta seguridad o ajustar el año y subcarpeta seleccionados.</p>
                   <button 
                     type="button" 
@@ -350,11 +363,11 @@ export default function BovedaModule({
                 </div>
               )}
             </section>
-          </>
-        )}
-      </div>
+          </main>
+        </div>
+      )}
 
-      {/* Botón Flotante para Subir Documento a la Bóveda (Inferior Derecha - Cero salto respecto a los otros módulos) */}
+      {/* Botón Flotante para Subir Documento a la Bóveda */}
       {isBovedaUnlocked && (
         <button
           type="button"

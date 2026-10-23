@@ -4,13 +4,12 @@ import { USERS } from '../data/users.js';
 
 // Lista de docentes elegibles para representación institucional
 const ELIGIBLE_TEACHERS = [
-  { key: 'profe0', name: 'Profe Pre-Jardín', grade: 'Pre-Jardín' },
-  { key: 'profe1', name: 'Profe 1', grade: 'Transición' },
-  { key: 'jessica', name: 'Jessica', grade: '1° Primaria' },
-  { key: 'yuri', name: 'Yuri', grade: '2° Primaria' },
-  { key: 'profe2', name: 'Profe 2', grade: '3° Primaria' },
-  { key: 'elcy', name: 'Elcy', grade: '4° Primaria' },
-  { key: 'profe3', name: 'Profe 3', grade: '5° Primaria' }
+  { key: 'liliana', name: 'Liliana', grade: 'Preescolar' },
+  { key: 'yuri', name: 'Yuri', grade: '1° Primaria' },
+  { key: 'elcy', name: 'Elcy', grade: '2° Primaria' },
+  { key: 'blanca', name: 'Blanca', grade: '3° Primaria' },
+  { key: 'nicolle', name: 'Nicolle', grade: '4° Primaria' },
+  { key: 'jessica', name: 'Jessica', grade: '5° Primaria' }
 ];
 
 export default function CommitteeAssignmentModal({

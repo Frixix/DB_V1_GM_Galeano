@@ -958,7 +958,241 @@
   font-weight: 600;
 }
 
-/* Toast flotante de éxito */
+/* Botón de Baja de Docente */
+.gd-btn-discharge-teacher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gd-btn-discharge-teacher:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   ESTILOS DE LA PESTAÑA: HISTORIAL DE BAJAS Y REEMPLAZOS
+   ========================================================================== */
+.gd-retirements-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.gd-retirement-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.gd-retirement-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.gd-ret-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.gd-ret-badge-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.gd-ret-id {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.gd-ret-transfer-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.gd-ret-box-person {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.gd-ret-box-person.out {
+  border: 1px solid #fecdd3;
+  border-left: 4px solid #e11d48;
+}
+
+.gd-ret-box-person.in {
+  border: 1px solid #99f6e4;
+  border-left: 4px solid #0f766e;
+}
+
+.gd-ret-role-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #e11d48;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.gd-ret-role-tag.in {
+  color: #0f766e;
+}
+
+.gd-ret-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.gd-ret-desc {
+  font-size: 0.76rem;
+  color: #64748b;
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.gd-ret-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #0f766e;
+  font-size: 1.35rem;
+}
+
+.gd-ret-arrow span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.15rem;
+}
+
+.gd-ret-reason-box {
+  background: #fff1f2;
+  border: 1px dashed #fecdd3;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.gd-ret-reason-box strong {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #be123c;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.gd-ret-reason-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #881337;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.gd-ret-transferred-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.gd-ret-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.gd-ret-chip.dir {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.gd-ret-chip.subjects {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
+.gd-ret-chip.com {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
+.gd-ret-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.78rem;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gd-ret-timestamp {
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 640px) {
+  .gd-ret-transfer-flow {
+    grid-template-columns: 1fr;
+  }
+  .gd-ret-arrow {
+    transform: rotate(90deg);
+    padding: 0.5rem 0;
+  }
+}
+
 .gd-toast-floating {
   position: fixed;
   bottom: 2rem;

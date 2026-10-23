@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import PortalNavbar from './PortalNavbar';
+import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories';
 import './ModulesDashboard.css';
 
 /**
@@ -42,7 +43,7 @@ export default function ModulesDashboard({
   }, [devModalInfo]);
 
   // Manejo de clic en módulos con control de fase de desarrollo
-  const handleModuleClick = (moduleId) => {
+  const handleModuleClick = (moduleId, options) => {
     if (moduleId === 'matriculas' && !canManageMatriculas) {
       setDevModalInfo({
         moduleId,
@@ -83,7 +84,7 @@ export default function ModulesDashboard({
 
     setSelectedNavModule(moduleId);
     if (onSelectModule) {
-      onSelectModule(moduleId);
+      onSelectModule(moduleId, options);
     }
   };
 
@@ -93,7 +94,7 @@ export default function ModulesDashboard({
       <PortalNavbar
         currentUser={currentUser}
         moduleTitle={null}
-        moduleSubtitle="Portal Institucional de Módulos"
+        moduleSubtitle="Sistema Integral de Archivo Institucional & Custodia de Actas"
         onBackToModules={null}
         onOpenConnectionsModal={onOpenConnectionsModal}
         onlineCount={onlineCount}
@@ -110,9 +111,106 @@ export default function ModulesDashboard({
         {/* Sidebar Izquierda */}
         <aside className="portal-sidebar">
           <div className="portal-sidebar-section">
-            <p className="portal-sidebar-label">MÓDULOS DEL SISTEMA</p>
+            <p className="portal-sidebar-label">MÓDULOS PRINCIPALES</p>
             <nav className="portal-sidebar-nav" id="tour-sidebar-nav">
-              {/* Módulo 1 (Destacado SIEE): Control Académico para Coordinador o Notas para Admin/Docente */}
+              {/* Módulo Protagonista 1: Bóveda Confidencial (Rectoría & Admin) */}
+              {isPrivileged && (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-boveda ${selectedNavModule === 'boveda' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('boveda')}
+                  title="Acceso exclusivo Rectoría y Administrador: archivos ultraconfidenciales, financieros y contratos"
+                >
+                  <i className="ph-bold ph-vault"></i>
+                  <span className="portal-nav-text">Bóveda Confidencial</span>
+                  <span className="portal-sidebar-active-tag" style={{ background: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1' }}>Exclusivo</span>
+                </button>
+              )}
+
+              {/* Módulo Protagonista 2: Circulares Oficiales */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-docs ${selectedNavModule === 'circulares' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('docs', { folder: 'institucional' })}
+                title="Acceder a Circulares Institucionales y Comunicados Oficiales"
+                style={{ marginTop: '0.25rem' }}
+              >
+                <i className="ph-bold ph-newspaper"></i>
+                <span className="portal-nav-text">Circulares Oficiales</span>
+                {circularesCount > 0 ? (
+                  <span className="portal-sidebar-active-tag" style={{ background: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }}>
+                    {circularesCount} nueva{circularesCount > 1 ? 's' : ''}
+                  </span>
+                ) : (
+                  <span className="portal-sidebar-active-tag">Activo</span>
+                )}
+              </button>
+
+              {/* Módulo Protagonista 3: Comités & Actas Oficiales */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-comites ${selectedNavModule === 'comites' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('comites')}
+                title="Módulo institucional de Actas de Comités: Convivencia Escolar, Comisión de Evaluación y Consejo Académico"
+                style={{
+                  marginTop: '0.25rem',
+                  color: selectedNavModule === 'comites' ? '#be123c' : undefined,
+                  fontWeight: selectedNavModule === 'comites' ? 700 : undefined,
+                  background: selectedNavModule === 'comites' ? '#fff1f2' : undefined,
+                  borderColor: selectedNavModule === 'comites' ? '#fecdd3' : undefined
+                }}
+              >
+                <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'comites' ? '#be123c' : '#e11d48' }}></i>
+                <span className="portal-nav-text">Comités & Actas</span>
+                <span className="portal-sidebar-active-tag" style={{ background: '#ffe4e6', color: '#be123c', borderColor: '#fecdd3' }}>Gobierno</span>
+              </button>
+
+              {/* Módulo Protagonista 4: Módulo Oficial Decreto 1075 de 2015 */}
+              <button 
+                type="button"
+                className={`portal-nav-item portal-nav-item-decreto ${selectedNavModule === 'decreto1075' ? 'active' : ''}`}
+                onClick={() => handleModuleClick('decreto1075')}
+                title="Acceder al Módulo Oficial Decreto 1075 de 2015: 9 Pilares de Inspección y Vigilancia"
+                style={{
+                  marginTop: '0.25rem',
+                  color: selectedNavModule === 'decreto1075' ? '#1e3a8a' : undefined,
+                  fontWeight: selectedNavModule === 'decreto1075' ? 700 : undefined,
+                  background: selectedNavModule === 'decreto1075' ? '#eff6ff' : undefined,
+                  borderColor: selectedNavModule === 'decreto1075' ? '#bfdbfe' : undefined
+                }}
+              >
+                <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'decreto1075' ? '#1e3a8a' : '#2563eb' }}></i>
+                <span className="portal-nav-text">Decreto 1075 de 2015</span>
+                <span className="portal-sidebar-active-tag" style={{ background: '#dbeafe', color: '#1e40af', borderColor: '#bfdbfe' }}>9 Pilares</span>
+              </button>
+
+              {/* Módulo Protagonista 5: Gestión Docente & Planta Curricular */}
+              {canManageDocentes && (
+                <button 
+                  type="button"
+                  className={`portal-nav-item portal-nav-item-docentes ${selectedNavModule === 'docentes' ? 'active' : ''}`}
+                  onClick={() => handleModuleClick('docentes')}
+                  title="Gestión de Planta Docente, Novedades, Bajas, Reemplazos y Malla Curricular"
+                  style={{
+                    marginTop: '0.25rem',
+                    color: selectedNavModule === 'docentes' ? '#0f766e' : undefined,
+                    fontWeight: selectedNavModule === 'docentes' ? 700 : undefined,
+                    background: selectedNavModule === 'docentes' ? '#f0fdfa' : undefined,
+                    borderColor: selectedNavModule === 'docentes' ? '#99f6e4' : undefined
+                  }}
+                >
+                  <i className="ph-bold ph-chalkboard-teacher" style={{ color: selectedNavModule === 'docentes' ? '#0f766e' : '#0d9488' }}></i>
+                  <span className="portal-nav-text">Gestión Docente</span>
+                  <span className="portal-sidebar-active-tag" style={{ background: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' }}>Directivo</span>
+                </button>
+              )}
+            </nav>
+          </div>
+
+          <div className="portal-sidebar-section">
+            <p className="portal-sidebar-label">GESTIÓN & SIEE</p>
+            <nav className="portal-sidebar-nav">
+              {/* Control Académico para Coordinador o Notas para Admin/Docente */}
               {isCoordinador ? (
                 <button 
                   type="button"
@@ -121,8 +219,7 @@ export default function ModulesDashboard({
                   title="Consola de Control Académico y Evaluaciones (SIEE)"
                 >
                   <i className="ph-bold ph-clipboard-text"></i>
-                  <span className="portal-nav-text">Control Académico y Evaluaciones</span>
-                  <span className="portal-sidebar-active-tag">Activo</span>
+                  <span className="portal-nav-text">Control Académico (SIEE)</span>
                 </button>
               ) : (
                 <button 
@@ -133,37 +230,20 @@ export default function ModulesDashboard({
                 >
                   <i className="ph-bold ph-chart-line-up"></i>
                   <span className="portal-nav-text">Notas & Calificaciones</span>
-                  <span className="portal-sidebar-active-tag" style={{ background: '#ffedd5', color: '#c2410c', borderColor: '#fed7aa' }}>Activo</span>
                 </button>
               )}
 
-              {/* Módulo 2 Activo: Recursos Pedagógicos & Circulares */}
+              {/* Recursos Pedagógicos & Repositorio General */}
               <button 
                 type="button"
                 className={`portal-nav-item portal-nav-item-docs ${selectedNavModule === 'docs' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('docs')}
-                title="Acceder a Recursos Pedagógicos & Circulares"
+                title="Acceder a Recursos Pedagógicos, Planeaciones y Talleres"
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-folder-notch-open"></i>
-                <span className="portal-nav-text">Recursos Pedagógicos & Circulares</span>
+                <span className="portal-nav-text">Recursos Pedagógicos</span>
               </button>
-
-
-
-              {/* Módulo Activo: Bóveda Directiva */}
-              {isPrivileged && (
-                <button 
-                  type="button"
-                  className={`portal-nav-item portal-nav-item-boveda ${selectedNavModule === 'boveda' ? 'active' : ''}`}
-                  onClick={() => handleModuleClick('boveda')}
-                  title="Acceder a Bóveda Directiva & Archivo Confidencial"
-                  style={{ marginTop: '0.25rem' }}
-                >
-                  <i className="ph-bold ph-vault"></i>
-                  <span className="portal-nav-text">Bóveda Directiva</span>
-                </button>
-              )}
 
               {/* Módulo: Gestión de Matrícula & Censo (Fase 5) */}
               {canManageMatriculas && (
@@ -176,36 +256,20 @@ export default function ModulesDashboard({
                 >
                   <i className="ph-bold ph-identification-badge"></i>
                   <span className="portal-nav-text">Matrículas & Censo</span>
-                  <span className="portal-sidebar-active-tag" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>Fase 5</span>
                 </button>
               )}
 
-              {/* Módulo: Observador & Actas */}
+              {/* Módulo: Observador del Estudiante */}
               <button 
                 type="button"
                 className={`portal-nav-item portal-nav-item-observador ${selectedNavModule === 'observador' ? 'active' : ''}`}
                 onClick={() => handleModuleClick('observador')}
-                title="Acceder a Observador del Estudiante y Actas de Comités"
+                title="Acceder a Observador del Estudiante (Seguimiento, Citaciones y PIAR)"
                 style={{ marginTop: '0.25rem' }}
               >
                 <i className="ph-bold ph-user-list"></i>
-                <span className="portal-nav-text">Observador & Actas</span>
+                <span className="portal-nav-text">Observador del Estudiante</span>
               </button>
-
-              {/* Módulo: Gestión Docente & Malla Curricular */}
-              {canManageDocentes && (
-                <button 
-                  type="button"
-                  className={`portal-nav-item portal-nav-item-docentes ${selectedNavModule === 'docentes' ? 'active' : ''}`}
-                  onClick={() => handleModuleClick('docentes')}
-                  title="Gestión de Planta Docente, Directores de Curso y Malla Curricular"
-                  style={{ marginTop: '0.25rem' }}
-                >
-                  <i className="ph-bold ph-chalkboard-teacher"></i>
-                  <span className="portal-nav-text">Gestión Docente</span>
-                  <span className="portal-sidebar-active-tag" style={{ background: '#e0e7ff', color: '#4338ca', borderColor: '#c7d2fe' }}>Directivo</span>
-                </button>
-              )}
 
               {/* Módulo: Evaluaciones Finales */}
               <button 
@@ -244,358 +308,581 @@ export default function ModulesDashboard({
         {/* Área de Contenido Principal */}
         <main className="portal-main-content">
           <section className="portal-welcome-banner">
-            <h2>Panel de Control Principal</h2>
-            <p>Selecciona un módulo activo o consulta los avances en los módulos institucionales de la institución.</p>
+            <h2>Sistema de Archivo Institucional & Radicación</h2>
+            <p>Ecosistema centralizado de custodia legal de actas de consejo, circulares oficiales, resguardo en bóveda y gestión académica institucional.</p>
           </section>
 
-          {/* Cuadrícula de Tarjetas de Módulos */}
-          <section className="portal-modules-grid">
-            {/* MÓDULO 1: CONTROL ACADÉMICO Y EVALUACIONES (COORDINACIÓN) O NOTAS & CALIFICACIONES (ADMIN / DOCENTES) */}
-            {isCoordinador ? (
+          {/* ===================================================================
+              SECCIÓN HERO: MÓDULOS PROTAGONISTAS
+              1. Bóveda Directiva
+              2. Circulares Institucionales
+              3. Actas de Consejo
+              =================================================================== */}
+          <section className="portal-section-featured">
+            <div className="portal-section-header">
+              <div className="portal-section-title-wrap">
+                <i className="ph-bold ph-star"></i>
+                <h3 className="portal-section-title">Módulos Protagonistas</h3>
+              </div>
+              <span className="portal-section-badge">Acceso Prioritario</span>
+            </div>
+
+            <div className="portal-featured-grid">
+              {/* PROTAGONISTA 1: BÓVEDA CONFIDENCIAL (SOLO RECTORA Y ADMIN) */}
+              {isPrivileged ? (
+                <article 
+                  id="tour-card-boveda"
+                  className="portal-module-card portal-module-card-slate portal-module-card-hero"
+                  style={{
+                    background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)',
+                    borderColor: '#cbd5e1'
+                  }}
+                  onClick={() => handleModuleClick('boveda')}
+                  role="button"
+                  tabIndex={0}
+                  title="Acceso ultra confidencial exclusivo para Rectoría y Administrador"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleModuleClick('boveda');
+                    }
+                  }}
+                >
+                  <div className="portal-card-header-bar">
+                    <div className="portal-card-icon-container portal-slate-icon">
+                      <i className="ph-bold ph-vault" style={{ fontSize: '1.85rem', color: '#0f172a' }}></i>
+                    </div>
+                    <div>
+                      <span className="portal-card-hero-tag portal-card-hero-tag-slate">
+                        <i className="ph-bold ph-lock-key"></i> Ultra Confidencial
+                      </span>
+                      <span className="portal-badge-slate">Solo Rectora & Admin</span>
+                    </div>
+                  </div>
+
+                  <div className="portal-card-body">
+                    <h3 style={{ color: '#0f172a', fontSize: '1.25rem' }}>Bóveda Confidencial</h3>
+                    <p style={{ color: '#334155' }}>
+                      Espacio blindado exclusivo de Rectoría con clave maestra y almacenamiento de hasta 2 GB. Reservado para información sensible que ningún otro usuario puede ver: balances financieros privados, nómina, contratos docentes y expedientes de máxima reserva.
+                    </p>
+                  </div>
+
+                  <div className="portal-card-footer">
+                    <span className="portal-link-label-slate" style={{ fontWeight: 700 }}>Abrir Bóveda Confidencial &rarr;</span>
+                  </div>
+                </article>
+              ) : isCoordinador ? (
+                <article 
+                  id="tour-card-boveda"
+                  className="portal-module-card portal-module-card-disabled portal-module-card-hero"
+                  onClick={() => handleModuleClick('boveda')}
+                  role="button"
+                  tabIndex={0}
+                  title="Módulo con acceso restringido para Coordinación (Requiere autorización de Rectoría)"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleModuleClick('boveda');
+                    }
+                  }}
+                >
+                  <div className="portal-card-header-bar">
+                    <div className="portal-card-icon-container portal-gray-icon">
+                      <i className="ph-bold ph-vault" style={{ fontSize: '1.85rem' }}></i>
+                    </div>
+                    <div>
+                      <span className="portal-card-hero-tag portal-card-hero-tag-slate">
+                        <i className="ph-bold ph-lock"></i> Exclusivo
+                      </span>
+                      <span className="portal-badge-gray">Despacho de Rectoría</span>
+                    </div>
+                  </div>
+                  <div className="portal-card-body">
+                    <h3 className="portal-text-gray-title" style={{ fontSize: '1.25rem' }}>Bóveda Confidencial</h3>
+                    <p className="portal-text-gray-desc">
+                      Custodia privada y confidencial de la Rectora. Archivos contables, contratos y resoluciones directivas no accesibles a otros roles sin autorización formal.
+                    </p>
+                  </div>
+                  <div className="portal-card-footer portal-footer-disabled">
+                    <span className="portal-label-muted">
+                      <i className="ph-bold ph-lock-key"></i> Clave Autorizada por Rectora
+                    </span>
+                  </div>
+                </article>
+              ) : (
+                <article 
+                  id="tour-card-boveda" 
+                  className="portal-module-card portal-module-card-disabled portal-module-card-hero"
+                >
+                  <div className="portal-card-header-bar">
+                    <div className="portal-card-icon-container portal-gray-icon">
+                      <i className="ph-bold ph-vault" style={{ fontSize: '1.85rem' }}></i>
+                    </div>
+                    <div>
+                      <span className="portal-card-hero-tag portal-card-hero-tag-slate">
+                        <i className="ph-bold ph-shield"></i> Exclusivo
+                      </span>
+                      <span className="portal-badge-gray">Rectoría & Admin</span>
+                    </div>
+                  </div>
+                  <div className="portal-card-body">
+                    <h3 className="portal-text-gray-title" style={{ fontSize: '1.25rem' }}>Bóveda Confidencial</h3>
+                    <p className="portal-text-gray-desc">
+                      Módulo de resguardo confidencial exclusivo para la Rectora y el Administrador. Ningún otro usuario tiene acceso a este espacio.
+                    </p>
+                  </div>
+                  <div className="portal-card-footer portal-footer-disabled">
+                    <span className="portal-label-muted">Exclusivo Rectora & Admin</span>
+                  </div>
+                </article>
+              )}
+
+              {/* PROTAGONISTA 2: CIRCULARES INSTITUCIONALES */}
               <article 
-                id="tour-card-grades"
-                className="portal-module-card portal-module-card-indigo"
-                onClick={() => handleModuleClick('grades')}
+                id="tour-card-circulares"
+                className="portal-module-card portal-module-card-active portal-module-card-hero"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%)',
+                  borderColor: '#a7f3d0'
+                }}
+                onClick={() => handleModuleClick('docs', { folder: 'institucional' })}
                 role="button"
                 tabIndex={0}
-                title="Acceder a Control Académico y Evaluaciones (SIEE)"
+                title="Acceder a Circulares Institucionales y Comunicados Oficiales"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleModuleClick('grades');
+                    handleModuleClick('docs', { folder: 'institucional' });
                   }
                 }}
               >
                 <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container portal-indigo-icon">
-                    <i className="ph-bold ph-clipboard-text" style={{ fontSize: '1.75rem', color: '#4338ca' }}></i>
+                  <div className="portal-card-icon-container" style={{ background: '#d1fae5', borderColor: '#a7f3d0' }}>
+                    <i className="ph-bold ph-newspaper" style={{ fontSize: '1.85rem', color: '#064e3b' }}></i>
                   </div>
-                  <span className="portal-badge-indigo">Activo · Coordinación</span>
+                  <div>
+                    <span className="portal-card-hero-tag portal-card-hero-tag-active">
+                      <i className="ph-bold ph-bell-ringing"></i> Oficial
+                    </span>
+                    {circularesCount > 0 ? (
+                      <span className="portal-badge-active" style={{ background: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }}>
+                        {circularesCount} pendiente{circularesCount > 1 ? 's' : ''}
+                      </span>
+                    ) : (
+                      <span className="portal-badge-active">Activo · Rectoría</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="portal-card-body">
-                  <h3 style={{ color: '#0f172a' }}>Control Académico y Evaluaciones</h3>
-                  <p>
-                    Consola de supervisión curricular: consulta global de sábanas consolidadas y rankings de Transición a 5°, radicación de observaciones de coordinación, control del calendario de evaluaciones y habilitación de prórrogas extemporáneas.
+                  <h3 style={{ fontSize: '1.25rem' }}>Circulares Institucionales</h3>
+                  <p style={{ color: '#334155' }}>
+                    Tablón oficial de anuncios y circulares emitidas por Rectoría. Radicación formal con confirmación de lectura para docentes, trazabilidad por radicado y repositorio histórico.
                   </p>
                 </div>
 
                 <div className="portal-card-footer">
-                  <span className="portal-link-label-indigo">Gestionar Control Académico &rarr;</span>
+                  <span className="portal-link-label" style={{ color: '#047857', fontWeight: 700 }}>Consultar Circulares Oficiales &rarr;</span>
                 </div>
               </article>
-            ) : (
+
+              {/* PROTAGONISTA 3: MÓDULO DE COMITÉS & ACTAS OFICIALES */}
               <article 
-                id="tour-card-grades"
-                className="portal-module-card portal-module-card-amber"
-                onClick={() => handleModuleClick('grades')}
+                id="tour-card-actas-consejo"
+                className="portal-module-card portal-module-card-hero"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #fff1f2 100%)',
+                  borderColor: '#fecdd3'
+                }}
+                onClick={() => handleModuleClick('comites')}
                 role="button"
                 tabIndex={0}
-                title="Acceder a Notas & Calificaciones (SIEE)"
+                title="Acceder al Módulo de Comités y Actas Oficiales (Convivencia, Evaluación y Consejo Académico)"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleModuleClick('grades');
+                    handleModuleClick('comites');
                   }
                 }}
               >
                 <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container">
-                    <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
+                  <div className="portal-card-icon-container" style={{ background: '#ffe4e6', borderColor: '#fecdd3' }}>
+                    <i className="ph-bold ph-scales" style={{ fontSize: '1.85rem', color: '#be123c' }}></i>
                   </div>
-                  <span className="portal-badge-amber">Activo Institucional</span>
+                  <div>
+                    <span className="portal-card-hero-tag" style={{ background: '#ffe4e6', color: '#be123c', borderColor: '#fecdd3' }}>
+                      <i className="ph-bold ph-file-text"></i> Gobierno Escolar
+                    </span>
+                    <span className="portal-badge-active" style={{ background: '#be123c', color: '#ffffff', borderColor: '#be123c' }}>Actas Oficiales</span>
+                  </div>
                 </div>
 
                 <div className="portal-card-body">
-                  <h3 style={{ color: '#0f172a' }}>Notas & Calificaciones</h3>
-                  <p>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (80% Aula Continua, 20% Evaluación Final), sábanas consolidadas y cálculo automático de promedios.</p>
-                </div>
-
-                <div className="portal-card-footer">
-                  <span className="portal-link-label-amber">Acceder al módulo &rarr;</span>
-                </div>
-              </article>
-            )}
-
-            {/* MÓDULO 2: RECURSOS PEDAGÓGICOS & CIRCULARES */}
-            <article 
-              id="tour-card-docs"
-              className="portal-module-card portal-module-card-active"
-              onClick={() => handleModuleClick('docs')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('docs');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container">
-                  <i className="ph-bold ph-folder-notch-open" style={{ fontSize: '1.75rem', color: '#064e3b' }}></i>
-                </div>
-                <span className="portal-badge-active">Activo</span>
-              </div>
-
-              <div className="portal-card-body">
-                <h3>Recursos Pedagógicos & Circulares</h3>
-                <p>Módulo central para radicación, resguardo, consulta y auditoría de circulares oficiales, planeaciones curriculares, guías y talleres pedagógicos.</p>
-              </div>
-
-              <div className="portal-card-footer">
-                <span className="portal-link-label">Acceder al módulo &rarr;</span>
-              </div>
-            </article>
-
-            {/* MÓDULO ACTIVO: BÓVEDA DIRECTIVA */}
-            {isPrivileged ? (
-              <article 
-                id="tour-card-boveda"
-                className="portal-module-card portal-module-card-slate"
-                onClick={() => handleModuleClick('boveda')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleModuleClick('boveda');
-                  }
-                }}
-              >
-                <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container portal-slate-icon">
-                    <i className="ph-bold ph-vault" style={{ fontSize: '1.75rem', color: '#0f172a' }}></i>
-                  </div>
-                  <span className="portal-badge-slate">Activo · Directivo</span>
-                </div>
-
-                <div className="portal-card-body">
-                  <h3 style={{ color: '#0f172a' }}>Bóveda Directiva & Resguardo</h3>
-                  <p style={{ color: '#0f172a' }}>
-                    Resguardo de alta capacidad y máxima seguridad para actas de consejo directivo, información contable, resoluciones y contratos.
+                  <h3 style={{ color: '#0f172a', fontSize: '1.25rem' }}>Comités & Actas Oficiales</h3>
+                  <p style={{ color: '#334155' }}>
+                    Módulo de alta custodia para la radicación, deliberación y consulta de actas del gobierno escolar: Comité de Convivencia Escolar (Ley 1620), Comisión de Evaluación y Promoción (Decreto 1290), Consejo Académico (Ley 115) y Asambleas de Claustro Docente.
                   </p>
                 </div>
 
                 <div className="portal-card-footer">
-                  <span className="portal-link-label-slate">Acceder a la Bóveda &rarr;</span>
+                  <span className="portal-link-label" style={{ color: '#be123c', fontWeight: 700 }}>
+                    Entrar al Módulo de Comités & Actas &rarr;
+                  </span>
                 </div>
               </article>
-            ) : isCoordinador ? (
+              {/* PROTAGONISTA 4: MÓDULO OFICIAL DECRETO 1075 DE 2015 */}
               <article 
-                id="tour-card-boveda"
-                className="portal-module-card portal-module-card-disabled"
-                onClick={() => handleModuleClick('boveda')}
+                id="tour-card-decreto"
+                className="portal-module-card portal-module-card-hero"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #eff6ff 100%)',
+                  borderColor: '#93c5fd'
+                }}
+                onClick={() => handleModuleClick('decreto1075')}
                 role="button"
                 tabIndex={0}
-                title="Módulo con acceso restringido para Coordinación (Requiere autorización de Rectoría)"
+                title="Acceder al Módulo Oficial del Decreto 1075 de 2015 (9 Pilares de Inspección y Vigilancia)"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleModuleClick('boveda');
+                    handleModuleClick('decreto1075');
                   }
                 }}
               >
                 <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container portal-gray-icon">
-                    <i className="ph-bold ph-vault" style={{ fontSize: '1.75rem' }}></i>
+                  <div className="portal-card-icon-container" style={{ background: '#dbeafe', borderColor: '#bfdbfe' }}>
+                    <i className="ph-bold ph-scales" style={{ fontSize: '1.85rem', color: '#1e3a8a' }}></i>
                   </div>
-                  <span className="portal-badge-gray">Acceso con Permiso de Rectoría</span>
+                  <div>
+                    <span className="portal-card-hero-tag" style={{ background: '#dbeafe', color: '#1e40af', borderColor: '#bfdbfe' }}>
+                      <i className="ph-bold ph-certificate"></i> Marco Legal MEN
+                    </span>
+                    <span className="portal-badge-active" style={{ background: '#1e3a8a', color: '#ffffff', borderColor: '#1e3a8a' }}>9 Pilares</span>
+                  </div>
                 </div>
+
                 <div className="portal-card-body">
-                  <h3 className="portal-text-gray-title">Bóveda Directiva & Resguardo</h3>
-                  <p className="portal-text-gray-desc">
-                    Custodia confidencial reservada. La Coordinación solo puede acceder previa autorización y suministro de clave por parte de Rectoría.
+                  <h3 style={{ color: '#0f172a', fontSize: '1.25rem' }}>Decreto 1075 de 2015</h3>
+                  <p style={{ color: '#334155' }}>
+                    Sistema integral de archivo institucional y radicación oficial bajo los 9 pilares del Decreto Único Reglamentario del Sector Educación: PEI, SIEE, Manual de Convivencia, Gobierno Escolar, Malla Curricular, Organización del Servicio, Evaluación Docente, Inclusión (PIAR) y Proyectos Transversales.
                   </p>
                 </div>
-                <div className="portal-card-footer portal-footer-disabled">
-                  <span className="portal-label-muted">
-                    <i className="ph-bold ph-lock-key"></i> Solo con Permiso de la Rectora
+
+                <div className="portal-card-footer">
+                  <span className="portal-link-label" style={{ color: '#1e3a8a', fontWeight: 700 }}>
+                    Consultar los 9 Pilares Normativos &rarr;
                   </span>
                 </div>
               </article>
-            ) : (
+
+              {/* PROTAGONISTA 5: GESTIÓN DOCENTE & PLANTA CURRICULAR */}
               <article 
-                id="tour-card-boveda" 
-                className="portal-module-card portal-module-card-disabled"
+                id="tour-card-docentes"
+                className={`portal-module-card portal-module-card-hero ${canManageDocentes ? 'portal-module-card-cyan' : 'portal-module-card-disabled'}`}
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
+                  borderColor: '#99f6e4'
+                }}
+                onClick={() => handleModuleClick('docentes')}
+                role="button"
+                tabIndex={0}
+                title={canManageDocentes ? "Acceder a Gestión Docente, Bajas, Reemplazos y Malla Curricular" : "Módulo reservado para Coordinación y Dirección"}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('docentes');
+                  }
+                }}
               >
                 <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container portal-gray-icon">
-                    <i className="ph-bold ph-vault" style={{ fontSize: '1.75rem' }}></i>
+                  <div className={`portal-card-icon-container ${canManageDocentes ? 'portal-cyan-icon' : 'portal-gray-icon'}`}>
+                    <i className="ph-bold ph-chalkboard-teacher" style={{ fontSize: '1.85rem', color: canManageDocentes ? '#0f766e' : undefined }}></i>
                   </div>
-                  <span className="portal-badge-gray">Directivo Exclusivo</span>
+                  <div>
+                    <span className="portal-card-hero-tag" style={{ background: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' }}>
+                      <i className="ph-bold ph-users-three"></i> Planta Docente
+                    </span>
+                    {canManageDocentes ? (
+                      <span className="portal-badge-active" style={{ background: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}>Directivo</span>
+                    ) : (
+                      <span className="portal-badge-gray">Directivo Exclusivo</span>
+                    )}
+                  </div>
                 </div>
+
                 <div className="portal-card-body">
-                  <h3 className="portal-text-gray-title">Bóveda Directiva</h3>
-                  <p className="portal-text-gray-desc">
-                    Módulo reservado para Rectoría y Administración para custodia de actas y contratos confidenciales.
+                  <h3 style={{ color: canManageDocentes ? '#0f172a' : undefined, fontSize: '1.25rem' }} className={!canManageDocentes ? 'portal-text-gray-title' : undefined}>
+                    Gestión Docente & Malla Curricular
+                  </h3>
+                  <p style={{ color: canManageDocentes ? '#334155' : undefined }} className={!canManageDocentes ? 'portal-text-gray-desc' : undefined}>
+                    Administración de planta docente, asignaciones de aula, directores de curso, novedades laborales, bajas de personal con reemplazo obligatorio y traspaso blindado de responsabilidades.
                   </p>
                 </div>
-                <div className="portal-card-footer portal-footer-disabled">
-                  <span className="portal-label-muted">Requiere Acceso Directivo</span>
+
+                <div className={`portal-card-footer ${!canManageDocentes ? 'portal-footer-disabled' : ''}`}>
+                  {canManageDocentes ? (
+                    <span className="portal-link-label-cyan" style={{ fontWeight: 700 }}>Gestionar Planta & Novedades &rarr;</span>
+                  ) : (
+                    <span className="portal-label-muted">
+                      <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
+                    </span>
+                  )}
                 </div>
               </article>
-            )}
+            </div>
+          </section>
 
-            {/* MÓDULO: GESTIÓN DE MATRÍCULA E HISTÓRICO BLINDADO (FASE 5) */}
-            <article 
-              id="tour-card-matriculas"
-              className={`portal-module-card ${canManageMatriculas ? 'portal-module-card-emerald' : 'portal-module-card-disabled'}`}
-              onClick={() => handleModuleClick('matriculas')}
-              role="button"
-              tabIndex={0}
-              title={canManageMatriculas ? "Acceder al Panel de Matriculados e Histórico Blindado (Fase 5)" : "Módulo reservado para Rectoría, Coordinación y Administración"}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('matriculas');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className={`portal-card-icon-container ${canManageMatriculas ? 'portal-emerald-icon' : 'portal-gray-icon'}`}>
-                  <i className="ph-bold ph-identification-badge" style={{ fontSize: '1.75rem', color: canManageMatriculas ? '#059669' : undefined }}></i>
+          <hr className="portal-section-divider" />
+
+          {/* ===================================================================
+              SECCIÓN SECUNDARIA: GESTIÓN ACADÉMICA, DOCENTE & INSTITUCIONAL
+              =================================================================== */}
+          <section className="portal-section-other">
+            <div className="portal-section-header">
+              <div className="portal-section-title-wrap">
+                <i className="ph-bold ph-squares-four"></i>
+                <h3 className="portal-section-title">Gestión Académica & Operativa</h3>
+              </div>
+              <span className="portal-section-badge">SIEE & Comités</span>
+            </div>
+
+            <div className="portal-modules-grid">
+              {/* MÓDULO: CONTROL ACADÉMICO (COORDINACIÓN) O NOTAS & CALIFICACIONES (ADMIN / DOCENTES) */}
+              {isCoordinador ? (
+                <article 
+                  id="tour-card-grades"
+                  className="portal-module-card portal-module-card-indigo"
+                  style={{
+                    background: 'linear-gradient(180deg, #ffffff 0%, #eef2ff 100%)',
+                    borderColor: '#c7d2fe'
+                  }}
+                  onClick={() => handleModuleClick('grades')}
+                  role="button"
+                  tabIndex={0}
+                  title="Acceder a Control Académico y Evaluaciones (SIEE)"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleModuleClick('grades');
+                    }
+                  }}
+                >
+                  <div className="portal-card-header-bar">
+                    <div className="portal-card-icon-container portal-indigo-icon" style={{ background: '#e0e7ff', borderColor: '#c7d2fe' }}>
+                      <i className="ph-bold ph-clipboard-text" style={{ fontSize: '1.75rem', color: '#4338ca' }}></i>
+                    </div>
+                    <span className="portal-badge-indigo" style={{ background: '#4338ca', color: '#ffffff', borderColor: '#4338ca' }}>Activo · Coordinación</span>
+                  </div>
+
+                  <div className="portal-card-body">
+                    <h3 style={{ color: '#0f172a' }}>Control Académico y Evaluaciones</h3>
+                    <p style={{ color: '#334155' }}>
+                      Consola de supervisión curricular: consulta global de sábanas consolidadas y rankings de Transición a 5°, radicación de observaciones de coordinación y control del calendario SIEE.
+                    </p>
+                  </div>
+
+                  <div className="portal-card-footer">
+                    <span className="portal-link-label-indigo" style={{ color: '#4338ca', fontWeight: 700 }}>Gestionar Control Académico &rarr;</span>
+                  </div>
+                </article>
+              ) : (
+                <article 
+                  id="tour-card-grades"
+                  className="portal-module-card portal-module-card-amber"
+                  style={{
+                    background: 'linear-gradient(180deg, #ffffff 0%, #fefce8 100%)',
+                    borderColor: '#fef08a'
+                  }}
+                  onClick={() => handleModuleClick('grades')}
+                  role="button"
+                  tabIndex={0}
+                  title="Acceder a Notas & Calificaciones (SIEE)"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleModuleClick('grades');
+                    }
+                  }}
+                >
+                  <div className="portal-card-header-bar">
+                    <div className="portal-card-icon-container" style={{ background: '#fef3c7', borderColor: '#fde68a' }}>
+                      <i className="ph-bold ph-chart-line-up" style={{ fontSize: '1.75rem', color: '#b45309' }}></i>
+                    </div>
+                    <span className="portal-badge-amber" style={{ background: '#b45309', color: '#ffffff', borderColor: '#b45309' }}>Activo SIEE</span>
+                  </div>
+
+                  <div className="portal-card-body">
+                    <h3 style={{ color: '#0f172a' }}>Notas & Calificaciones</h3>
+                    <p style={{ color: '#334155' }}>Planilla interactiva de registro de calificaciones, ponderaciones SIEE (80% Aula Continua, 20% Evaluación Final), sábanas consolidadas y cálculo automático de promedios.</p>
+                  </div>
+
+                  <div className="portal-card-footer">
+                    <span className="portal-link-label-amber" style={{ color: '#b45309', fontWeight: 700 }}>Acceder a Calificaciones &rarr;</span>
+                  </div>
+                </article>
+              )}
+
+              {/* MÓDULO: RECURSOS PEDAGÓGICOS (PLANEACIONES, GUÍAS Y TALLERES) */}
+              <article 
+                id="tour-card-docs"
+                className="portal-module-card portal-module-card-active"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)',
+                  borderColor: '#bbf7d0'
+                }}
+                onClick={() => handleModuleClick('docs')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('docs');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container" style={{ background: '#dcfce7', borderColor: '#bbf7d0' }}>
+                    <i className="ph-bold ph-folder-notch-open" style={{ fontSize: '1.75rem', color: '#064e3b' }}></i>
+                  </div>
+                  <span className="portal-badge-active" style={{ background: '#059669', color: '#ffffff', borderColor: '#059669' }}>Activo</span>
                 </div>
-                {canManageMatriculas ? (
-                  <span className="portal-badge-emerald">Activo · Fase 5</span>
-                ) : (
-                  <span className="portal-badge-gray">Directivo & Coord.</span>
-                )}
-              </div>
 
-              <div className="portal-card-body">
-                <h3 style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-title' : undefined}>
-                  Gestión de Matrícula & Censo
-                </h3>
-                <p style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-desc' : undefined}>
-                  Inscripción extemporánea de estudiantes, auditoría de censo escolar, inhabilitación por traslado o retiro (sin eliminación física) y fórmula de copias N+1.
-                </p>
-              </div>
-
-              <div className={`portal-card-footer ${!canManageMatriculas ? 'portal-footer-disabled' : ''}`}>
-                {canManageMatriculas ? (
-                  <span className="portal-link-label-emerald">Gestionar Matrícula & Histórico &rarr;</span>
-                ) : (
-                  <span className="portal-label-muted">
-                    <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
-                  </span>
-                )}
-              </div>
-            </article>
-
-            {/* MÓDULO: OBSERVADOR & ACTAS */}
-            <article 
-              id="tour-card-observador"
-              className="portal-module-card portal-module-card-teal"
-              onClick={() => handleModuleClick('observador')}
-              role="button"
-              tabIndex={0}
-              title="Acceder a Observador del Estudiante y Actas de Comités"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('observador');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container portal-teal-icon">
-                  <i className="ph-bold ph-user-list" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
+                <div className="portal-card-body">
+                  <h3 style={{ color: '#0f172a' }}>Recursos Pedagógicos & Repositorio</h3>
+                  <p style={{ color: '#334155' }}>Módulo central para radicación, planeaciones curriculares semanales, guías de aprendizaje y talleres pedagógicos organizados por grado y área.</p>
                 </div>
-                <span className="portal-badge-teal">Activo</span>
-              </div>
 
-              <div className="portal-card-body">
-                <h3 style={{ color: '#0f172a' }}>Observador & Actas</h3>
-                <p style={{ color: '#0f172a' }}>
-                  Seguimiento convivencial y pedagógico de estudiantes, citaciones con acudientes, PIAR y actas de comités internos (Convivencia, Evaluación y Consejo Académico).
-                </p>
-              </div>
-
-              <div className="portal-card-footer">
-                <span className="portal-link-label-teal">Acceder al módulo &rarr;</span>
-              </div>
-            </article>
-
-            {/* MÓDULO: GESTIÓN DOCENTE & PLANTA CURRICULAR */}
-            <article 
-              id="tour-card-docentes"
-              className={`portal-module-card ${canManageDocentes ? 'portal-module-card-cyan' : 'portal-module-card-disabled'}`}
-              onClick={() => handleModuleClick('docentes')}
-              role="button"
-              tabIndex={0}
-              title={canManageDocentes ? "Acceder a Gestión Docente, Directores de Curso y Malla Curricular" : "Módulo reservado para Coordinación y Dirección"}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('docentes');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className={`portal-card-icon-container ${canManageDocentes ? 'portal-cyan-icon' : 'portal-gray-icon'}`}>
-                  <i className="ph-bold ph-chalkboard-teacher" style={{ fontSize: '1.75rem', color: canManageDocentes ? '#0f766e' : undefined }}></i>
+                <div className="portal-card-footer">
+                  <span className="portal-link-label" style={{ color: '#059669', fontWeight: 700 }}>Acceder a Recursos Pedagógicos &rarr;</span>
                 </div>
-                {canManageDocentes ? (
-                  <span className="portal-badge-cyan">Activo · Directivo & Coord.</span>
-                ) : (
-                  <span className="portal-badge-gray">Directivo Exclusivo</span>
-                )}
-              </div>
+              </article>
 
-              <div className="portal-card-body">
-                <h3 style={{ color: canManageDocentes ? '#0f172a' : undefined }} className={!canManageDocentes ? 'portal-text-gray-title' : undefined}>
-                  Gestión Docente & Malla Curricular
-                </h3>
-                <p style={{ color: canManageDocentes ? '#0f172a' : undefined }} className={!canManageDocentes ? 'portal-text-gray-desc' : undefined}>
-                  Administración de planta docente, directores de curso oficiales, asignaciones académicas por grado, novedades laborales y reemplazos de emergencia.
-                </p>
-              </div>
-
-              <div className={`portal-card-footer ${!canManageDocentes ? 'portal-footer-disabled' : ''}`}>
-                {canManageDocentes ? (
-                  <span className="portal-link-label-cyan">Gestionar Planta & Asignaciones &rarr;</span>
-                ) : (
-                  <span className="portal-label-muted">
-                    <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
-                  </span>
-                )}
-              </div>
-            </article>
-
-            {/* MÓDULO: EVALUACIONES FINALES */}
-            <article 
-              id="tour-card-evaluaciones"
-              className="portal-module-card portal-module-card-violet"
-              onClick={() => handleModuleClick('evaluaciones')}
-              role="button"
-              tabIndex={0}
-              title="Acceder a Evaluaciones Finales, Nivelaciones y Comisiones de Promoción (SIEE)"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModuleClick('evaluaciones');
-                }
-              }}
-            >
-              <div className="portal-card-header-bar">
-                <div className="portal-card-icon-container portal-violet-icon">
-                  <i className="ph-bold ph-graduation-cap" style={{ fontSize: '1.75rem', color: '#6d28d9' }}></i>
+              {/* MÓDULO: OBSERVADOR DEL ESTUDIANTE */}
+              <article 
+                id="tour-card-observador"
+                className="portal-module-card portal-module-card-teal"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
+                  borderColor: '#99f6e4'
+                }}
+                onClick={() => handleModuleClick('observador')}
+                role="button"
+                tabIndex={0}
+                title="Acceder a Observador del Estudiante (Seguimiento, Citaciones y PIAR)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('observador');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container portal-teal-icon" style={{ background: '#ccfbf1', borderColor: '#99f6e4' }}>
+                    <i className="ph-bold ph-user-list" style={{ fontSize: '1.75rem', color: '#0f766e' }}></i>
+                  </div>
+                  <span className="portal-badge-teal" style={{ background: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}>Convivencial</span>
                 </div>
-                <span className="portal-badge-violet">Activo · SIEE</span>
-              </div>
 
-              <div className="portal-card-body">
-                <h3 style={{ color: '#0f172a' }}>Evaluaciones Finales</h3>
-                <p style={{ color: '#0f172a' }}>
-                  Consola de exámenes acumulativos, sustentaciones finales, actas de nivelación, sábanas de comisiones de promoción y cierre oficial de año lectivo.
-                </p>
-              </div>
+                <div className="portal-card-body">
+                  <h3 style={{ color: '#0f172a' }}>Observador del Estudiante</h3>
+                  <p style={{ color: '#334155' }}>
+                    Seguimiento convivencial y pedagógico individual de estudiantes: llamados de atención, compromisos formativos, citaciones oficiales a acudientes y planes PIAR.
+                  </p>
+                </div>
 
-              <div className="portal-card-footer">
-                <span className="portal-link-label-violet">Gestionar Evaluaciones Finales &rarr;</span>
-              </div>
-            </article>
+                <div className="portal-card-footer">
+                  <span className="portal-link-label-teal" style={{ color: '#0f766e', fontWeight: 700 }}>Acceder a Observador del Estudiante &rarr;</span>
+                </div>
+              </article>
+
+              {/* MÓDULO: GESTIÓN DE MATRÍCULA E HISTÓRICO BLINDADO (FASE 5) */}
+              <article 
+                id="tour-card-matriculas"
+                className={`portal-module-card ${canManageMatriculas ? 'portal-module-card-emerald' : 'portal-module-card-disabled'}`}
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%)',
+                  borderColor: '#a7f3d0'
+                }}
+                onClick={() => handleModuleClick('matriculas')}
+                role="button"
+                tabIndex={0}
+                title={canManageMatriculas ? "Acceder al Panel de Matriculados e Histórico Blindado (Fase 5)" : "Módulo reservado para Rectoría, Coordinación y Administración"}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('matriculas');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className={`portal-card-icon-container ${canManageMatriculas ? 'portal-emerald-icon' : 'portal-gray-icon'}`} style={{ background: '#d1fae5', borderColor: '#a7f3d0' }}>
+                    <i className="ph-bold ph-identification-badge" style={{ fontSize: '1.75rem', color: canManageMatriculas ? '#059669' : undefined }}></i>
+                  </div>
+                  {canManageMatriculas ? (
+                    <span className="portal-badge-emerald" style={{ background: '#059669', color: '#ffffff', borderColor: '#059669' }}>Activo · Fase 5</span>
+                  ) : (
+                    <span className="portal-badge-gray">Directivo & Coord.</span>
+                  )}
+                </div>
+
+                <div className="portal-card-body">
+                  <h3 style={{ color: canManageMatriculas ? '#0f172a' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-title' : undefined}>
+                    Matrículas & Censo Escolar
+                  </h3>
+                  <p style={{ color: canManageMatriculas ? '#334155' : undefined }} className={!canManageMatriculas ? 'portal-text-gray-desc' : undefined}>
+                    Inscripción extemporánea, censo escolar, inhabilitación sin borrado físico (soft-disable) y cálculo automatizado de tiraje para copias N+1.
+                  </p>
+                </div>
+
+                <div className={`portal-card-footer ${!canManageMatriculas ? 'portal-footer-disabled' : ''}`}>
+                  {canManageMatriculas ? (
+                    <span className="portal-link-label-emerald" style={{ color: '#059669', fontWeight: 700 }}>Gestionar Matrícula & Histórico &rarr;</span>
+                  ) : (
+                    <span className="portal-label-muted">
+                      <i className="ph-bold ph-lock-key"></i> Reservado para Coordinación y Rectoría
+                    </span>
+                  )}
+                </div>
+              </article>
+
+              {/* MÓDULO: EVALUACIONES FINALES */}
+              <article 
+                id="tour-card-evaluaciones"
+                className="portal-module-card portal-module-card-violet"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #faf5ff 100%)',
+                  borderColor: '#e9d5ff'
+                }}
+                onClick={() => handleModuleClick('evaluaciones')}
+                role="button"
+                tabIndex={0}
+                title="Acceder a Evaluaciones Finales, Nivelaciones y Comisiones de Promoción (SIEE)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleModuleClick('evaluaciones');
+                  }
+                }}
+              >
+                <div className="portal-card-header-bar">
+                  <div className="portal-card-icon-container portal-violet-icon" style={{ background: '#f3e8ff', borderColor: '#e9d5ff' }}>
+                    <i className="ph-bold ph-graduation-cap" style={{ fontSize: '1.75rem', color: '#6d28d9' }}></i>
+                  </div>
+                  <span className="portal-badge-violet" style={{ background: '#6d28d9', color: '#ffffff', borderColor: '#6d28d9' }}>Activo · SIEE</span>
+                </div>
+
+                <div className="portal-card-body">
+                  <h3 style={{ color: '#0f172a' }}>Evaluaciones Finales</h3>
+                  <p style={{ color: '#334155' }}>
+                    Consola de exámenes acumulativos, sustentaciones finales, actas de nivelación, sábanas de comisiones de promoción y cierre oficial de año lectivo.
+                  </p>
+                </div>
+
+                <div className="portal-card-footer">
+                  <span className="portal-link-label-violet" style={{ color: '#6d28d9', fontWeight: 700 }}>Gestionar Evaluaciones Finales &rarr;</span>
+                </div>
+              </article>
+            </div>
           </section>
         </main>
       </div>

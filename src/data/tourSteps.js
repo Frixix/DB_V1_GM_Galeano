@@ -4,8 +4,8 @@
 export const TOUR_STEPS_DOCENTE = [
   {
     targetId: null,
-    title: '¡Bienvenida, Profesora! ✨',
-    desc: 'Su espacio de trabajo pedagógico en el Gimnasio Martin Galeano. En 5 pasos clave le mostramos cómo registrar sus calificaciones, comunicarse y radicar materiales.',
+    title: '¡Bienvenida al Archivo Institucional! ✨',
+    desc: 'Primer sistema integral de archivo, radicación y custodia de actas para colegios privados. En 5 pasos clave le mostramos cómo radicar circulares, consultar actas y registrar evaluaciones.',
     icon: 'Sparkle',
   },
   {
@@ -44,7 +44,7 @@ export const TOUR_STEPS_RECTORA = [
   {
     targetId: null,
     title: 'Bienvenida, Rectora Claudia 👑',
-    desc: 'Centro de Control y Supervisión Directiva del Gimnasio Martin Galeano. Le presentamos en 6 pasos rápidos cómo auditar y dirigir toda la plataforma.',
+    desc: 'Centro de Archivo Institucional, Radicación y Custodia Directiva. Le presentamos en 6 pasos rápidos cómo resguardar actas de consejo, emitir circulares y auditar toda la institución.',
     icon: 'Crown',
   },
   {

@@ -3,6 +3,7 @@ import PortalNavbar from './PortalNavbar';
 import teacherService from '../services/teacherService';
 import committeeService from '../services/committeeService';
 import CommitteeAssignmentModal from './CommitteeAssignmentModal';
+import TeacherDischargeModal from './TeacherDischargeModal';
 import { getUserAvatar } from '../services/avatarService';
 import { resetUserPasswordToDefault } from '../services/authService';
 import './GestionDocenteModule.css';
@@ -41,13 +42,18 @@ export default function GestionDocenteModule({
   const canResetPassword = isAdmin || isRectora;
   const canResetFactory = isAdmin || isRectora;
 
-  const [activeTab, setActiveTab] = useState('directores'); // 'directores', 'malla', 'perfiles', 'auditoria'
+  const [activeTab, setActiveTab] = useState('directores'); // 'directores', 'malla', 'perfiles', 'bajas', 'auditoria'
   const [teachers, setTeachers] = useState([]);
   const [matrix, setMatrix] = useState([]);
   const [directorsMap, setDirectorsMap] = useState({});
   const [auditLogs, setAuditLogs] = useState([]);
+  const [retirementsHistory, setRetirementsHistory] = useState([]);
   const [selectedMallaGrade, setSelectedMallaGrade] = useState('1° Primaria');
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Modal de Baja de Docente
+  const [dischargeTargetTeacher, setDischargeTargetTeacher] = useState(null);
+  const [isDischargeModalOpen, setIsDischargeModalOpen] = useState(false);
 
   // Estados para asignación de comités de actas (Ley 1620 / Dec. 1290)
   const [isCommitteeModalOpen, setIsCommitteeModalOpen] = useState(false);
@@ -62,11 +68,12 @@ export default function GestionDocenteModule({
 
   // Cargar datos del servicio
   const loadData = () => {
-    const teacherList = teacherService.getTeachers();
+    const teacherList = teacherService.getTeachers(true); // Incluir planta completa
     setTeachers(teacherList);
     setMatrix(teacherService.getCurriculumMatrix());
     setDirectorsMap(teacherService.getGradeDirectorsMap());
     setAuditLogs(teacherService.getAuditLogs());
+    setRetirementsHistory(teacherService.getRetirementsHistory());
     setCommitteesMap(committeeService.getCommittees());
 
     // Inicializar estado de edición de perfiles
@@ -245,6 +252,27 @@ export default function GestionDocenteModule({
     }
   };
 
+  // Abrir modal de baja de docente
+  const handleOpenDischargeModal = (teacher) => {
+    setDischargeTargetTeacher(teacher);
+    setIsDischargeModalOpen(true);
+  };
+
+  // Procesar baja y traspaso obligatorio de responsabilidades
+  const handleConfirmDischarge = async (dischargePayload) => {
+    try {
+      const res = await teacherService.processTeacherDischarge({
+        ...dischargePayload,
+        author: currentUser
+      });
+      loadData();
+      showToast(`¡Baja procesada con éxito! Se transfirieron todas las responsabilidades a ${res.entry.replacementName}.`);
+    } catch (err) {
+      alert(`Error al procesar la baja: ${err.message}`);
+      throw err;
+    }
+  };
+
   const currentMallaGradeData = matrix.find(m => m.grade === selectedMallaGrade) || matrix[0];
 
   return (
@@ -355,7 +383,21 @@ export default function GestionDocenteModule({
           >
             <i className="ph-bold ph-users"></i>
             <span>Perfiles de la Planta Docente</span>
-            <span className="gd-tab-badge">{teachers.length} Docentes</span>
+            <span className="gd-tab-badge">{teachers.filter(t => t.status !== 'retirada').length} Activas</span>
+          </button>
+
+          <button 
+            type="button" 
+            className={`gd-tab-btn ${activeTab === 'bajas' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bajas')}
+          >
+            <i className="ph-bold ph-user-minus"></i>
+            <span>Historial de Bajas & Reemplazos</span>
+            {retirementsHistory.length > 0 && (
+              <span className="gd-tab-badge" style={{ background: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }}>
+                {retirementsHistory.length}
+              </span>
+            )}
           </button>
 
           <button 
@@ -757,11 +799,123 @@ export default function GestionDocenteModule({
                             <i className="ph-bold ph-key"></i> Clave
                           </button>
                         )}
+
+                        {/* Botón de Baja de Docente */}
+                        {t.status !== 'retirada' && (isAdmin || isRectora || isCoordinador) && (
+                          <button
+                            type="button"
+                            className="gd-btn-discharge-teacher"
+                            onClick={() => handleOpenDischargeModal(t)}
+                            title={`Dar de baja a ${profile.name} y transferir obligatoriamente sus cargos`}
+                          >
+                            <i className="ph-bold ph-user-minus"></i> Baja
+                          </button>
+                        )}
                       </div>
                     </div>
                   </article>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* =====================================================================
+            PESTAÑA: HISTORIAL DE BAJAS Y REEMPLAZOS DOCENTES
+            ===================================================================== */}
+        {activeTab === 'bajas' && (
+          <section className="gd-tab-pane">
+            <div className="gd-audit-panel">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <i className="ph-bold ph-user-minus" style={{ color: '#dc2626' }}></i>
+                    Historial Institucional de Bajas y Reemplazos
+                  </h3>
+                  <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                    Registro inmutable de docentes desvinculados, motivos legales y traspaso obligatorio de cargos y responsabilidades.
+                  </p>
+                </div>
+              </div>
+
+              {retirementsHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3.5rem 1rem', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                  <i className="ph-bold ph-shield-check" style={{ fontSize: '2.5rem', color: '#10b981', display: 'block', marginBottom: '0.5rem' }}></i>
+                  <h4 style={{ margin: '0 0 0.25rem 0', color: '#0f172a' }}>Planta Docente 100% Activa</h4>
+                  <p style={{ margin: 0, fontSize: '0.825rem', color: '#64748b' }}>
+                    No se han registrado bajas de personal. Cuando un docente se retire, aquí se conservará el histórico con su reemplazo correspondiente.
+                  </p>
+                </div>
+              ) : (
+                <div className="gd-retirements-grid">
+                  {retirementsHistory.map((item) => (
+                    <article key={item.id} className="gd-retirement-card">
+                      <div className="gd-ret-header">
+                        <div className="gd-ret-badge-date">
+                          <i className="ph-bold ph-calendar"></i>
+                          <span>Fecha: {item.effectiveDate || new Date(item.timestamp).toLocaleDateString()}</span>
+                        </div>
+                        <span className="gd-ret-id">{item.id}</span>
+                      </div>
+
+                      <div className="gd-ret-transfer-flow">
+                        {/* Docente Retirado */}
+                        <div className="gd-ret-box-person out">
+                          <span className="gd-ret-role-tag">Docente que se retiró</span>
+                          <h4 className="gd-ret-name">{item.retiredName}</h4>
+                          <span className="gd-ret-desc">{item.retiredLabel}</span>
+                        </div>
+
+                        {/* Flecha de Transferencia */}
+                        <div className="gd-ret-arrow">
+                          <i className="ph-bold ph-arrow-right"></i>
+                          <span>Traspaso</span>
+                        </div>
+
+                        {/* Docente Entrante */}
+                        <div className="gd-ret-box-person in">
+                          <span className="gd-ret-role-tag in">Docente que asume</span>
+                          <h4 className="gd-ret-name">{item.replacementName}</h4>
+                          <span className="gd-ret-desc">
+                            {item.replacementMode === 'new' ? 'Nuevo Contrato' : 'Reasignación Planta'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Motivo Formal */}
+                      <div className="gd-ret-reason-box">
+                        <strong>Motivo del Retiro:</strong>
+                        <p>"{item.reason}"</p>
+                      </div>
+
+                      {/* Cargos y Responsabilidades Transferidas */}
+                      <div className="gd-ret-transferred-meta">
+                        {item.transferredDirectorGrades && item.transferredDirectorGrades.length > 0 && (
+                          <span className="gd-ret-chip dir">
+                            <i className="ph-bold ph-chalkboard"></i>
+                            Dirección: {item.transferredDirectorGrades.join(', ')}
+                          </span>
+                        )}
+                        <span className="gd-ret-chip subjects">
+                          <i className="ph-bold ph-books"></i>
+                          {item.transferredSubjectsCount || 0} materias transferidas
+                        </span>
+                        {item.transferredCommittees && item.transferredCommittees.length > 0 && (
+                          <span className="gd-ret-chip com">
+                            <i className="ph-bold ph-scales"></i>
+                            Comités: {item.transferredCommittees.join(', ')}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="gd-ret-footer">
+                        <span>Autorizado por: <strong>{item.author}</strong> ({item.authorRole})</span>
+                        <span className="gd-ret-timestamp">{new Date(item.timestamp).toLocaleString()}</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -821,6 +975,19 @@ export default function GestionDocenteModule({
           setCommitteesMap(committeeService.getCommittees());
           showToast('¡Asignación de comités de actas actualizada y sincronizada en toda la institución!');
         }}
+      />
+
+      {/* Modal de Baja de Docente y Reemplazo Obligatorio */}
+      <TeacherDischargeModal
+        isOpen={isDischargeModalOpen}
+        onClose={() => {
+          setIsDischargeModalOpen(false);
+          setDischargeTargetTeacher(null);
+        }}
+        teacher={dischargeTargetTeacher}
+        activeTeachers={teachers}
+        onSubmit={handleConfirmDischarge}
+        isInduccion={isInduccion}
       />
     </div>
   );

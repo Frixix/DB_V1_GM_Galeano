@@ -11,12 +11,12 @@ export const DEFAULT_AVATARS = {
   admin: '/images/avatars/admin.svg',
   claudia: '/images/avatars/rectora.svg',
   coordinacion: '/images/avatars/coordinacion.svg',
-  jessica: '/images/avatars/jessica.svg',
+  liliana: '/images/avatars/profe1.svg',
   yuri: '/images/avatars/yuri.svg',
   elcy: '/images/avatars/elcy.svg',
-  profe1: '/images/avatars/profe1.svg',
-  profe2: '/images/avatars/profe2.svg',
-  profe3: '/images/avatars/profe3.svg',
+  blanca: '/images/avatars/profe2.svg',
+  nicolle: '/images/avatars/profe3.svg',
+  jessica: '/images/avatars/jessica.svg',
 };
 
 /**
