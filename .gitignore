@@ -30,6 +30,8 @@ dist-ssr
 # Local Agent Rules (No subir a la web)
 GEMINI.md
 AGENTS.md
+STORAGE_AGENT.md
+.agents/
 
 # Cache and temporary files
 .cache

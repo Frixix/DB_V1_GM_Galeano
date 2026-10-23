@@ -23,12 +23,15 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Sanitiza el nombre del archivo para evitar caracteres inválidos en Storage.
+ * Sanitiza el nombre del archivo para evitar caracteres inválidos en Storage y ataques de Path Traversal.
  */
-function sanitizeFileName(name) {
-  return name
+export function sanitizeFileName(name) {
+  // Extraer únicamente el nombre base descartando cualquier ruta relativa (ej: ../ o ..\)
+  const baseName = (name || 'documento.bin').replace(/^.*[\\/]/, '');
+  return baseName
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Quita tildes
+    .replace(/\.{2,}/g, '_') // Bloquea secuencias de puntos múltiples (..)
     .replace(/[^a-zA-Z0-9._-]/g, '_'); // Reemplaza caracteres no alfanuméricos
 }
 
