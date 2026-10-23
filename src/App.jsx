@@ -1290,7 +1290,7 @@ export default function App() {
   if (activeModule === 'observador') {
     return (
       <ModuleThemeWrapper themeKey="observador">
-        <Suspense fallback={<LoadingSpinner message="Cargando Observador & Comités..." />}>
+        <Suspense fallback={<LoadingSpinner message="Cargando Comités & Actas Oficiales..." />}>
           <ObservadorModule 
             currentUser={currentUser}
             onBackToModules={() => setActiveModule(null)}

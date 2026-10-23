@@ -307,8 +307,8 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
       {/* Navbar Superior Unificado con Identidad Institucional */}
       <PortalNavbar
         currentUser={currentUser}
-        moduleTitle="Observador & Actas"
-        moduleSubtitle="Seguimiento Convivencial, Citaciones & Comités Internos"
+        moduleTitle="Comités & Actas Oficiales"
+        moduleSubtitle="Custodia de Actas, Comités de Gobierno Escolar y Seguimiento Convivencial"
         onBackToModules={onBackToModules}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onOpenConnectionsModal={onOpenConnectionsModal}
