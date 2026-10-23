@@ -1100,9 +1100,19 @@ function UploadExamModal({
                 accept=".pdf,.doc,.docx"
                 className="final-file-hidden-input"
                 onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setFile(e.target.files[0]);
+                  const selected = e.target.files?.[0];
+                  if (!selected) {
+                    setFile(null);
+                    return;
                   }
+                  const MAX_EXAM_BYTES = 15 * 1024 * 1024;
+                  if (selected.size > MAX_EXAM_BYTES) {
+                    alert(`El archivo supera el límite de 15 MB (${(selected.size / (1024 * 1024)).toFixed(2)} MB). Por favor comprímalo o elija un documento PDF/Word más liviano.`);
+                    e.target.value = '';
+                    setFile(null);
+                    return;
+                  }
+                  setFile(selected);
                 }}
               />
               <label htmlFor="examFileInput" className="final-dropzone-label">

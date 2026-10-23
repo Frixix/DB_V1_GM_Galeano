@@ -38,7 +38,7 @@ export default function UploadModal({
 
   // Estados para Bóveda si aplica
   const [bovedaYear, setBovedaYear] = useState('2026');
-  const [bovedaSubfolder, setBovedaSubfolder] = useState('consejo');
+  const [bovedaSubfolder, setBovedaSubfolder] = useState('financiero');
 
   // Estado para Decreto 1075: Pilar Normativo explícito
   const [pillarId, setPillarId] = useState(
@@ -358,7 +358,6 @@ export default function UploadModal({
                 <div className="form-group">
                   <label htmlFor="docBovedaSubfolder">Subcarpeta Bóveda</label>
                   <select id="docBovedaSubfolder" value={bovedaSubfolder} onChange={(e) => setBovedaSubfolder(e.target.value)}>
-                    <option value="consejo">Consejo Directivo</option>
                     <option value="financiero">Financiero & Contable</option>
                     <option value="legal">Resoluciones & Legal</option>
                     <option value="contratos">Contratos & Nómina</option>
@@ -468,12 +467,13 @@ export default function UploadModal({
                     <span style={{ color: '#b91c1c', fontWeight: 600 }}>La custodia y descarga de documentos permanece 100% activa.</span>
                   ) : (
                     <>
-                      Límite perfil: <strong>{currentUser.maxUploadLabel}</strong> • Espacio restante: <strong>{formatBytes(remainingBytes)}</strong>
+                      PDF, Office, Imágenes • Límite perfil: <strong>{currentUser.maxUploadLabel}</strong> • Restante: <strong>{formatBytes(remainingBytes)}</strong>
                     </>
                   )}
                 </div>
                 <input 
                   type="file" 
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp"
                   className="file-hidden-input" 
                   onChange={handleFileChange} 
                   required

@@ -106,7 +106,6 @@ export default function BovedaModule({
     if (bovedaSubfolder === 'financiero') return 'Financiero & Balances Privados';
     if (bovedaSubfolder === 'contratos') return 'Contratos & Nómina Docente';
     if (bovedaSubfolder === 'legal') return 'Resoluciones & Legalidad Institucional';
-    if (bovedaSubfolder === 'consejo') return 'Actas de Consejo Directivo';
     if (bovedaSubfolder === 'pei_soporte') return 'Soportes de Licencia & Despacho';
     return 'Archivo Ultraconfidencial de Despacho';
   };

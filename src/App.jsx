@@ -177,7 +177,10 @@ export default function App() {
     setIsSidebarOpen(false);
   }, []);
   const handleOpenConnectionsModal = useCallback(() => setIsConnectionsModalOpen(true), []);
-  const handleBackToModules = useCallback(() => setActiveModule(null), []);
+  const handleBackToModules = useCallback(() => {
+    setIsBovedaUnlocked(false);
+    setActiveModule(null);
+  }, []);
   const handleOpenCurrentUserProfile = useCallback(() => {
     handleOpenProfile(currentUser?.key);
   }, [handleOpenProfile, currentUser?.key]);
@@ -1027,7 +1030,10 @@ export default function App() {
           <BovedaModule 
             currentUser={currentUser}
             documents={documents}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={() => {
+              setIsBovedaUnlocked(false);
+              setActiveModule(null);
+            }}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineCount={onlineCount}

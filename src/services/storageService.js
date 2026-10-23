@@ -11,6 +11,17 @@ import {
 
 export const STORAGE_BUCKET = (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_SUPABASE_STORAGE_BUCKET) || (typeof process !== 'undefined' && process?.env?.VITE_SUPABASE_STORAGE_BUCKET) || 'documentos-galeano';
 
+// Confirmación de inicialización de backend de almacenamiento en consola
+if (typeof window !== 'undefined') {
+  if (isR2Configured && r2Client) {
+    console.info(`[Storage] Conectado a Cloudflare R2: OK (Bucket: "${R2_BUCKET_NAME}")`);
+  } else if (isSupabaseConfigured && supabase) {
+    console.info(`[Storage] Modo Supabase Storage activo: OK (Bucket: "${STORAGE_BUCKET}")`);
+  } else {
+    console.warn('[Storage] Modo Local / Standalone activo: Sin backend de almacenamiento en la nube configurado');
+  }
+}
+
 /**
  * Sanitiza el nombre del archivo para evitar caracteres inválidos en Storage.
  */

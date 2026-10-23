@@ -33,7 +33,6 @@ export default function BovedaSidebar({
     { id: 'financiero', label: 'Financiero & Balances', icon: 'ph-bold ph-currency-dollar' },
     { id: 'contratos', label: 'Contratos & Nómina Docente', icon: 'ph-bold ph-file-text' },
     { id: 'legal', label: 'Resoluciones & Legalidad', icon: 'ph-bold ph-gavel' },
-    { id: 'consejo', label: 'Actas de Consejo Directivo', icon: 'ph-bold ph-buildings' },
     { id: 'pei_soporte', label: 'Soportes de Licencia & Despacho', icon: 'ph-bold ph-certificate' }
   ];
 

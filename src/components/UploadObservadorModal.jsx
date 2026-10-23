@@ -753,8 +753,24 @@ export default function UploadObservadorModal({
                       type="file"
                       id="obsFileInput"
                       className="obs-file-input-native"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) {
+                          setSelectedFile(null);
+                          return;
+                        }
+                        const maxBytes = currentUser?.maxUploadBytes || (15 * 1024 * 1024);
+                        if (file.size > maxBytes) {
+                          const maxMb = (maxBytes / (1024 * 1024)).toFixed(0);
+                          setErrorMessage(`⚠️ El archivo seleccionado pesa ${(file.size / (1024 * 1024)).toFixed(2)} MB y supera el límite de ${maxMb} MB.`);
+                          e.target.value = '';
+                          setSelectedFile(null);
+                          return;
+                        }
+                        setErrorMessage('');
+                        setSelectedFile(file);
+                      }}
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
                       style={{ display: 'none' }}
                     />
                   </div>

@@ -1,9 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { initialDocuments } from '../data/initialDocs';
-import { deleteDocumentFile } from '../services/storageService';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js';
+import { initialDocuments } from '../data/initialDocs.js';
+import { deleteDocumentFile } from '../services/storageService.js';
 
 export function mapDbToDoc(row) {
+  // Extraer pillarId de la columna dedicada o del tag embebido en notes si la columna no existe en el esquema remoto
+  let resolvedPillarId = row.pillar_id || row.pillarId || null;
+  let cleanNotes = row.notes;
+  if (!resolvedPillarId && typeof row.notes === 'string' && row.notes.includes('[pillar:')) {
+    const match = row.notes.match(/\[pillar:([^\]]+)\]/);
+    if (match) {
+      resolvedPillarId = match[1];
+      cleanNotes = row.notes.replace(/\s*\[pillar:[^\]]+\]\s*/g, ' ').trim();
+    }
+  }
+
   return {
     id: row.id,
     title: row.title,
@@ -19,10 +30,10 @@ export function mapDbToDoc(row) {
     rawBytes: Number(row.raw_bytes || 0),
     ratio: row.ratio,
     isCompressed: Boolean(row.is_compressed),
-    notes: row.notes,
+    notes: cleanNotes,
     bovedaYear: row.boveda_year,
     bovedaSubfolder: row.boveda_subfolder,
-    pillarId: row.pillar_id || row.pillarId || null,
+    pillarId: resolvedPillarId,
     storageKey: row.storage_key,
     uploadedAt: row.uploaded_at,
     createdAt: row.created_at,
@@ -142,10 +153,23 @@ export function useDocuments() {
 
     try {
       const dbPayload = mapDocToDb(newDoc);
-      const { data, error: insertErr } = await supabase
+      let { data, error: insertErr } = await supabase
         .from('documents')
         .insert([dbPayload])
         .select();
+
+      // Tolerancia a esquemas que aún no hayan corrido la migración 009 (pillar_id)
+      if (insertErr && insertErr.message && insertErr.message.includes('pillar_id')) {
+        console.warn('[useDocuments] Columna pillar_id no detectada en la base de datos remota. Embebiendo en notes como respaldo transparente.');
+        const { pillar_id, ...payloadWithoutPillar } = dbPayload;
+        const fallbackNotes = (newDoc.notes ? `${newDoc.notes} ` : '') + (newDoc.pillarId ? `[pillar:${newDoc.pillarId}]` : '');
+        const retryResult = await supabase
+          .from('documents')
+          .insert([{ ...payloadWithoutPillar, notes: fallbackNotes.trim() }])
+          .select();
+        data = retryResult.data;
+        insertErr = retryResult.error;
+      }
 
       if (insertErr) throw insertErr;
 
