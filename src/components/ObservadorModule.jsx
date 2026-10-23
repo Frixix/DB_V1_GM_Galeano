@@ -10,6 +10,7 @@ import { useObservador } from '../hooks/useObservador';
 import { OBSERVADOR_ROUTES } from '../data/initialObservador';
 import { getDeadlineMeta } from '../utils/observadorDates';
 import { committeeService } from '../services/committeeService.js';
+import { printOfficialDocumentPDF } from '../utils/observadorPdfGenerator.js';
 import './ObservadorModule.css';
 
 export default function ObservadorModule({
@@ -225,56 +226,9 @@ export default function ObservadorModule({
     }
   };
 
-  // Manejador para descargar acta formal en texto estructurado institucional
+  // Manejador para descargar / imprimir acta oficial en PDF con firmas y membrete SED
   const handleDownloadRecord = (record) => {
-    const isStudent = Boolean(record.studentName);
-    const content = `================================================================================
-                    GIMNASIO MARTÍN GALEANO
-               Sistema Institucional de Básica Primaria
-        Seguimiento Convivencial, Citaciones & Actas de Comités
-================================================================================
-
-Radicado Único:    ${record.id}
-Fecha de Emisión:  ${record.date}
-Ruta / Sección:    ${record.route.toUpperCase()}
-Grado Escolar:     ${record.grade}
-Periodo:           ${record.period || 'General'}
-Docente / Cargo:   ${record.teacher}
-${isStudent ? `Estudiante:        ${record.studentName} (${record.studentId || 'N/A'})\n` : ''}${record.guardianName ? `Acudiente:         ${record.guardianName}\n` : ''}${record.attendees ? `Miembros / Asist:  ${record.attendees}\n` : ''}Estado:            ${record.status}
-
---------------------------------------------------------------------------------
-ASUNTO / TÍTULO DEL REGISTRO:
-${record.title}
-
---------------------------------------------------------------------------------
-DESCRIPCIÓN DE LOS HECHOS / DELIBERACIONES DE LA SESIÓN:
-${record.description || 'Sin descripción detallada registrada.'}
-
---------------------------------------------------------------------------------
-COMPROMISOS, ACUERDOS Y CORRECTIVOS CONCERTADOS:
-${record.agreements || 'Sin compromisos específicos pactados.'}
-${record.followUpDate ? `\nFecha Prevista para Seguimiento / Verificación: ${record.followUpDate}\n` : ''}
-${record.notes ? `\nObservaciones Adicionales:\n${record.notes}\n` : ''}
---------------------------------------------------------------------------------
-FIRMAS INSTITUCIONALES DE CONFORMIDAD:
-
-_____________________________             _____________________________
-Docente / Directivo Responsable           Acudiente / Estudiante / Comité
-${record.teacher}                         Gimnasio Martín Galeano
-
-================================================================================
-Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares.
-`;
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Acta_${record.id}_${record.route}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    printOfficialDocumentPDF(record);
   };
 
   // Manejador para eliminar registro
