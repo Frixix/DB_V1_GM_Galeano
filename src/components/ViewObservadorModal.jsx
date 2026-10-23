@@ -3,6 +3,7 @@ import { RECORD_STATUSES, RECORD_TYPES, SEMAFORO_CONFIG } from '../data/initialO
 import { getDeadlineMeta } from '../utils/observadorDates';
 import { committeeService } from '../services/committeeService.js';
 import { downloadDocumentBlob, uploadDocumentFile } from '../services/storageService.js';
+import SignaturePadModal from './SignaturePadModal.jsx';
 
 export default function ViewObservadorModal({
   isOpen,
@@ -23,6 +24,7 @@ export default function ViewObservadorModal({
 
   // Estados de firmas digitales
   const [signatures, setSignatures] = useState(() => record?.signatures || {});
+  const [activePadRole, setActivePadRole] = useState(null); // 'teacher' | 'secondParty' | null
 
   // Resetear estados al abrir o cambiar de registro
   useEffect(() => {
@@ -727,13 +729,15 @@ export default function ViewObservadorModal({
                   <div style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
                     <button
                       type="button"
-                      onClick={() => handleSign('teacher', record.teacher)}
-                      style={{ background: '#f0fdfa', border: '1px solid #99f6e4', color: '#0f766e', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                      onClick={() => setActivePadRole('teacher')}
+                      style={{ background: '#f0fdfa', border: '1.5px solid #0f766e', color: '#0f766e', fontSize: '0.72rem', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      title="Abrir recuadro para firmar con el mouse o con el dedo"
                     >
-                      Firma Digital
+                      <i className="ph-bold ph-pen-nib"></i>
+                      <span>Firmar con Mouse/Dedo</span>
                     </button>
-                    <label style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
-                      Anexar Trazo
+                    <label style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', fontSize: '0.68rem', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center' }} title="Subir foto de firma existente">
+                      <i className="ph-bold ph-upload-simple" style={{ marginRight: '3px' }}></i> Subir Foto
                       <input
                         type="file"
                         accept="image/*"
@@ -782,13 +786,15 @@ export default function ViewObservadorModal({
                   <div style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
                     <button
                       type="button"
-                      onClick={() => handleSign('secondParty', isStudentRoute ? (record.guardianName || record.studentName || 'Acudiente') : 'Secretaría de Comité')}
-                      style={{ background: '#f0fdfa', border: '1px solid #99f6e4', color: '#0f766e', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                      onClick={() => setActivePadRole('secondParty')}
+                      style={{ background: '#f0fdfa', border: '1.5px solid #0f766e', color: '#0f766e', fontSize: '0.72rem', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      title="Abrir recuadro para firmar con el mouse o con el dedo"
                     >
-                      Firma Digital
+                      <i className="ph-bold ph-pen-nib"></i>
+                      <span>Firmar con Mouse/Dedo</span>
                     </button>
-                    <label style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
-                      Anexar Trazo
+                    <label style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', fontSize: '0.68rem', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center' }} title="Subir foto de firma existente">
+                      <i className="ph-bold ph-upload-simple" style={{ marginRight: '3px' }}></i> Subir Foto
                       <input
                         type="file"
                         accept="image/*"
@@ -906,6 +912,26 @@ export default function ViewObservadorModal({
           </div>
         </div>
       </div>
+
+      {/* Recuadro de Firma Digital Manuscrita (Mouse o Touch) */}
+      <SignaturePadModal
+        isOpen={Boolean(activePadRole)}
+        onClose={() => setActivePadRole(null)}
+        signerRoleName={
+          activePadRole === 'teacher'
+            ? `${record.teacher} (${isStudentRoute ? 'Docente Titular' : 'Presidencia del Comité'})`
+            : `${isStudentRoute ? (record.guardianName || record.studentName || 'Acudiente') : 'Secretaría de Comité'}`
+        }
+        onSaveSignature={(signatureImgDataUrl) => {
+          if (activePadRole === 'teacher') {
+            handleSign('teacher', record.teacher, signatureImgDataUrl);
+          } else if (activePadRole === 'secondParty') {
+            const signerName = isStudentRoute ? (record.guardianName || record.studentName || 'Acudiente') : 'Secretaría de Comité';
+            handleSign('secondParty', signerName, signatureImgDataUrl);
+          }
+          setActivePadRole(null);
+        }}
+      />
     </div>
   );
 }
