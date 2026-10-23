@@ -10,7 +10,8 @@ export default function UploadObservadorModal({
   onClose,
   currentUser,
   onRecordCreated,
-  initialRoute = 'observador'
+  initialRoute = 'observador',
+  existingRecords = []
 }) {
   const isPrivileged = currentUser && ['admin', 'rectora', 'induccion_rectora'].includes(currentUser.role);
   const formRef = useRef(null);
@@ -93,6 +94,54 @@ export default function UploadObservadorModal({
   };
 
   const isStudentRoute = ['observador', 'citaciones', 'piar'].includes(route);
+
+  // Cálculo de secuencia automática para comités
+  const COMMITTEE_NAME_MAP = {
+    comite_convivencia: 'Comité de Convivencia Escolar',
+    comision_evaluacion: 'Comisión de Evaluación y Promoción',
+    consejo_academico: 'Consejo Académico',
+    reuniones_docentes: 'Reunión General de Docentes'
+  };
+
+  const nextActaNumber = useMemo(() => {
+    if (isStudentRoute) return 1;
+    const sameRouteRecords = existingRecords.filter((r) => r.route === route);
+    let maxNum = 0;
+    sameRouteRecords.forEach((r) => {
+      const match = r.title?.match(/Acta\s*(?:Ordinaria|Extraordinaria|General)?\s*(?:N°|N|#)?\s*(\d+)/i);
+      if (match && match[1]) {
+        const parsed = parseInt(match[1], 10);
+        if (parsed > maxNum) maxNum = parsed;
+      }
+    });
+    return maxNum > 0 ? maxNum + 1 : sameRouteRecords.length + 1;
+  }, [route, existingRecords, isStudentRoute]);
+
+  const [actaNumber, setActaNumber] = useState(1);
+  const [actaTopic, setActaTopic] = useState('');
+  const [isManualTitleEdit, setIsManualTitleEdit] = useState(false);
+
+  // Sincronizar número correlativo al cambiar de comité o al abrirse
+  useEffect(() => {
+    if (!isStudentRoute) {
+      setActaNumber(nextActaNumber);
+      setIsManualTitleEdit(false);
+      setActaTopic('');
+    }
+  }, [route, nextActaNumber, isStudentRoute, isOpen]);
+
+  // Actualizar el título autogenerado del acta cuando cambia el número, tema o tipo de sesión
+  useEffect(() => {
+    if (!isStudentRoute && !isManualTitleEdit) {
+      const commName = COMMITTEE_NAME_MAP[route] || 'Comité';
+      const formattedNum = String(actaNumber).padStart(2, '0');
+      const sessionLabel = sessionType === 'Extraordinaria' ? 'Extraordinaria' : 'Ordinaria';
+      const generatedTitle = actaTopic.trim()
+        ? `Acta ${sessionLabel} N° ${formattedNum}: ${actaTopic.trim()}`
+        : `Acta ${sessionLabel} N° ${formattedNum} - ${commName} 2026`;
+      setTitle(generatedTitle);
+    }
+  }, [actaNumber, actaTopic, sessionType, route, isStudentRoute, isManualTitleEdit]);
 
   // Generar prefijo de radicado inteligente
   const getRadicadoPrefix = () => {
@@ -653,23 +702,105 @@ export default function UploadObservadorModal({
               </div>
             )}
 
-            {/* Título Principal */}
-            <div className="obs-form-group">
-              <label htmlFor="obsTitleInput">Título del Hecho o Asunto del Acta *</label>
-              <input
-                type="text"
-                id="obsTitleInput"
-                className="obs-input-field"
-                placeholder={
-                  isStudentRoute
-                    ? 'Ej: Compromiso por llamado de atención en clase o reconocimiento...'
-                    : 'Ej: Acta Ordinaria N° 02 - Balance bimestral y acuerdos de convivencia...'
-                }
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
+            {/* Título Principal y Estructura Correlativa Automatizada */}
+            {!isStudentRoute ? (
+              <div className="obs-form-group" style={{ background: '#f8fafc', padding: '0.9rem', borderRadius: '10px', border: '1.5px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <label style={{ margin: 0, fontWeight: 700, fontSize: '0.86rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="ph-bold ph-hash" style={{ color: '#0f766e' }}></i>
+                    <span>Secuencia Correlativa & Título Oficial del Acta</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsManualTitleEdit(prev => !prev)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: isManualTitleEdit ? '#b91c1c' : '#0f766e',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <i className={`ph-bold ${isManualTitleEdit ? 'ph-lock' : 'ph-pencil-simple'}`}></i>
+                    <span>{isManualTitleEdit ? 'Bloquear estructura' : 'Editar texto libremente'}</span>
+                  </button>
+                </div>
+
+                {!isManualTitleEdit ? (
+                  <div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '10px', marginBottom: '0.6rem' }}>
+                      <div>
+                        <label htmlFor="obsActaNum" style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                          N° de Acta
+                        </label>
+                        <input
+                          type="number"
+                          id="obsActaNum"
+                          min="1"
+                          max="999"
+                          className="obs-input-field"
+                          value={actaNumber}
+                          onChange={(e) => setActaNumber(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                          style={{ fontWeight: 800, textAlign: 'center', color: '#0f766e', fontSize: '0.95rem' }}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="obsActaTopic" style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                          Tema o Asunto Principal (Opcional)
+                        </label>
+                        <input
+                          type="text"
+                          id="obsActaTopic"
+                          className="obs-input-field"
+                          placeholder="Ej: Análisis académico de primer corte / Mediación"
+                          value={actaTopic}
+                          onChange={(e) => setActaTopic(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdfa', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #99f6e4' }}>
+                      <i className="ph-bold ph-shield-check" style={{ color: '#0f766e', fontSize: '1.05rem', flexShrink: 0 }}></i>
+                      <div style={{ fontSize: '0.8rem', color: '#134e4a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <strong>Título resultante:</strong> {title}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      id="obsTitleInput"
+                      className="obs-input-field"
+                      placeholder="Ej: Acta Ordinaria N° 02 - Balance bimestral y acuerdos..."
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                    />
+                    <small style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '4px', display: 'block' }}>
+                      Estructura manual habilitada: puedes ingresar el texto exacto deseado.
+                    </small>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="obs-form-group">
+                <label htmlFor="obsTitleInput">Título del Hecho o Asunto *</label>
+                <input
+                  type="text"
+                  id="obsTitleInput"
+                  className="obs-input-field"
+                  placeholder="Ej: Compromiso por llamado de atención en clase o reconocimiento..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
             {/* Descripción de Hechos o Deliberación */}
             <div className="obs-form-group">

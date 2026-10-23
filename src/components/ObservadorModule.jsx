@@ -676,6 +676,7 @@ Documento archivado en el Sistema Institucional de Convivencia y Actas Escolares
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         currentUser={currentUser}
+        existingRecords={records}
         onRecordCreated={(newRec, shouldOpenView = false) => {
           addRecord(newRec);
           const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
