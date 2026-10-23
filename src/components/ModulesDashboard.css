@@ -399,14 +399,48 @@
 
 .portal-featured-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 1100px) {
+  .portal-featured-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .portal-featured-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .portal-module-card-hero {
   border-width: 1.5px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   position: relative;
+  padding: 1.35rem 1.4rem;
+  min-height: 200px;
+}
+
+.portal-module-card-hero .portal-card-header-bar {
+  margin-bottom: 0.85rem;
+}
+
+.portal-module-card-hero .portal-card-icon-container {
+  width: 44px;
+  height: 44px;
+}
+
+.portal-module-card-hero .portal-card-body h3 {
+  font-size: 1.1rem !important;
+  margin-bottom: 0.35rem;
+}
+
+.portal-module-card-hero .portal-card-body p {
+  font-size: 0.815rem;
+  line-height: 1.42;
+  margin-bottom: 1rem;
 }
 
 .portal-module-card-hero:hover {

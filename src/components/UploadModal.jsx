@@ -4,6 +4,7 @@ import { compressFileIfNeeded } from '../utils/compression';
 import { uploadDocumentFile } from '../services/storageService';
 import { SYSTEM_STORAGE_CAPACITY_BYTES } from '../data/users';
 import gradesService from '../services/gradesService';
+import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories';
 
 export default function UploadModal({ 
   isOpen, 
@@ -12,6 +13,7 @@ export default function UploadModal({
   onUploadSuccess, 
   existingCount = 0,
   initialFolder = 'planeaciones',
+  initialPillarId = null,
   totalUsedBytes = 0
 }) {
   const SYSTEM_STORAGE_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 2 GB
@@ -37,6 +39,20 @@ export default function UploadModal({
   // Estados para Bóveda si aplica
   const [bovedaYear, setBovedaYear] = useState('2026');
   const [bovedaSubfolder, setBovedaSubfolder] = useState('consejo');
+
+  // Estado para Decreto 1075: Pilar Normativo explícito
+  const [pillarId, setPillarId] = useState(
+    initialPillarId && initialPillarId !== 'all' ? initialPillarId : (folder === 'institucional' ? 'gobierno_escolar' : '')
+  );
+
+  // Sincronizar pilar inicial si cambia al abrirse
+  useEffect(() => {
+    if (initialPillarId && initialPillarId !== 'all') {
+      setPillarId(initialPillarId);
+    } else if (initialFolder === 'institucional' && !pillarId) {
+      setPillarId('gobierno_escolar');
+    }
+  }, [initialPillarId, initialFolder]);
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [compressedInfo, setCompressedInfo] = useState(null);
@@ -203,6 +219,7 @@ export default function UploadModal({
         uploadedAt: formatDateTime(),
         notes: notes.trim(),
         ...(folder === 'boveda' ? { bovedaYear, bovedaSubfolder } : {}),
+        ...(pillarId ? { pillarId, pillar_id: pillarId } : {}),
         storageKey: storageKey || null,
         fileBlob: fileToUpload,
         isSimulated: isInduccion,
@@ -351,6 +368,33 @@ export default function UploadModal({
               </>
             )}
           </div>
+
+          {/* Selector de Pilar Normativo Decreto 1075 */}
+          {(initialPillarId || folder === 'institucional' || isPrivileged) && (
+            <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+              <label htmlFor="docPillarId" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="ph-bold ph-scales" style={{ color: '#1e40af' }}></i>
+                <span>Pilar Normativo (Decreto 1075 de 2015)</span>
+                {initialPillarId && <span style={{ fontSize: '0.72rem', color: '#2563eb', fontWeight: 600 }}>(Preseleccionado)</span>}
+              </label>
+              <select 
+                id="docPillarId" 
+                value={pillarId} 
+                onChange={(e) => setPillarId(e.target.value)}
+                style={{ borderColor: pillarId ? '#93c5fd' : undefined, background: pillarId ? '#f0f9ff' : undefined }}
+              >
+                <option value="">-- Sin pilar normativo asignado --</option>
+                {DECRETO_1075_PILLARS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    Pilar {p.numero}: {p.titulo} ({p.articulos})
+                  </option>
+                ))}
+              </select>
+              <small style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '0.25rem', display: 'block' }}>
+                Clasifica este expediente bajo la inspección y vigilancia del MEN y Secretaría de Educación.
+              </small>
+            </div>
+          )}
 
           {folder !== 'boveda' && grade !== 'General' && grade !== 'Directivo' && (() => {
             const printInfo = gradesService.getPrintingCopiesSuggestion(grade);

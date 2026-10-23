@@ -127,6 +127,7 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [observadorDeepLink, setObservadorDeepLink] = useState(null);
   const [decretoInitialPillar, setDecretoInitialPillar] = useState('all');
+  const [activeUploadPillarId, setActiveUploadPillarId] = useState(null);
 
   const handleOpenProfile = useCallback((targetUserKey = null, initialTab = null) => {
     const validKey = (typeof targetUserKey === 'string' && targetUserKey.trim()) 
@@ -1173,8 +1174,9 @@ export default function App() {
             onViewDocument={handleViewDocument}
             onDownloadDocument={handleDownloadDocument}
             onDeleteDocument={handleDeleteDocument}
-            onOpenUploadModal={() => {
+            onOpenUploadModal={(pillarId) => {
               setCurrentFolder('institucional');
+              setActiveUploadPillarId(pillarId || 'pei');
               setIsUploadModalOpen(true);
             }}
             isPrivileged={isPrivileged}
@@ -1195,13 +1197,17 @@ export default function App() {
         />
         {/* Modal para Subir / Radicar Documento */}
         <UploadModal 
-          key={isUploadModalOpen ? `upload_modal_decreto_${currentFolder}_${rosterTick}` : 'upload_modal_decreto_closed'}
+          key={isUploadModalOpen ? `upload_modal_decreto_${currentFolder}_${activeUploadPillarId}_${rosterTick}` : 'upload_modal_decreto_closed'}
           isOpen={isUploadModalOpen}
-          onClose={() => setIsUploadModalOpen(false)}
+          onClose={() => {
+            setIsUploadModalOpen(false);
+            setActiveUploadPillarId(null);
+          }}
           currentUser={currentUser}
           onUploadSuccess={handleUploadSuccess}
           existingCount={documents}
           initialFolder={currentFolder}
+          initialPillarId={activeUploadPillarId}
           totalUsedBytes={totalUsedBytes}
         />
         <ProfileModal 

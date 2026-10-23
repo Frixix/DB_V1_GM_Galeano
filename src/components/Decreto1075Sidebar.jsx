@@ -85,21 +85,51 @@ export default function Decreto1075Sidebar({
         </nav>
       </div>
 
-      {/* 4. Resumen Normativo de Inspección y Vigilancia */}
-      <div className="db-summary-card decreto-summary-card">
-        <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ph-bold ph-certificate" style={{ color: '#1e3a8a' }}></i>
-            <span style={{ color: '#1e3a8a', fontWeight: 700 }}>Inspección & SED</span>
+      {/* 4. Resumen Normativo y Barra de Completitud de Blindaje */}
+      {(() => {
+        const coveredCount = DECRETO_1075_PILLARS.filter(p => (pillarCounts[p.id] || 0) > 0).length;
+        const totalPillars = DECRETO_1075_PILLARS.length;
+        const completionPercentage = Math.round((coveredCount / totalPillars) * 100);
+
+        return (
+          <div className="db-summary-card decreto-summary-card">
+            <div className="summary-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="ph-bold ph-shield-check" style={{ color: '#1e3a8a' }}></i>
+                <span style={{ color: '#1e3a8a', fontWeight: 700 }}>Blindaje SED</span>
+              </div>
+              <span className="storage-plan-pill" style={{ background: '#eff6ff', color: '#1e3a8a', border: '1px solid #bfdbfe', fontWeight: 700 }}>
+                {coveredCount}/{totalPillars} Pilares
+              </span>
+            </div>
+
+            {/* Barra de progreso de completitud */}
+            <div style={{ margin: '0.65rem 0 0.4rem 0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', fontWeight: 600, color: '#334155', marginBottom: '0.25rem' }}>
+                <span>Completitud Institucional</span>
+                <span style={{ color: '#1e40af', fontWeight: 800 }}>{completionPercentage}%</span>
+              </div>
+              <div style={{ width: '100%', height: '7px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                <div 
+                  style={{ 
+                    width: `${completionPercentage}%`, 
+                    height: '100%', 
+                    background: 'linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%)', 
+                    borderRadius: '999px',
+                    transition: 'width 0.4s ease'
+                  }} 
+                />
+              </div>
+            </div>
+
+            <p className="summary-reminder" style={{ marginTop: '0.45rem', fontSize: '0.72rem', color: '#475569' }}>
+              {coveredCount === totalPillars 
+                ? '¡Blindaje al 100%! Todos los pilares cuentan con expedientes radicados ante el MEN.' 
+                : `${coveredCount} de 9 pilares cuentan con expedientes radicados para inspección y vigilancia.`}
+            </p>
           </div>
-          <span className="storage-plan-pill" style={{ background: '#eff6ff', color: '#1e3a8a', border: '1px solid #bfdbfe' }}>
-            Oficial
-          </span>
-        </div>
-        <p className="summary-reminder" style={{ marginTop: '0.45rem', fontSize: '0.72rem', color: '#475569' }}>
-          Estructura estandarizada para auditorías de Secretaría de Educación y requerimientos MEN.
-        </p>
-      </div>
+        );
+      })()}
     </aside>
   );
 }

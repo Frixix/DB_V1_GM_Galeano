@@ -36,8 +36,7 @@ export default function Decreto1075Module({
 
   // Helper para vincular documentos con un pilar normativo
   const matchesPillar = (doc, pillarId) => {
-    if (doc.pillarId && doc.pillarId === pillarId) return true;
-    if (doc.pillar && doc.pillar === pillarId) return true;
+    if ((doc.pillarId || doc.pillar_id || doc.pillar) && (doc.pillarId === pillarId || doc.pillar_id === pillarId || doc.pillar === pillarId)) return true;
 
     const titleLower = (doc.title || '').toLowerCase();
     const folderLower = (doc.folder || '').toLowerCase();
@@ -298,7 +297,7 @@ export default function Decreto1075Module({
                   <button
                     type="button"
                     className="decreto-btn-primary"
-                    onClick={onOpenUploadModal}
+                    onClick={() => onOpenUploadModal(selectedPillar !== 'all' ? selectedPillar : 'pei')}
                   >
                     <i className="ph-bold ph-upload-simple"></i>
                     <span>Radicar primer expediente</span>
@@ -315,7 +314,7 @@ export default function Decreto1075Module({
         <button
           type="button"
           className="btn-floating-upload"
-          onClick={onOpenUploadModal}
+          onClick={() => onOpenUploadModal(selectedPillar !== 'all' ? selectedPillar : 'pei')}
           title="Radicar nuevo expediente normativo en el Decreto 1075"
           aria-label="Radicar Expediente"
         >

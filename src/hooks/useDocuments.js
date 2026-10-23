@@ -22,6 +22,7 @@ export function mapDbToDoc(row) {
     notes: row.notes,
     bovedaYear: row.boveda_year,
     bovedaSubfolder: row.boveda_subfolder,
+    pillarId: row.pillar_id || row.pillarId || null,
     storageKey: row.storage_key,
     uploadedAt: row.uploaded_at,
     createdAt: row.created_at,
@@ -47,6 +48,7 @@ export function mapDocToDb(doc) {
     notes: doc.notes,
     boveda_year: doc.bovedaYear || null,
     boveda_subfolder: doc.bovedaSubfolder || null,
+    pillar_id: doc.pillarId || doc.pillar_id || null,
     storage_key: doc.storageKey || null,
     uploaded_at: doc.uploadedAt,
   };
