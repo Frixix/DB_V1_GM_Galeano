@@ -1,0 +1,1 @@
+export { SYSTEM_STORAGE_CAPACITY_BYTES, INSTITUTION_CONFIG } from '../data/users';

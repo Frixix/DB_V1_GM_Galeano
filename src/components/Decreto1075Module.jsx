@@ -151,6 +151,7 @@ export default function Decreto1075Module({
           onBackToModules={onBackToModules}
           totalDocs={documents.length}
           pillarCounts={pillarCounts}
+          totalSystemBytes={documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0)}
         />
 
         {/* Panel Central Principal */}

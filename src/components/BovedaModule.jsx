@@ -220,6 +220,7 @@ export default function BovedaModule({
             onOpenProfile={onOpenProfile}
             bovedaDocsCount={bovedaDocs.length}
             totalBovedaBytes={totalBovedaBytes}
+            totalSystemBytes={documents.reduce((sum, doc) => sum + (doc.rawBytes || 0), 0)}
             onOpenChangeBovedaModal={onOpenChangeBovedaModal}
             onLockBoveda={() => setIsBovedaUnlocked(false)}
           />

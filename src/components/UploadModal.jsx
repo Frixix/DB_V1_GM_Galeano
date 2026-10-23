@@ -16,7 +16,7 @@ export default function UploadModal({
   initialPillarId = null,
   totalUsedBytes = 0
 }) {
-  const SYSTEM_STORAGE_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 2 GB
+  const SYSTEM_STORAGE_CAPACITY = SYSTEM_STORAGE_CAPACITY_BYTES; // 15 GB SaaS B2B
   const remainingBytes = Math.max(0, SYSTEM_STORAGE_CAPACITY - totalUsedBytes);
   const isStorageFull = totalUsedBytes >= SYSTEM_STORAGE_CAPACITY;
 
@@ -103,9 +103,9 @@ export default function UploadModal({
 
     setErrorMessage('');
 
-    // Validar si la cuota global de 2 GB de la Fase de Prueba ya está llena
+    // Validar si la cuota global de almacenamiento SaaS (15 GB) está llena
     if (isStorageFull) {
-      setErrorMessage('El almacenamiento institucional asignado (2 GB) se encuentra lleno. Contacte a la administración para habilitar espacio adicional.');
+      setErrorMessage('Capacidad contratada alcanzada (15 GB). La custodia y descarga de documentos permanece 100% activa.');
       setSelectedFile(null);
       setCompressedInfo(null);
       return;
@@ -119,9 +119,9 @@ export default function UploadModal({
       return;
     }
 
-    // Validar si este archivo sobrepasa el espacio restante para alcanzar los 2 GB
+    // Validar si este archivo sobrepasa el espacio restante para alcanzar la cuota contratada (15 GB)
     if (file.size > remainingBytes) {
-      setErrorMessage(`El archivo pesa ${formatBytes(file.size)}, superando el espacio disponible restante (${formatBytes(remainingBytes)} disponibles de 2 GB).`);
+      setErrorMessage(`El archivo pesa ${formatBytes(file.size)}, superando el espacio disponible restante (${formatBytes(remainingBytes)} disponibles de la cuota contratada).`);
       setSelectedFile(null);
       setCompressedInfo(null);
       return;
@@ -157,7 +157,7 @@ export default function UploadModal({
     e.preventDefault();
 
     if (isStorageFull) {
-      setErrorMessage('La cuota institucional ha alcanzado el límite de 2 GB. Contacte a la administración para continuar.');
+      setErrorMessage('Capacidad contratada alcanzada (15 GB). La custodia y descarga de documentos permanece 100% activa.');
       return;
     }
 
@@ -175,7 +175,7 @@ export default function UploadModal({
     const finalSize = compressedInfo?.compressedBytes || rawBytes;
 
     if (totalUsedBytes + finalSize > SYSTEM_STORAGE_CAPACITY) {
-      setErrorMessage(`Este documento supera la capacidad máxima institucional de 2 GB. Quedan solo ${formatBytes(remainingBytes)} disponibles.`);
+      setErrorMessage(`Este documento supera la capacidad máxima contratada (15 GB). Quedan solo ${formatBytes(remainingBytes)} disponibles.`);
       return;
     }
 
@@ -264,13 +264,13 @@ export default function UploadModal({
 
         <form id="docForm" onSubmit={handleSubmit}>
           {isStorageFull && (
-            <div className="upload-storage-full-alert">
-              <div className="alert-header">
-                <i className="ph-bold ph-lock-key"></i>
-                <strong>Capacidad de 2 GB Alcanzada (Cuota Institucional)</strong>
+            <div className="upload-storage-full-alert" style={{ background: '#fff1f2', border: '1.5px solid #fecdd3', borderRadius: '8px', padding: '0.9rem 1rem', marginBottom: '1.25rem' }}>
+              <div className="alert-header" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#be123c', marginBottom: '0.35rem' }}>
+                <i className="ph-bold ph-lock-key" style={{ fontSize: '1.25rem' }}></i>
+                <strong style={{ fontSize: '0.95rem' }}>Capacidad contratada alcanzada (15 GB)</strong>
               </div>
-              <p>
-                El almacenamiento asignado para la <strong>cuota institucional (2 GB)</strong> se encuentra lleno. Para radicar nuevos documentos, contacte a la administración.
+              <p style={{ color: '#475569', fontSize: '0.85rem', margin: 0, lineHeight: 1.45 }}>
+                Capacidad contratada alcanzada (15 GB). La custodia y descarga de documentos permanece 100% activa. Para habilitar cuota adicional, comuníquese con soporte institucional.
               </p>
             </div>
           )}
@@ -460,12 +460,12 @@ export default function UploadModal({
                 <i className={`ph-bold ${isStorageFull ? 'ph-lock-key' : 'ph-cloud-arrow-up'}`}></i>
                 <div className="drop-text">
                   {isStorageFull 
-                    ? 'Subidas bloqueadas: Capacidad de 2 GB agotada' 
+                    ? 'Subidas bloqueadas: Capacidad contratada alcanzada (15 GB)' 
                     : 'Haga clic o arrastre su archivo aquí'}
                 </div>
                 <div className="file-hint">
                   {isStorageFull ? (
-                    <span style={{ color: '#b91c1c', fontWeight: 600 }}>Límite de almacenamiento de prueba alcanzado</span>
+                    <span style={{ color: '#b91c1c', fontWeight: 600 }}>La custodia y descarga de documentos permanece 100% activa.</span>
                   ) : (
                     <>
                       Límite perfil: <strong>{currentUser.maxUploadLabel}</strong> • Espacio restante: <strong>{formatBytes(remainingBytes)}</strong>
@@ -516,7 +516,7 @@ export default function UploadModal({
             </button>
             <button type="submit" className="btn btn-primary" disabled={isProcessing || isStorageFull}>
               <i className="ph-bold ph-check"></i>
-              {isProcessing ? 'Procesando...' : (isStorageFull ? 'Límite de 2 GB Alcanzado' : 'Guardar y Radicar')}
+              {isProcessing ? 'Procesando...' : (isStorageFull ? 'Capacidad de 15 GB Alcanzada' : 'Guardar y Radicar')}
             </button>
           </div>
         </form>

@@ -115,7 +115,14 @@ export const USERS = {
 }
 
 export const BOVEDA_PASSWORD = 'boveda2026'
-export const SYSTEM_STORAGE_CAPACITY_BYTES = 2 * GB
+export const SYSTEM_STORAGE_CAPACITY_BYTES = 15 * GB
+
+export const INSTITUTION_CONFIG = {
+  id: 'gmg',
+  name: 'Gimnasio Martin Galeano',
+  plan: 'Plan Institucional Blindaje SED',
+  storageQuotaBytes: 15 * GB
+};
 
 export const USERS_OVERRIDES_STORAGE_KEY = 'gmg_custom_users_overrides_v1';
 export const TEACHER_RETIREMENT_HISTORY_KEY = 'gmg_teacher_retirements_history_v1';

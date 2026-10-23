@@ -1,6 +1,7 @@
 import React from 'react';
 import { SidebarBackBtn } from './common/TeacherAccordion.jsx';
 import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories.js';
+import StorageQuotaMeter from './common/StorageQuotaMeter.jsx';
 import './Decreto1075Sidebar.css';
 
 /**
@@ -11,7 +12,8 @@ export default function Decreto1075Sidebar({
   onSelectPillar,
   onBackToModules,
   totalDocs = 0,
-  pillarCounts = {}
+  pillarCounts = {},
+  totalSystemBytes = 0
 }) {
   return (
     <aside className="sidebar decreto-sidebar" id="decreto1075Sidebar">
@@ -130,6 +132,12 @@ export default function Decreto1075Sidebar({
           </div>
         );
       })()}
+
+      {/* 5. Medidor y Gobernanza de Cuota SaaS (15 GB) */}
+      <StorageQuotaMeter 
+        usedBytes={totalSystemBytes} 
+        isDirectivo={true}
+      />
     </aside>
   );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { SidebarBackBtn } from './common/TeacherAccordion.jsx';
 import { getUserAvatar } from '../services/avatarService.js';
+import StorageQuotaMeter from './common/StorageQuotaMeter.jsx';
 import './BovedaSidebar.css';
 
 /**
@@ -16,6 +17,7 @@ export default function BovedaSidebar({
   onOpenProfile,
   bovedaDocsCount = 0,
   totalBovedaBytes = 0,
+  totalSystemBytes = 0,
   onOpenChangeBovedaModal,
   onLockBoveda
 }) {
@@ -137,6 +139,12 @@ export default function BovedaSidebar({
           Archivos de despacho no visibles para docentes ni personal institucional.
         </p>
       </div>
+
+      {/* 5. Medidor y Gobernanza de Cuota SaaS (15 GB) */}
+      <StorageQuotaMeter 
+        usedBytes={totalSystemBytes || totalBovedaBytes} 
+        isDirectivo={true}
+      />
     </aside>
   );
 }
