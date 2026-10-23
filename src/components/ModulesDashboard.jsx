@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PortalNavbar from './PortalNavbar';
 import StorageQuotaMeter from './common/StorageQuotaMeter';
 import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories';
+import gradesService from '../services/gradesService';
 import './ModulesDashboard.css';
 
 /**
@@ -32,6 +33,8 @@ export default function ModulesDashboard({
   const canManageDocentes = isPrivileged || isCoordinador;
   const canManageMatriculas = isPrivileged || isCoordinador;
   const isDocente = !isPrivileged && !isCoordinador;
+
+  const activePeriodInfo = gradesService.getActiveAcademicPeriod();
 
   // Cerrar modal con tecla Escape
   useEffect(() => {
@@ -338,6 +341,69 @@ export default function ModulesDashboard({
 
         {/* Área de Contenido Principal */}
         <main className="portal-main-content">
+          {/* Alerta de Configuración de Periodo Académico para perfiles con Acceso Total */}
+          {(isPrivileged || isCoordinador) && !activePeriodInfo.isConfigured && (
+            <div style={{
+              margin: '0 0 1.25rem 0',
+              padding: '0.9rem 1.25rem',
+              background: 'linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%)',
+              border: '1.5px solid #fde68a',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              boxShadow: '0 2px 6px rgba(180, 83, 9, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: '#fef08a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#b45309',
+                  fontSize: '1.25rem',
+                  flexShrink: 0
+                }}>
+                  <i className="ph-bold ph-calendar-blank"></i>
+                </div>
+                <div>
+                  <strong style={{ display: 'block', color: '#92400e', fontSize: '0.88rem' }}>
+                    Cronograma de Periodos Académicos sin Configuración Oficial (Operando con Fechas Base)
+                  </strong>
+                  <span style={{ color: '#b45309', fontSize: '0.78rem' }}>
+                    Periodo activo auto-detectado: <strong>{activePeriodInfo.shortName}</strong>. Defina las fechas oficiales de corte SIEE en Calificaciones para sincronizar la auto-selección en radicación y filtros.
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleModuleClick('grades')}
+                style={{
+                  background: '#b45309',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.5rem 0.9rem',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  flexShrink: 0,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <i className="ph-bold ph-gear"></i>
+                <span>Ajustar Calendario</span>
+              </button>
+            </div>
+          )}
+
           <section className="portal-welcome-banner">
             <h2>Sistema de Archivo Institucional & Radicación</h2>
             <p>Ecosistema centralizado de custodia legal de actas de consejo, circulares oficiales, resguardo en bóveda y gestión académica institucional.</p>

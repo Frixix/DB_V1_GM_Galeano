@@ -909,6 +909,53 @@ class GradesService {
     return this.evaluationCalendar;
   }
 
+  /**
+   * Obtiene el periodo académico activo (abierto) según la configuración oficial.
+   * Retorna objeto con key completo ('1° Periodo (25%)'), corto ('1° Periodo'),
+   * y bandera de si está explícitamente configurado por el equipo directivo.
+   */
+  getActiveAcademicPeriod() {
+    const calendar = this.getEvaluationCalendar(true);
+    let activeKey = null;
+
+    // 1. Buscar periodo con status explícito 'abierto'
+    for (const key of ACADEMIC_PERIODS) {
+      if (calendar[key]?.status === 'abierto') {
+        activeKey = key;
+        break;
+      }
+    }
+
+    // 2. Si ninguno tiene status 'abierto', buscar por rango de fecha actual
+    if (!activeKey) {
+      const todayStr = getLocalDateString(new Date());
+      for (const key of ACADEMIC_PERIODS) {
+        const item = calendar[key];
+        if (item && todayStr >= (item.startDate || '') && todayStr <= (item.closureDate || item.endDate || '')) {
+          activeKey = key;
+          break;
+        }
+      }
+    }
+
+    // 3. Fallback al primer periodo si ninguno coincide
+    const fallbackKey = activeKey || ACADEMIC_PERIODS[0];
+    const isConfigured = Boolean(
+      typeof window !== 'undefined' && 
+      localStorage.getItem(CALENDAR_STORAGE_KEY) &&
+      activeKey
+    );
+
+    const shortName = fallbackKey.split(' ')[0] + ' Periodo'; // Ej: "1° Periodo"
+
+    return {
+      periodKey: fallbackKey, // "1° Periodo (25%)"
+      shortName,              // "1° Periodo"
+      isConfigured,
+      calendarItem: calendar[fallbackKey] || null
+    };
+  }
+
   updateEvaluationPeriod(period, updateData, user) {
     if (!this.canManageCalendarAndDeadlines(user)) {
       throw new Error('No tiene autorización para modificar el calendario de evaluaciones.');

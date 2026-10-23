@@ -32,7 +32,8 @@ export default function UploadModal({
   const [folder, setFolder] = useState(defaultFolder);
   const [grade, setGrade] = useState(isInst ? 'General' : (isBov ? 'Directivo' : 'Tercero (3°)'));
   const [subject, setSubject] = useState(isInst ? 'Institucional' : (isBov ? 'Directiva' : 'Matemáticas'));
-  const [period, setPeriod] = useState('1° Periodo');
+  const activePeriodInfo = gradesService.getActiveAcademicPeriod();
+  const [period, setPeriod] = useState(() => activePeriodInfo.shortName || '1° Periodo');
   const [isPublic, setIsPublic] = useState(initialFolder === 'publico' || isInst);
   const [notes, setNotes] = useState('');
 
@@ -187,13 +188,17 @@ export default function UploadModal({
       const fileToUpload = compressedInfo?.file || selectedFile;
       const finalSize = compressedInfo?.compressedBytes || rawBytes;
 
-      // Subir archivo al bucket de Supabase Storage
+      // Subir archivo al bucket de Supabase Storage / Cloudflare R2 con partición estructurada
       const isInduccion = currentUser?.role === 'induccion' || currentUser?.role === 'induccion_rectora';
+      const storageFolder = folder === 'boveda' 
+        ? `boveda/${bovedaYear || '2026'}/${bovedaSubfolder || 'general'}`
+        : folder;
+
       const { storageKey, error: uploadErr } = isInduccion
         ? { storageKey: null, error: null }
         : await uploadDocumentFile(
             fileToUpload,
-            folder,
+            storageFolder,
             radicado
           );
 
@@ -411,7 +416,14 @@ export default function UploadModal({
 
           <div className="form-grid-2">
             <div className="form-group">
-              <label htmlFor="docPeriod">Periodo</label>
+              <label htmlFor="docPeriod" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Periodo Académico</span>
+                {activePeriodInfo.isConfigured && (
+                  <span style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 600 }}>
+                    <i className="ph-bold ph-calendar-check" style={{ marginRight: '3px' }}></i>Auto (Oficial)
+                  </span>
+                )}
+              </label>
               <select id="docPeriod" value={period} onChange={(e) => setPeriod(e.target.value)}>
                 <option value="1° Periodo">1° Periodo</option>
                 <option value="2° Periodo">2° Periodo</option>

@@ -748,7 +748,9 @@ class FinalExamsService {
     if (file) {
       if (!isInduccion) {
         try {
-          const uploadRes = await uploadDocumentFile(file, 'evaluaciones', radicado);
+          const cleanPeriod = (period || '1_periodo').toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 10);
+          const evalFolder = `evaluaciones/${cleanPeriod}/${cleanGrade.toLowerCase()}`;
+          const uploadRes = await uploadDocumentFile(file, evalFolder, radicado);
           if (!uploadRes.error && uploadRes.storageKey) {
             storageKey = uploadRes.storageKey;
             downloadUrl = getDocumentPublicUrl(storageKey);

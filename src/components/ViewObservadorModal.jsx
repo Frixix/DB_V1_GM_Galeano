@@ -21,6 +21,9 @@ export default function ViewObservadorModal({
   const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
   const [evidenceSuccessMsg, setEvidenceSuccessMsg] = useState('');
 
+  // Estados de firmas digitales
+  const [signatures, setSignatures] = useState(() => record?.signatures || {});
+
   // Resetear estados al abrir o cambiar de registro
   useEffect(() => {
     setIsResolving(false);
@@ -29,7 +32,8 @@ export default function ViewObservadorModal({
     setResolveError('');
     setIsUploadingEvidence(false);
     setEvidenceSuccessMsg('');
-  }, [record?.id, isOpen]);
+    setSignatures(record?.signatures || {});
+  }, [record?.id, record?.signatures, isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -85,9 +89,49 @@ export default function ViewObservadorModal({
     }
   };
 
+  // Validación estricta de consentimiento: si faltan firmas requeridas y no hay acta escaneada, no puede cerrarse en verde
+  const hasUploadedEvidence = Boolean(record.storageKey || record.fileName);
+  const isTeacherSigned = Boolean(signatures.teacher?.signedAt || signatures.teacher?.signatureImg);
+  const isGuardianOrCommitteeSigned = Boolean(signatures.secondParty?.signedAt || signatures.secondParty?.signatureImg);
+  const isFullySignedOrScanned = hasUploadedEvidence || (isTeacherSigned && isGuardianOrCommitteeSigned);
+
+  // Función para registrar firma digital o anexo de imagen de firma
+  const handleSign = (roleKey, signerName, signatureImg = null) => {
+    const now = new Date();
+    const formattedDate = `${now.toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })}, ${now.toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })}`;
+
+    const updatedSignatures = {
+      ...signatures,
+      [roleKey]: {
+        name: signerName,
+        signedAt: formattedDate,
+        signatureImg: signatureImg || null,
+        signedBy: currentUser?.name || signerName
+      }
+    };
+
+    setSignatures(updatedSignatures);
+    onUpdateStatus(record.id, {
+      signatures: updatedSignatures
+    });
+  };
+
   const handleConfirmResolve = (e) => {
     e.preventDefault();
     setResolveError('');
+
+    if (!isFullySignedOrScanned) {
+      setResolveError('⚠️ Consentimiento pendiente: Para pasar el check a 🟢 Verde, ambas partes deben firmar digitalmente o se debe adjuntar el acta escaneada con las firmas físicas a R2.');
+      return;
+    }
 
     if (!resolutionText.trim() || resolutionText.trim().length < 8) {
       setResolveError('⚠️ Obligatorio: Debe explicar detalladamente cómo se arregló la situación o qué acuerdos se cumplieron antes de marcarla como resuelta.');
@@ -111,7 +155,8 @@ export default function ViewObservadorModal({
       resolutionNotes: resolutionText.trim(),
       resolutionImage: resolutionImage || null,
       resolvedAt: formattedDate,
-      resolvedBy: currentUser?.name || record.teacher || 'Docente Responsable'
+      resolvedBy: currentUser?.name || record.teacher || 'Docente Responsable',
+      signatures
     });
 
     setIsResolving(false);
@@ -133,7 +178,9 @@ export default function ViewObservadorModal({
     try {
       setIsUploadingEvidence(true);
       setEvidenceSuccessMsg('');
-      const res = await uploadDocumentFile(file, 'observador', record.id);
+      const cleanRoute = (record.route || 'observador').toLowerCase();
+      const targetFolder = isStudentRoute ? `observador/${cleanRoute}` : `comites/${cleanRoute}`;
+      const res = await uploadDocumentFile(file, targetFolder, record.id);
       if (res && res.storageKey) {
         onUpdateStatus(record.id, {
           fileName: file.name,
@@ -271,6 +318,19 @@ export default function ViewObservadorModal({
 
         {/* Cuerpo Principal del Registro */}
         <div className="obs-modal-body">
+          {/* Encabezado Oficial Exclusivo para Impresión SED / MEN */}
+          <div className="obs-print-official-header" style={{ display: 'none' }}>
+            <h1>Gimnasio Martín Galeano</h1>
+            <p><strong>Licencia de Funcionamiento SED / Resolución Oficial Básica Primaria</strong></p>
+            <p>Registro DANE: 311001000000 · Código Institucional Oficial</p>
+            <p style={{ marginTop: '4px', fontSize: '10pt', fontWeight: 800 }}>
+              {formatRouteTitle(record.route).toUpperCase()} — AÑO LECTIVO 2026
+            </p>
+            <p style={{ fontSize: '9pt', color: '#555' }}>
+              Radicado Oficial: <strong>{record.id}</strong> | Expedido: {record.date} | Periodo: {record.period}
+            </p>
+          </div>
+
           {/* Ficha Técnica: Estudiante o Participantes */}
           {isStudentRoute ? (
             <div className="obs-info-panel">
@@ -620,26 +680,132 @@ export default function ViewObservadorModal({
             )}
           </div>
 
-          {/* Sección 4: Bloque de Firmas Institucionales */}
-          <div className="obs-signatures-container">
-            <div className="obs-signature-box">
-              <div className="obs-signature-line"></div>
-              <span className="obs-signature-name">{record.teacher}</span>
-              <span className="obs-signature-role">
-                {isStudentRoute ? 'Docente / Director(a) de Curso' : 'Presidencia del Comité / Rectoría'}
+          {/* Sección 4: Bloque de Firmas Institucionales y Consentimiento */}
+          <div className="obs-section-block" style={{ marginTop: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <h4 className="obs-section-title" style={{ margin: 0 }}>
+                <i className="ph-bold ph-signature"></i>
+                Firmas Institucionales & Consentimiento de las Partes
+              </h4>
+              <span style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                padding: '3px 8px',
+                borderRadius: '6px',
+                background: isFullySignedOrScanned ? '#ecfdf5' : '#fffbeb',
+                color: isFullySignedOrScanned ? '#065f46' : '#b45309',
+                border: `1px solid ${isFullySignedOrScanned ? '#a7f3d0' : '#fde68a'}`
+              }}>
+                {isFullySignedOrScanned ? '✓ Firmas Completas / Respaldo Físico' : '⚠️ Consentimiento Pendiente'}
               </span>
             </div>
 
-            <div className="obs-signature-box">
-              <div className="obs-signature-line"></div>
-              <span className="obs-signature-name">
-                {isStudentRoute
-                  ? record.guardianName || record.studentName || 'Acudiente / Estudiante'
-                  : 'Secretaría de Comité / Representante'}
-              </span>
-              <span className="obs-signature-role">
-                {isStudentRoute ? 'Firma de Enterado & Aceptación' : 'Firma de Validación y Conformidad'}
-              </span>
+            <div className="obs-signatures-container">
+              {/* Firma 1: Docente / Presidencia del Comité */}
+              <div className="obs-signature-box">
+                {signatures.teacher?.signatureImg ? (
+                  <div style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={signatures.teacher.signatureImg} alt="Firma digital" style={{ maxHeight: '42px', maxWidth: '100%', objectFit: 'contain' }} />
+                  </div>
+                ) : signatures.teacher?.signedAt ? (
+                  <div style={{ height: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#0f766e', fontWeight: 700 }}>
+                      [FIRMA DIGITAL CERTIFICADA]
+                    </span>
+                    <span style={{ fontSize: '0.62rem', color: '#64748b' }}>{signatures.teacher.signedAt}</span>
+                  </div>
+                ) : (
+                  <div className="obs-signature-line"></div>
+                )}
+                
+                <span className="obs-signature-name">{record.teacher}</span>
+                <span className="obs-signature-role">
+                  {isStudentRoute ? 'Docente / Director(a) de Curso' : 'Presidencia del Comité / Rectoría'}
+                </span>
+
+                {!signatures.teacher?.signedAt && canEditThisRecord && (
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSign('teacher', record.teacher)}
+                      style={{ background: '#f0fdfa', border: '1px solid #99f6e4', color: '#0f766e', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Firma Digital
+                    </button>
+                    <label style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
+                      Anexar Trazo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => handleSign('teacher', record.teacher, reader.result);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Firma 2: Acudiente / Estudiante / Secretaría de Comité */}
+              <div className="obs-signature-box">
+                {signatures.secondParty?.signatureImg ? (
+                  <div style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={signatures.secondParty.signatureImg} alt="Firma digital" style={{ maxHeight: '42px', maxWidth: '100%', objectFit: 'contain' }} />
+                  </div>
+                ) : signatures.secondParty?.signedAt ? (
+                  <div style={{ height: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#0f766e', fontWeight: 700 }}>
+                      [FIRMA DIGITAL CERTIFICADA]
+                    </span>
+                    <span style={{ fontSize: '0.62rem', color: '#64748b' }}>{signatures.secondParty.signedAt}</span>
+                  </div>
+                ) : (
+                  <div className="obs-signature-line"></div>
+                )}
+
+                <span className="obs-signature-name">
+                  {isStudentRoute
+                    ? record.guardianName || record.studentName || 'Acudiente / Estudiante'
+                    : 'Secretaría de Comité / Representante'}
+                </span>
+                <span className="obs-signature-role">
+                  {isStudentRoute ? 'Firma de Enterado & Aceptación' : 'Firma de Validación y Conformidad'}
+                </span>
+
+                {!signatures.secondParty?.signedAt && canEditThisRecord && (
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSign('secondParty', isStudentRoute ? (record.guardianName || record.studentName || 'Acudiente') : 'Secretaría de Comité')}
+                      style={{ background: '#f0fdfa', border: '1px solid #99f6e4', color: '#0f766e', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Firma Digital
+                    </button>
+                    <label style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#475569', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
+                      Anexar Trazo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => handleSign('secondParty', isStudentRoute ? (record.guardianName || record.studentName || 'Acudiente') : 'Secretaría de Comité', reader.result);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -675,10 +841,10 @@ export default function ViewObservadorModal({
                     type="button"
                     className="obs-btn-toggle-status resolver"
                     onClick={() => setIsResolving(true)}
-                    title="Desplegar casilla para documentar cómo se arregló y pasar a Verde"
+                    title={isFullySignedOrScanned ? "Desplegar casilla para documentar cómo se arregló y pasar a Verde" : "Consentimiento pendiente: Requiere firmas de las partes o acta escaneada"}
                   >
                     <i className="ph-bold ph-check-circle"></i>
-                    <span>Marcar como Cumplido / Resuelto</span>
+                    <span>{isFullySignedOrScanned ? "Marcar como Cumplido / Resuelto" : "Resolver (Requiere Consentimiento)"}</span>
                   </button>
                 )
               )

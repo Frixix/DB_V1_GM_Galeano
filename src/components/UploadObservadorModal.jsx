@@ -4,6 +4,7 @@ import { OBSERVADOR_ROUTES, RECORD_STATUSES, COMMITTEE_MEMBERS, AVAILABLE_TEACHE
 import { getDateRules, addDays, toISODate, formatDisplayDate, getDaysDifference } from '../utils/observadorDates';
 import { committeeService } from '../services/committeeService.js';
 import { uploadDocumentFile } from '../services/storageService.js';
+import gradesService from '../services/gradesService.js';
 
 export default function UploadObservadorModal({
   isOpen,
@@ -32,11 +33,13 @@ export default function UploadObservadorModal({
   const [studentId, setStudentId] = useState('');
   const [studentName, setStudentName] = useState('');
   const [guardianName, setGuardianName] = useState('');
+  const [guardianPhone, setGuardianPhone] = useState('');
   const [sessionType, setSessionType] = useState('Ordinaria');
   const [attendees, setAttendees] = useState('');
   const [type, setType] = useState('falta_leve');
   const [title, setTitle] = useState('');
-  const [period, setPeriod] = useState('1° Periodo');
+  const activePeriodInfo = gradesService.getActiveAcademicPeriod();
+  const [period, setPeriod] = useState(() => activePeriodInfo.shortName || '1° Periodo');
   const [description, setDescription] = useState('');
   const [agreements, setAgreements] = useState('');
   const [isSpecialMeeting, setIsSpecialMeeting] = useState(false);
@@ -73,14 +76,30 @@ export default function UploadObservadorModal({
     }
   }, [initialRoute, isPrivileged]);
 
+  // Función auxiliar para extraer nombre de acudiente y teléfono
+  const parseAcudienteInfo = (acudienteRaw = '') => {
+    if (!acudienteRaw) return { name: '', phone: '' };
+    // Formato común: "Marta Álvarez (Madre) - Cel: 310 892 1102" o "Carlos Torres (Padre) - Cel: 315 489 1234"
+    const parts = acudienteRaw.split(/\s*-\s*Cel:?\s*/i);
+    const parsedName = parts[0]?.trim() || '';
+    const parsedPhone = parts[1]?.trim() || '';
+    return { name: parsedName, phone: parsedPhone };
+  };
+
   // Sincronizar selección de estudiante inicial cuando cambia el grado
   useEffect(() => {
     if (currentGradeStudents.length > 0) {
-      setStudentId(currentGradeStudents[0].id);
-      setStudentName(currentGradeStudents[0].name);
+      const first = currentGradeStudents[0];
+      setStudentId(first.id);
+      setStudentName(first.name);
+      const parsed = parseAcudienteInfo(first.acudiente);
+      setGuardianName(parsed.name);
+      setGuardianPhone(parsed.phone);
     } else {
       setStudentId('');
       setStudentName('');
+      setGuardianName('');
+      setGuardianPhone('');
     }
   }, [grade]);
 
@@ -90,6 +109,9 @@ export default function UploadObservadorModal({
     const found = currentGradeStudents.find((s) => s.id === selectedId);
     if (found) {
       setStudentName(found.name);
+      const parsed = parseAcudienteInfo(found.acudiente);
+      setGuardianName(parsed.name);
+      setGuardianPhone(parsed.phone);
     }
   };
 
@@ -258,10 +280,13 @@ export default function UploadObservadorModal({
     })}`;
 
     let uploadedStorageKey = null;
+    // Partición limpia para R2: observador/{route} o comites/{route}
+    const cleanRoute = (route || 'observador').toLowerCase();
+    const targetFolder = isStudentRoute ? `observador/${cleanRoute}` : `comites/${cleanRoute}`;
     if (selectedFile) {
       try {
         setIsUploading(true);
-        const uploadRes = await uploadDocumentFile(selectedFile, 'observador', newId);
+        const uploadRes = await uploadDocumentFile(selectedFile, targetFolder, newId);
         uploadedStorageKey = uploadRes.storageKey;
       } catch (err) {
         console.warn('[UploadObservadorModal] Error al subir archivo adjunto a R2/Storage:', err);
@@ -269,6 +294,10 @@ export default function UploadObservadorModal({
         setIsUploading(false);
       }
     }
+
+    const fullGuardianContact = isStudentRoute && (guardianName.trim() || guardianPhone.trim())
+      ? `${guardianName.trim()}${guardianPhone.trim() ? ` - Cel: ${guardianPhone.trim()}` : ''}`
+      : null;
 
     const newRecord = {
       id: newId,
@@ -280,7 +309,7 @@ export default function UploadObservadorModal({
       teacher: teacher.trim(),
       studentId: isStudentRoute ? studentId : null,
       studentName: isStudentRoute ? studentName : null,
-      guardianName: isStudentRoute && guardianName.trim() ? guardianName.trim() : null,
+      guardianName: fullGuardianContact,
       sessionType: !isStudentRoute ? sessionType : null,
       attendees: !isStudentRoute ? (attendees.trim() || 'Cuerpo Docente y Directivo') : null,
       type,
@@ -610,7 +639,12 @@ export default function UploadObservadorModal({
                   </div>
 
                   <div className="obs-form-group" style={{ gridColumn: 'span 2' }}>
-                    <label htmlFor="obsStudentSelect">Estudiante Matriculado *</label>
+                    <label htmlFor="obsStudentSelect" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Estudiante Matriculado *</span>
+                      <span style={{ fontSize: '0.72rem', color: '#0f766e', fontWeight: 600 }}>
+                        <i className="ph-bold ph-user-check" style={{ marginRight: '4px' }}></i>Incluye contacto de acudiente
+                      </span>
+                    </label>
                     <select
                       id="obsStudentSelect"
                       className="obs-input-field"
@@ -620,7 +654,7 @@ export default function UploadObservadorModal({
                     >
                       {currentGradeStudents.map((st) => (
                         <option key={st.id} value={st.id}>
-                          {st.name} ({st.id})
+                          {st.name} — {st.acudiente || `ID: ${st.id}`}
                         </option>
                       ))}
                     </select>
@@ -647,20 +681,34 @@ export default function UploadObservadorModal({
                     </select>
                   </div>
 
-                  {route === 'citaciones' && (
-                    <div className="obs-form-group">
-                      <label htmlFor="obsGuardianInput">Nombre del Acudiente / Teléfono *</label>
-                      <input
-                        type="text"
-                        id="obsGuardianInput"
-                        className="obs-input-field"
-                        placeholder="Ej: Carolina Álvarez (Madre - 3105551234)"
-                        value={guardianName}
-                        onChange={(e) => setGuardianName(e.target.value)}
-                        required
-                      />
+                  {/* Casillas Separadas: Nombre de Madre/Acudiente y Teléfono */}
+                  <div className="obs-form-group">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '8px' }}>
+                      <div>
+                        <label htmlFor="obsGuardianNameInput">Nombre de Acudiente / Madre *</label>
+                        <input
+                          type="text"
+                          id="obsGuardianNameInput"
+                          className="obs-input-field"
+                          placeholder="Ej: Marta Álvarez (Madre)"
+                          value={guardianName}
+                          onChange={(e) => setGuardianName(e.target.value)}
+                          required={route === 'citaciones'}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="obsGuardianPhoneInput">Teléfono de Contacto</label>
+                        <input
+                          type="text"
+                          id="obsGuardianPhoneInput"
+                          className="obs-input-field"
+                          placeholder="Ej: 310 892 1102"
+                          value={guardianPhone}
+                          onChange={(e) => setGuardianPhone(e.target.value)}
+                        />
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             ) : (
