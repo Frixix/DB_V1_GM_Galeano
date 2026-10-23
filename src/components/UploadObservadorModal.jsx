@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { STUDENTS_BY_GRADE } from '../data/gradesTreeData';
 import { OBSERVADOR_ROUTES, RECORD_STATUSES, COMMITTEE_MEMBERS, AVAILABLE_TEACHERS } from '../data/initialObservador';
 import { getDateRules, addDays, toISODate, formatDisplayDate, getDaysDifference } from '../utils/observadorDates';

@@ -3,7 +3,9 @@ import PortalNavbar from './PortalNavbar';
 import Decreto1075Sidebar from './Decreto1075Sidebar';
 import DocumentCard from './DocumentCard';
 import DocumentTable from './DocumentTable';
-import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories';
+import { DECRETO_1075_PILLARS, DECRETO_AREAS_REQUIRED } from '../constants/decreto1075Categories';
+import { generateRadicado, formatDateTime } from '../utils/format';
+import { printCompiledExpedientePDF } from '../utils/decretoExpedienteCompiler';
 import './Decreto1075Module.css';
 
 /**
@@ -27,6 +29,7 @@ export default function Decreto1075Module({
   onDownloadDocument,
   onDeleteDocument,
   onOpenUploadModal,
+  onUploadCompiledDocument,
   isPrivileged
 }) {
   const [selectedPillar, setSelectedPillar] = useState(initialPillar || 'all');
@@ -124,6 +127,86 @@ export default function Decreto1075Module({
       icon: 'ph-folders'
     };
   }, [selectedPillar]);
+
+  // Estado de entregas por área para pilares colaborativos
+  const isCollaborativePillar = currentPillarMeta?.collaborationType === 'collaborative_all';
+
+  const areaSubmissions = useMemo(() => {
+    if (!isCollaborativePillar) return [];
+
+    return DECRETO_AREAS_REQUIRED.map((area) => {
+      // Buscar documento en este pilar cuyo título contenga el prefijo o la materia coincida
+      const doc = documents.find((d) => {
+        if (!matchesPillar(d, selectedPillar)) return false;
+        const titleUpper = (d.title || '').toUpperCase();
+        const subjectUpper = (d.subject || '').toUpperCase();
+        return titleUpper.includes(area.prefix) || subjectUpper.includes(area.key) || subjectUpper.includes(area.label.toUpperCase());
+      });
+
+      return {
+        ...area,
+        delivered: Boolean(doc),
+        deliveredDoc: doc || null
+      };
+    });
+  }, [isCollaborativePillar, selectedPillar, documents]);
+
+  // Manejador para Compilar Expediente Oficial en PDF (Rectoría / Admin)
+  const handleCompileExpediente = async () => {
+    if (!isPrivileged) {
+      alert('Esta acción es reservada exclusivamente para Rectoría y Consejo Directivo.');
+      return;
+    }
+
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dateFormatted = `${yyyy}_${mm}_${dd}`;
+
+    const cleanTitle = (currentPillarMeta.titulo || 'EXPEDIENTE')
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .toUpperCase();
+
+    const fileName = `${cleanTitle}_COMPILADO_${dateFormatted}.pdf`;
+    const docTitle = `${currentPillarMeta.titulo} [COMPILADO OFICIAL ${yyyy}]`;
+    const radicado = generateRadicado(documents.length);
+
+    // Documento compilado registrado en la base de datos
+    const compiledDoc = {
+      id: radicado,
+      title: docTitle,
+      folder: 'institucional',
+      grade: 'General',
+      subject: 'Institucional',
+      teacher: currentUser?.name || 'Rectoría General',
+      period: 'Anual / Permanente',
+      isPublic: true,
+      fileName,
+      fileSize: '480 KB',
+      rawBytes: 491520,
+      uploadedAt: formatDateTime(),
+      notes: `Expediente oficial compilado para ${currentPillarMeta.titulo} bajo el Decreto 1075 de 2015. Avalado por Rectoría.`,
+      pillarId: selectedPillar,
+      pillar_id: selectedPillar,
+      isCompiled: true,
+      compilationBadge: 'COMPILADO OFICIAL',
+      tags: ['COMPILADO OFICIAL', 'DECRETO 1075']
+    };
+
+    if (onUploadCompiledDocument) {
+      await onUploadCompiledDocument(compiledDoc);
+    }
+
+    // Disparar generador de PDF con vista preliminar oficial
+    printCompiledExpedientePDF({
+      pillarMeta: currentPillarMeta,
+      submissions: areaSubmissions,
+      currentUser,
+      anoLectivo: String(yyyy)
+    });
+  };
 
   return (
     <div className="decreto-module-container" id="view-decreto1075-module">
@@ -224,6 +307,126 @@ export default function Decreto1075Module({
               </div>
             </div>
           </section>
+
+          {/* Consola de Supervisión & Compilación Colaborativa (Solo para Pilares Colaborativos como PEI y Currículo) */}
+          {isCollaborativePillar && (
+            <section style={{
+              margin: '0 0 1.25rem 0',
+              padding: '1.25rem 1.5rem',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="ph-bold ph-columns" style={{ color: '#0f766e' }}></i>
+                    Consola de Supervisión & Entregas por Área ({currentPillarMeta.titulo})
+                  </h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                    Monitoreo en tiempo real de capítulos radicados por el cuerpo docente. Nomenclatura obligatoria requerida.
+                  </p>
+                </div>
+
+                {isPrivileged && (
+                  <button
+                    type="button"
+                    onClick={handleCompileExpediente}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(15, 118, 110, 0.25)'
+                    }}
+                    title="Consolidar todos los capítulos y emitir el Expediente Maestro en PDF"
+                  >
+                    <i className="ph-bold ph-file-pdf"></i>
+                    <span>Compilar Expediente Oficial en PDF</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Grid de Estado por Asignatura / Capítulo */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                gap: '0.75rem'
+              }}>
+                {areaSubmissions.map((area) => (
+                  <div
+                    key={area.key}
+                    style={{
+                      padding: '0.75rem 0.95rem',
+                      borderRadius: '8px',
+                      border: `1px solid ${area.delivered ? '#a7f3d0' : '#fed7aa'}`,
+                      background: area.delivered ? '#f0fdf4' : '#fffbeb',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{area.label}</strong>
+                      <span style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        background: area.delivered ? '#dcfce7' : '#ffedd5',
+                        color: area.delivered ? '#15803d' : '#c2410c'
+                      }}>
+                        {area.delivered ? '✓ Entregado' : '⏳ Pendiente'}
+                      </span>
+                    </div>
+
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+                      Prefijo: {area.prefix}
+                    </span>
+
+                    {area.delivered ? (
+                      <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#166534', fontWeight: 600, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+                          {area.deliveredDoc.teacher}
+                        </span>
+                        {area.deliveredDoc && (
+                          <button
+                            type="button"
+                            onClick={() => onViewDocument ? onViewDocument(area.deliveredDoc) : onDownloadDocument(area.deliveredDoc)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#0f766e',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}
+                          >
+                            <i className="ph-bold ph-eye"></i> Ver
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.7rem', color: '#9a3412', fontStyle: 'italic', marginTop: '4px' }}>
+                        Sin radicación registrada
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Barra de Filtros y Búsqueda */}
           <section className="decreto-controls-bar">

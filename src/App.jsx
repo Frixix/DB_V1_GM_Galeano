@@ -1186,6 +1186,7 @@ export default function App() {
               setActiveUploadPillarId(pillarId || 'pei');
               setIsUploadModalOpen(true);
             }}
+            onUploadCompiledDocument={handleUploadSuccess}
             isPrivileged={isPrivileged}
           />
         </Suspense>

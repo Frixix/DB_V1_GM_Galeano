@@ -45,6 +45,19 @@ function DocumentCard({ doc, onView, onDownload, onDelete, canDelete, isUnread =
               <i className="ph-bold ph-printer"></i> {printSuggestion.suggestedCopies} copias
             </span>
           )}
+          {doc.compilationBadge && (
+            <span style={{
+              background: '#0f766e',
+              color: '#ffffff',
+              fontSize: '0.68rem',
+              fontWeight: 800,
+              padding: '2px 8px',
+              borderRadius: '6px',
+              letterSpacing: '0.04em'
+            }}>
+              <i className="ph-bold ph-seal-check" style={{ marginRight: '3px' }}></i> {doc.compilationBadge}
+            </span>
+          )}
           {doc.isPublic && <span className="tag-pastel-public"><i className="ph-bold ph-globe"></i> Público</span>}
           {isUnread && (
             <span className="tag-unread-dot" title="Circular pendiente de lectura">

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { formatBytes, formatDateTime, generateRadicado } from '../utils/format';
 import { compressFileIfNeeded } from '../utils/compression';
 import { uploadDocumentFile } from '../services/storageService';
 import { SYSTEM_STORAGE_CAPACITY_BYTES } from '../data/users';
 import gradesService from '../services/gradesService';
-import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories';
+import { DECRETO_1075_PILLARS, SUBJECT_PREFIX_MAP } from '../constants/decreto1075Categories';
+import { downloadDecretoWordTemplate } from '../utils/decretoWordTemplate';
 
 export default function UploadModal({ 
   isOpen, 
@@ -59,6 +60,18 @@ export default function UploadModal({
   const [compressedInfo, setCompressedInfo] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Detección si el pilar normativo requiere colaboración o nomenclatura estandarizada
+  const currentPillarMeta = useMemo(() => {
+    return DECRETO_1075_PILLARS.find((p) => p.id === pillarId) || null;
+  }, [pillarId]);
+
+  const isDecretoCollab = Boolean(pillarId || initialPillarId);
+
+  // Obtener prefijo de materia según la asignatura seleccionada
+  const activeSubjectPrefix = useMemo(() => {
+    return SUBJECT_PREFIX_MAP[subject] || 'MATERIA_';
+  }, [subject]);
 
   // Manejador del cambio de carpeta con auto-completado
   const handleFolderChange = (targetFolder) => {
@@ -126,6 +139,31 @@ export default function UploadModal({
       setSelectedFile(null);
       setCompressedInfo(null);
       return;
+    }
+
+    // Si es para un pilar de Decreto 1075 o modo colaborativo, validar extensión .docx o .pdf
+    const lowerName = file.name.toLowerCase();
+    const isDocx = lowerName.endsWith('.docx');
+    const isPdf = lowerName.endsWith('.pdf');
+
+    if (isDecretoCollab && !isDocx && !isPdf) {
+      setErrorMessage('⚠️ Estandarización Decreto 1075: Para expedientes de pilares normativos solo se admiten archivos Word (.docx) o PDF oficiales (.pdf).');
+      setSelectedFile(null);
+      setCompressedInfo(null);
+      return;
+    }
+
+    // Si es archivo Word en un pilar colaborativo, auto-completar título con patrón institucional si no tiene prefijo
+    if (isDecretoCollab) {
+      const year = '2026';
+      const cleanFileName = file.name.replace(/\.[^/.]+$/, '').toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+      const expectedPrefix = activeSubjectPrefix;
+      if (!title.trim()) {
+        const autoTitle = cleanFileName.startsWith(expectedPrefix)
+          ? `${cleanFileName}`
+          : `${expectedPrefix}${cleanFileName}_${year}`;
+        setTitle(autoTitle);
+      }
     }
 
     setSelectedFile(file);
@@ -460,6 +498,57 @@ export default function UploadModal({
             )}
           </div>
 
+          {/* Banner de Ayuda y Descarga de Plantilla Base Decreto 1075 */}
+          {isDecretoCollab && (
+            <div style={{
+              margin: '0.5rem 0 1.25rem 0',
+              padding: '0.85rem 1rem',
+              background: '#f0fdfa',
+              border: '1.5px solid #99f6e4',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}>
+              <div>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f766e', fontSize: '0.82rem' }}>
+                  <i className="ph-bold ph-file-doc"></i> Estandarización Colaborativa Decreto 1075
+                </strong>
+                <span style={{ fontSize: '0.74rem', color: '#334155', display: 'block', marginTop: '2px' }}>
+                  Prefijo sugerido para {subject}: <strong style={{ color: '#0f766e', fontFamily: 'monospace' }}>{activeSubjectPrefix}</strong> · Formatos admitidos: <strong>.docx / .pdf</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => downloadDecretoWordTemplate({
+                  pilarTitulo: currentPillarMeta?.titulo || 'PEI',
+                  areaLabel: subject,
+                  docenteName: currentUser?.name || 'Docente',
+                  anoLectivo: '2026'
+                })}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#0f766e',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+                title="Descargar plantilla Word formateada con membrete oficial"
+              >
+                <i className="ph-bold ph-download-simple"></i>
+                <span>Descargar Plantilla Base (.docx)</span>
+              </button>
+            </div>
+          )}
+
           {/* Selector de Archivo */}
           <div className="form-group">
             <label>Archivo Adjunto *</label>
@@ -477,6 +566,10 @@ export default function UploadModal({
                 <div className="file-hint">
                   {isStorageFull ? (
                     <span style={{ color: '#b91c1c', fontWeight: 600 }}>La custodia y descarga de documentos permanece 100% activa.</span>
+                  ) : isDecretoCollab ? (
+                    <span style={{ color: '#0f766e', fontWeight: 600 }}>
+                      Formatos requeridos Decreto 1075: <strong>.docx / .pdf</strong> • Límite perfil: <strong>{currentUser.maxUploadLabel}</strong>
+                    </span>
                   ) : (
                     <>
                       PDF, Office, Imágenes • Límite perfil: <strong>{currentUser.maxUploadLabel}</strong> • Restante: <strong>{formatBytes(remainingBytes)}</strong>
@@ -485,7 +578,7 @@ export default function UploadModal({
                 </div>
                 <input 
                   type="file" 
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp"
+                  accept={isDecretoCollab ? ".docx,.pdf" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp"}
                   className="file-hidden-input" 
                   onChange={handleFileChange} 
                   required
