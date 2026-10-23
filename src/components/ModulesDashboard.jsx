@@ -154,15 +154,15 @@ export default function ModulesDashboard({
                 title="Módulo institucional de Actas de Comités: Convivencia Escolar, Comisión de Evaluación y Consejo Académico"
                 style={{
                   marginTop: '0.25rem',
-                  color: selectedNavModule === 'comites' ? '#be123c' : undefined,
+                  color: selectedNavModule === 'comites' ? '#334155' : undefined,
                   fontWeight: selectedNavModule === 'comites' ? 700 : undefined,
-                  background: selectedNavModule === 'comites' ? '#fff1f2' : undefined,
-                  borderColor: selectedNavModule === 'comites' ? '#fecdd3' : undefined
+                  background: selectedNavModule === 'comites' ? '#f8fafc' : undefined,
+                  borderColor: selectedNavModule === 'comites' ? '#cbd5e1' : undefined
                 }}
               >
-                <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'comites' ? '#be123c' : '#e11d48' }}></i>
+                <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'comites' ? '#475569' : '#64748b' }}></i>
                 <span className="portal-nav-text">Comités & Actas</span>
-                <span className="portal-sidebar-active-tag" style={{ background: '#ffe4e6', color: '#be123c', borderColor: '#fecdd3' }}>Gobierno</span>
+                <span className="portal-sidebar-active-tag" style={{ background: '#f1f5f9', color: '#475569', borderColor: '#cbd5e1' }}>Gobierno</span>
               </button>
 
               {/* Módulo Protagonista 4: Módulo Oficial Decreto 1075 de 2015 */}
@@ -491,8 +491,8 @@ export default function ModulesDashboard({
                 id="tour-card-actas-consejo"
                 className="portal-module-card portal-module-card-hero"
                 style={{
-                  background: 'linear-gradient(180deg, #ffffff 0%, #fff1f2 100%)',
-                  borderColor: '#fecdd3'
+                  background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                  borderColor: '#cbd5e1'
                 }}
                 onClick={() => handleModuleClick('comites')}
                 role="button"
@@ -506,14 +506,14 @@ export default function ModulesDashboard({
                 }}
               >
                 <div className="portal-card-header-bar">
-                  <div className="portal-card-icon-container" style={{ background: '#ffe4e6', borderColor: '#fecdd3' }}>
-                    <i className="ph-bold ph-scales" style={{ fontSize: '1.85rem', color: '#be123c' }}></i>
+                  <div className="portal-card-icon-container" style={{ background: '#f1f5f9', borderColor: '#e2e8f0' }}>
+                    <i className="ph-bold ph-scales" style={{ fontSize: '1.85rem', color: '#334155' }}></i>
                   </div>
                   <div>
-                    <span className="portal-card-hero-tag" style={{ background: '#ffe4e6', color: '#be123c', borderColor: '#fecdd3' }}>
+                    <span className="portal-card-hero-tag" style={{ background: '#f1f5f9', color: '#475569', borderColor: '#cbd5e1' }}>
                       <i className="ph-bold ph-file-text"></i> Gobierno Escolar
                     </span>
-                    <span className="portal-badge-active" style={{ background: '#be123c', color: '#ffffff', borderColor: '#be123c' }}>Actas Oficiales</span>
+                    <span className="portal-badge-active" style={{ background: '#334155', color: '#ffffff', borderColor: '#334155' }}>Actas Oficiales</span>
                   </div>
                 </div>
 
@@ -525,7 +525,7 @@ export default function ModulesDashboard({
                 </div>
 
                 <div className="portal-card-footer">
-                  <span className="portal-link-label" style={{ color: '#be123c', fontWeight: 700 }}>
+                  <span className="portal-link-label" style={{ color: '#334155', fontWeight: 700 }}>
                     Entrar al Módulo de Comités & Actas &rarr;
                   </span>
                 </div>
