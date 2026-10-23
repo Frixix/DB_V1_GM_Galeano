@@ -549,6 +549,7 @@ export default function App() {
           onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
           onlineCount={onlineCount}
           circularesCount={totalUnreadCount}
+          totalUsedBytes={totalUsedBytes}
           isNotificationsOpen={isNotificationsOpen}
           onOpenCirculares={handleOpenCircularesBell}
           onOpenTour={handleOpenTour}
@@ -637,7 +638,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
-          isNotificationsOpen={isNotificationsOpen}
+            isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -799,7 +800,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
-          isNotificationsOpen={isNotificationsOpen}
+            isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -889,7 +890,7 @@ export default function App() {
             onlineMap={onlineMap}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
-          isNotificationsOpen={isNotificationsOpen}
+            isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}
@@ -1031,7 +1032,7 @@ export default function App() {
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineCount={onlineCount}
             circularesCount={totalUnreadCount}
-          isNotificationsOpen={isNotificationsOpen}
+            isNotificationsOpen={isNotificationsOpen}
             onOpenCirculares={handleOpenCircularesBell}
             onOpenTour={handleOpenTour}
             onLogout={handleLogout}

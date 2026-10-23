@@ -213,28 +213,70 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.5rem 0.75rem;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
-  color: #475569; /* Inactivo: sin color, tipografía clara y limpia */
+  border-radius: 0.5rem;
+  color: #334155;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
-.portal-nav-item i {
-  font-size: 1.25rem;
-  color: #94a3b8;
-  transition: color 0.15s ease;
+.portal-nav-icon-box {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  background-color: rgba(241, 245, 249, 0.75);
+  color: #475569;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.portal-nav-icon-box i {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.portal-nav-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .portal-nav-item:hover {
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
   color: #0f172a;
+}
+
+.portal-nav-item:hover .portal-nav-icon-box {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.portal-sidebar-active-tag {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  line-height: 1;
+  text-transform: uppercase;
+  border: 1px solid transparent;
 }
 
 /* 1. Módulo Activo: Gestión Documental */
@@ -514,14 +556,58 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
   margin-bottom: 1.15rem;
+}
+
+.portal-card-icon-container {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.portal-card-icon-container i {
+  font-size: 1.35rem !important;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+.portal-module-card-hero .portal-card-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.portal-module-card-hero .portal-card-icon-container {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .portal-card-header-right {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  flex-wrap: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .portal-badge-active,

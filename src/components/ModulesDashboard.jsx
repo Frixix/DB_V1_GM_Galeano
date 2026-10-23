@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import PortalNavbar from './PortalNavbar';
+import StorageQuotaMeter from './common/StorageQuotaMeter';
 import { DECRETO_1075_PILLARS } from '../constants/decreto1075Categories';
 import './ModulesDashboard.css';
 
@@ -17,6 +18,7 @@ export default function ModulesDashboard({
   onOpenConnectionsModal,
   onlineCount,
   circularesCount = 0,
+  totalUsedBytes = 0,
   onOpenCirculares,
   isNotificationsOpen = false,
   onOpenTour
@@ -121,7 +123,9 @@ export default function ModulesDashboard({
                   onClick={() => handleModuleClick('boveda')}
                   title="Acceso exclusivo Rectoría y Administrador: archivos ultraconfidenciales, financieros y contratos"
                 >
-                  <i className="ph-bold ph-vault"></i>
+                  <div className="portal-nav-icon-box">
+                    <i className="ph-bold ph-vault"></i>
+                  </div>
                   <span className="portal-nav-text">Bóveda Confidencial</span>
                   <span className="portal-sidebar-active-tag" style={{ background: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1' }}>Exclusivo</span>
                 </button>
@@ -135,7 +139,9 @@ export default function ModulesDashboard({
                 title="Acceder a Circulares Institucionales y Comunicados Oficiales"
                 style={{ marginTop: '0.25rem' }}
               >
-                <i className="ph-bold ph-newspaper"></i>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-newspaper"></i>
+                </div>
                 <span className="portal-nav-text">Circulares Oficiales</span>
                 {circularesCount > 0 ? (
                   <span className="portal-sidebar-active-tag" style={{ background: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }}>
@@ -160,7 +166,9 @@ export default function ModulesDashboard({
                   borderColor: selectedNavModule === 'comites' ? '#cbd5e1' : undefined
                 }}
               >
-                <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'comites' ? '#475569' : '#64748b' }}></i>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'comites' ? '#475569' : '#64748b' }}></i>
+                </div>
                 <span className="portal-nav-text">Comités & Actas</span>
                 <span className="portal-sidebar-active-tag" style={{ background: '#f1f5f9', color: '#475569', borderColor: '#cbd5e1' }}>Gobierno</span>
               </button>
@@ -179,7 +187,9 @@ export default function ModulesDashboard({
                   borderColor: selectedNavModule === 'decreto1075' ? '#bfdbfe' : undefined
                 }}
               >
-                <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'decreto1075' ? '#1e3a8a' : '#2563eb' }}></i>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-scales" style={{ color: selectedNavModule === 'decreto1075' ? '#1e3a8a' : '#2563eb' }}></i>
+                </div>
                 <span className="portal-nav-text">Decreto 1075 de 2015</span>
                 <span className="portal-sidebar-active-tag" style={{ background: '#dbeafe', color: '#1e40af', borderColor: '#bfdbfe' }}>9 Pilares</span>
               </button>
@@ -199,7 +209,9 @@ export default function ModulesDashboard({
                     borderColor: selectedNavModule === 'docentes' ? '#99f6e4' : undefined
                   }}
                 >
-                  <i className="ph-bold ph-chalkboard-teacher" style={{ color: selectedNavModule === 'docentes' ? '#0f766e' : '#0d9488' }}></i>
+                  <div className="portal-nav-icon-box">
+                    <i className="ph-bold ph-chalkboard-teacher" style={{ color: selectedNavModule === 'docentes' ? '#0f766e' : '#0d9488' }}></i>
+                  </div>
                   <span className="portal-nav-text">Gestión Docente</span>
                   <span className="portal-sidebar-active-tag" style={{ background: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' }}>Directivo</span>
                 </button>
@@ -218,7 +230,9 @@ export default function ModulesDashboard({
                   onClick={() => handleModuleClick('grades')}
                   title="Consola de Control Académico y Evaluaciones (SIEE)"
                 >
-                  <i className="ph-bold ph-clipboard-text"></i>
+                  <div className="portal-nav-icon-box">
+                    <i className="ph-bold ph-clipboard-text"></i>
+                  </div>
                   <span className="portal-nav-text">Control Académico (SIEE)</span>
                 </button>
               ) : (
@@ -228,7 +242,9 @@ export default function ModulesDashboard({
                   onClick={() => handleModuleClick('grades')}
                   title="Acceder a Notas & Calificaciones (SIEE)"
                 >
-                  <i className="ph-bold ph-chart-line-up"></i>
+                  <div className="portal-nav-icon-box">
+                    <i className="ph-bold ph-chart-line-up"></i>
+                  </div>
                   <span className="portal-nav-text">Notas & Calificaciones</span>
                 </button>
               )}
@@ -241,7 +257,9 @@ export default function ModulesDashboard({
                 title="Acceder a Recursos Pedagógicos, Planeaciones y Talleres"
                 style={{ marginTop: '0.25rem' }}
               >
-                <i className="ph-bold ph-folder-notch-open"></i>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-folder-notch-open"></i>
+                </div>
                 <span className="portal-nav-text">Recursos Pedagógicos</span>
               </button>
 
@@ -254,7 +272,9 @@ export default function ModulesDashboard({
                   title="Panel de Matriculados e Histórico Blindado (Fase 5)"
                   style={{ marginTop: '0.25rem' }}
                 >
-                  <i className="ph-bold ph-identification-badge"></i>
+                  <div className="portal-nav-icon-box">
+                    <i className="ph-bold ph-identification-badge"></i>
+                  </div>
                   <span className="portal-nav-text">Matrículas & Censo</span>
                 </button>
               )}
@@ -267,7 +287,9 @@ export default function ModulesDashboard({
                 title="Acceder a Observador del Estudiante (Seguimiento, Citaciones y PIAR)"
                 style={{ marginTop: '0.25rem' }}
               >
-                <i className="ph-bold ph-user-list"></i>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-user-list"></i>
+                </div>
                 <span className="portal-nav-text">Observador del Estudiante</span>
               </button>
 
@@ -279,7 +301,9 @@ export default function ModulesDashboard({
                 title="Acceder a Evaluaciones Finales & Cierres SIEE"
                 style={{ marginTop: '0.25rem' }}
               >
-                <i className="ph-bold ph-graduation-cap"></i>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-graduation-cap"></i>
+                </div>
                 <span className="portal-nav-text">Evaluaciones Finales</span>
               </button>
             </nav>
@@ -289,19 +313,25 @@ export default function ModulesDashboard({
             <p className="portal-sidebar-label">FUTUROS MÓDULOS</p>
             <nav className="portal-sidebar-nav">
               <div className="portal-nav-item portal-nav-item-disabled">
-                <div className="portal-nav-item-disabled-left">
-                  <i className="ph-bold ph-receipt portal-text-muted" style={{ fontSize: '1.2rem' }}></i>
-                  <span className="portal-nav-text">Tesorería & Pagos</span>
+                <div className="portal-nav-icon-box">
+                  <i className="ph-bold ph-receipt portal-text-muted" style={{ fontSize: '1.15rem' }}></i>
                 </div>
-                <span className="portal-pill-gray">Próximamente</span>
+                <span className="portal-nav-text">Tesorería & Pagos</span>
+                <span className="portal-sidebar-active-tag" style={{ background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0' }}>Próximamente</span>
               </div>
             </nav>
           </div>
 
           <div className="portal-sidebar-footer">
-            <div className="portal-badge-status">
+            <div className="portal-badge-status" style={{ marginBottom: '0.65rem' }}>
               <span className="portal-status-dot"></span> Plataforma Institucional Activa
             </div>
+
+            {/* Widget de Gobernanza y Medición de Almacenamiento 15 GB */}
+            <StorageQuotaMeter 
+              usedBytes={totalUsedBytes} 
+              isDirectivo={isPrivileged || isCoordinador}
+            />
           </div>
         </aside>
 
