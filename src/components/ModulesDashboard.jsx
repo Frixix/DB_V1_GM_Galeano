@@ -323,17 +323,18 @@ export default function ModulesDashboard({
           </div>
 
           <div className="portal-sidebar-footer">
-            <div className="portal-badge-status" style={{ marginBottom: '0.65rem' }}>
+            <div className="portal-badge-status">
               <span className="portal-status-dot"></span> Plataforma Institucional Activa
             </div>
-
-            {/* Widget de Gobernanza y Medición de Almacenamiento 15 GB */}
-            <StorageQuotaMeter 
-              usedBytes={totalUsedBytes} 
-              isDirectivo={isPrivileged || isCoordinador}
-            />
           </div>
         </aside>
+
+        {/* Medidor Flotante Permanente de Cuota SaaS (15 GB) en la parte inferior izquierda */}
+        <StorageQuotaMeter 
+          usedBytes={totalUsedBytes} 
+          floating={true}
+          isDirectivo={isPrivileged || isCoordinador}
+        />
 
         {/* Área de Contenido Principal */}
         <main className="portal-main-content">

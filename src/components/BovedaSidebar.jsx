@@ -143,6 +143,7 @@ export default function BovedaSidebar({
       {/* 5. Medidor y Gobernanza de Cuota SaaS (15 GB) */}
       <StorageQuotaMeter 
         usedBytes={totalSystemBytes || totalBovedaBytes} 
+        floating={false}
         isDirectivo={true}
       />
     </aside>

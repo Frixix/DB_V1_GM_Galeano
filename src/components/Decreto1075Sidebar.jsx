@@ -136,6 +136,7 @@ export default function Decreto1075Sidebar({
       {/* 5. Medidor y Gobernanza de Cuota SaaS (15 GB) */}
       <StorageQuotaMeter 
         usedBytes={totalSystemBytes} 
+        floating={false}
         isDirectivo={true}
       />
     </aside>
