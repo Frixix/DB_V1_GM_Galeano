@@ -509,86 +509,120 @@
   min-height: 230px;
 }
 
+/* Estilos para badges normalizados */
 .portal-card-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.15rem;
 }
 
-.portal-card-icon-container {
-  width: 52px;
-  height: 52px;
-  border-radius: 6px;
+.portal-card-header-right {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
 }
 
-.portal-card-icon-svg {
-  width: 28px;
-  height: 28px;
+.portal-badge-active,
+.portal-badge-amber,
+.portal-badge-cyan,
+.portal-badge-indigo,
+.portal-badge-violet,
+.portal-badge-teal,
+.portal-badge-emerald,
+.portal-badge-slate,
+.portal-badge-gray,
+.portal-badge-comites,
+.portal-badge-decreto {
+  white-space: nowrap;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 9999px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
 }
 
-/* Módulo Activo: Estilo Verde Oscuro Institucional */
-.portal-module-card-active {
-  border: 1px solid #bbf7d0;
-  cursor: pointer;
-  text-align: left;
-}
-
-.portal-module-card-active::before {
+/* 2px border superior con color adecuado para cada tarjeta */
+.portal-module-card::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #064e3b;
+  background-color: transparent;
+  transition: height 0.2s ease;
 }
 
-.portal-module-card-active .portal-card-icon-container {
-  background-color: #ecfdf5;
-  color: #064e3b;
+.portal-module-card-slate::before {
+  background-color: #334155;
 }
 
-.portal-module-card-active:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 15px -3px rgba(6, 78, 59, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-  border-color: #064e3b;
+.portal-module-card-comites::before {
+  background-color: #475569;
 }
 
-.portal-badge-active {
-  font-size: 0.725rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #064e3b;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
+.portal-module-card-decreto::before {
+  background-color: #1e3a8a;
 }
 
-.portal-card-body h3 {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 0.5rem;
+.portal-module-card-cyan::before {
+  background-color: #0f766e;
+}
+
+.portal-module-card-active::before {
+  background-color: #059669;
+}
+
+.portal-module-card-indigo::before {
+  background-color: #4338ca;
+}
+
+.portal-module-card-amber::before {
+  background-color: #b45309;
+}
+
+.portal-module-card-teal::before {
+  background-color: #0f766e;
+}
+
+.portal-module-card-emerald::before {
+  background-color: #047857;
+}
+
+.portal-module-card-violet::before {
+  background-color: #6d28d9;
+}
+
+/* Alineación y ritmo vertical de contenidos */
+.portal-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .portal-card-body p {
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.85rem;
+  color: #475569;
   line-height: 1.5;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .portal-card-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 1rem;
 }
 
 .portal-link-label {

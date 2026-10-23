@@ -352,18 +352,15 @@ export default function ModulesDashboard({
                     <div className="portal-card-icon-container portal-slate-icon">
                       <i className="ph-bold ph-vault" style={{ fontSize: '1.85rem', color: '#0f172a' }}></i>
                     </div>
-                    <div>
-                      <span className="portal-card-hero-tag portal-card-hero-tag-slate">
-                        <i className="ph-bold ph-lock-key"></i> Ultra Confidencial
-                      </span>
-                      <span className="portal-badge-slate">Solo Rectora & Admin</span>
+                    <div className="portal-card-header-right">
+                      <span className="portal-badge-slate">Rectoría & Admin</span>
                     </div>
                   </div>
 
                   <div className="portal-card-body">
                     <h3 style={{ color: '#0f172a', fontSize: '1.25rem' }}>Bóveda Confidencial</h3>
                     <p style={{ color: '#334155' }}>
-                      Espacio blindado exclusivo de Rectoría con clave maestra y almacenamiento de hasta 2 GB. Reservado para información sensible que ningún otro usuario puede ver: balances financieros privados, nómina, contratos docentes y expedientes de máxima reserva.
+                      Espacio blindado exclusivo de Rectoría con clave maestra y almacenamiento de hasta 15 GB. Reservado para información sensible que ningún otro usuario puede ver: balances financieros privados, nómina, contratos docentes y expedientes de máxima reserva.
                     </p>
                   </div>
 
@@ -390,10 +387,7 @@ export default function ModulesDashboard({
                     <div className="portal-card-icon-container portal-gray-icon">
                       <i className="ph-bold ph-vault" style={{ fontSize: '1.85rem' }}></i>
                     </div>
-                    <div>
-                      <span className="portal-card-hero-tag portal-card-hero-tag-slate">
-                        <i className="ph-bold ph-lock"></i> Exclusivo
-                      </span>
+                    <div className="portal-card-header-right">
                       <span className="portal-badge-gray">Despacho de Rectoría</span>
                     </div>
                   </div>
@@ -418,10 +412,7 @@ export default function ModulesDashboard({
                     <div className="portal-card-icon-container portal-gray-icon">
                       <i className="ph-bold ph-vault" style={{ fontSize: '1.85rem' }}></i>
                     </div>
-                    <div>
-                      <span className="portal-card-hero-tag portal-card-hero-tag-slate">
-                        <i className="ph-bold ph-shield"></i> Exclusivo
-                      </span>
+                    <div className="portal-card-header-right">
                       <span className="portal-badge-gray">Rectoría & Admin</span>
                     </div>
                   </div>
@@ -460,16 +451,13 @@ export default function ModulesDashboard({
                   <div className="portal-card-icon-container" style={{ background: '#d1fae5', borderColor: '#a7f3d0' }}>
                     <i className="ph-bold ph-newspaper" style={{ fontSize: '1.85rem', color: '#064e3b' }}></i>
                   </div>
-                  <div>
-                    <span className="portal-card-hero-tag portal-card-hero-tag-active">
-                      <i className="ph-bold ph-bell-ringing"></i> Oficial
-                    </span>
+                  <div className="portal-card-header-right">
                     {circularesCount > 0 ? (
                       <span className="portal-badge-active" style={{ background: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }}>
                         {circularesCount} pendiente{circularesCount > 1 ? 's' : ''}
                       </span>
                     ) : (
-                      <span className="portal-badge-active">Activo · Rectoría</span>
+                      <span className="portal-badge-active">Oficial Rectoría</span>
                     )}
                   </div>
                 </div>
@@ -489,7 +477,7 @@ export default function ModulesDashboard({
               {/* PROTAGONISTA 3: MÓDULO DE COMITÉS & ACTAS OFICIALES */}
               <article 
                 id="tour-card-actas-consejo"
-                className="portal-module-card portal-module-card-hero"
+                className="portal-module-card portal-module-card-comites portal-module-card-hero"
                 style={{
                   background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
                   borderColor: '#cbd5e1'
@@ -509,11 +497,8 @@ export default function ModulesDashboard({
                   <div className="portal-card-icon-container" style={{ background: '#f1f5f9', borderColor: '#e2e8f0' }}>
                     <i className="ph-bold ph-scales" style={{ fontSize: '1.85rem', color: '#334155' }}></i>
                   </div>
-                  <div>
-                    <span className="portal-card-hero-tag" style={{ background: '#f1f5f9', color: '#475569', borderColor: '#cbd5e1' }}>
-                      <i className="ph-bold ph-file-text"></i> Gobierno Escolar
-                    </span>
-                    <span className="portal-badge-active" style={{ background: '#334155', color: '#ffffff', borderColor: '#334155' }}>Actas Oficiales</span>
+                  <div className="portal-card-header-right">
+                    <span className="portal-badge-comites" style={{ background: '#334155', color: '#ffffff', borderColor: '#334155' }}>Actas Oficiales</span>
                   </div>
                 </div>
 
@@ -533,7 +518,7 @@ export default function ModulesDashboard({
               {/* PROTAGONISTA 4: MÓDULO OFICIAL DECRETO 1075 DE 2015 */}
               <article 
                 id="tour-card-decreto"
-                className="portal-module-card portal-module-card-hero"
+                className="portal-module-card portal-module-card-decreto portal-module-card-hero"
                 style={{
                   background: 'linear-gradient(180deg, #ffffff 0%, #eff6ff 100%)',
                   borderColor: '#93c5fd'
@@ -553,11 +538,8 @@ export default function ModulesDashboard({
                   <div className="portal-card-icon-container" style={{ background: '#dbeafe', borderColor: '#bfdbfe' }}>
                     <i className="ph-bold ph-scales" style={{ fontSize: '1.85rem', color: '#1e3a8a' }}></i>
                   </div>
-                  <div>
-                    <span className="portal-card-hero-tag" style={{ background: '#dbeafe', color: '#1e40af', borderColor: '#bfdbfe' }}>
-                      <i className="ph-bold ph-certificate"></i> Marco Legal MEN
-                    </span>
-                    <span className="portal-badge-active" style={{ background: '#1e3a8a', color: '#ffffff', borderColor: '#1e3a8a' }}>9 Pilares</span>
+                  <div className="portal-card-header-right">
+                    <span className="portal-badge-decreto" style={{ background: '#1e3a8a', color: '#ffffff', borderColor: '#1e3a8a' }}>9 Pilares SED</span>
                   </div>
                 </div>
 
@@ -598,12 +580,9 @@ export default function ModulesDashboard({
                   <div className={`portal-card-icon-container ${canManageDocentes ? 'portal-cyan-icon' : 'portal-gray-icon'}`}>
                     <i className="ph-bold ph-chalkboard-teacher" style={{ fontSize: '1.85rem', color: canManageDocentes ? '#0f766e' : undefined }}></i>
                   </div>
-                  <div>
-                    <span className="portal-card-hero-tag" style={{ background: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' }}>
-                      <i className="ph-bold ph-users-three"></i> Planta Docente
-                    </span>
+                  <div className="portal-card-header-right">
                     {canManageDocentes ? (
-                      <span className="portal-badge-active" style={{ background: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}>Directivo</span>
+                      <span className="portal-badge-cyan" style={{ background: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}>Planta Docente</span>
                     ) : (
                       <span className="portal-badge-gray">Directivo Exclusivo</span>
                     )}
