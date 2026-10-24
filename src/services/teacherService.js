@@ -169,6 +169,11 @@ class TeacherService {
     return USERS[key] || null;
   }
 
+  getTeacherProfile(userKey) {
+    if (!userKey) return null;
+    return USERS[userKey] || null;
+  }
+
   async updateTeacherProfile(key, { name, label, status }, adminUser) {
     if (!key || !USERS[key]) {
       throw new Error(`Docente no encontrado con clave: ${key}`);
