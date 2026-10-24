@@ -300,13 +300,20 @@ export default function UploadObservadorModal({
     })}`;
 
     let uploadedStorageKey = null;
-    // Partición limpia para R2: observador/{route} o comites/{route}
+    // Partición jerárquica canónica para R2: GMG/2026/COMITES/.../ACTA_001/ o GMG/2026/OBSERVADOR/...
     const cleanRoute = (route || 'observador').toLowerCase();
     const targetFolder = isStudentRoute ? `observador/${cleanRoute}` : `comites/${cleanRoute}`;
     if (selectedFile) {
       try {
         setIsUploading(true);
-        const uploadRes = await uploadDocumentFile(selectedFile, targetFolder, newId);
+        const uploadRes = await uploadDocumentFile(selectedFile, targetFolder, newId, {
+          moduleFolder: isStudentRoute ? 'OBSERVADOR' : 'COMITES',
+          subFolder: cleanRoute,
+          expedienteId: newId,
+          documentType: 'PRINCIPAL',
+          year: '2026',
+          institutionCode: 'GMG'
+        });
         uploadedStorageKey = uploadRes.storageKey;
       } catch (err) {
         console.warn('[UploadObservadorModal] Error al subir archivo adjunto a R2/Storage:', err);

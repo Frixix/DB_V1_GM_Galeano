@@ -207,7 +207,14 @@ export default function ViewObservadorModal({
       setEvidenceSuccessMsg('');
       const cleanRoute = (record.route || 'observador').toLowerCase();
       const targetFolder = isStudentRoute ? `observador/${cleanRoute}` : `comites/${cleanRoute}`;
-      const res = await uploadDocumentFile(file, targetFolder, record.id);
+      const res = await uploadDocumentFile(file, targetFolder, record.id, {
+        moduleFolder: isStudentRoute ? 'OBSERVADOR' : 'COMITES',
+        subFolder: cleanRoute,
+        expedienteId: record.id,
+        documentType: 'SOPORTE_FIRMAS',
+        year: '2026',
+        institutionCode: 'GMG'
+      });
       if (res && res.storageKey) {
         onUpdateStatus(record.id, {
           fileName: file.name,

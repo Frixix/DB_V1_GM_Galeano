@@ -36,6 +36,41 @@ export function sanitizeFileName(name) {
 }
 
 /**
+ * Construye una ruta canónica jerárquica para Cloudflare R2 y Supabase Storage:
+ * Estructura: [institutionCode]/[year]/[moduleFolder]/.../[expedienteId]/[filename]
+ * Ejemplo: GMG/2026/COMITES/COMITE_CONVIVENCIA/ACTA_001/GMG_2026_ACTA_001_PRINCIPAL.pdf
+ */
+export function buildCanonicalStorageKey({
+  institutionCode = 'GMG',
+  year = '2026',
+  moduleFolder = 'GENERAL',
+  subFolder = '',
+  expedienteId = 'DOC_001',
+  documentType = 'PRINCIPAL',
+  originalFileName = 'archivo.bin'
+}) {
+  const cleanInst = sanitizeFileName(institutionCode || 'GMG').toUpperCase();
+  const cleanYear = sanitizeFileName(year || '2026');
+  const cleanModule = sanitizeFileName(moduleFolder || 'GENERAL').toUpperCase();
+  const cleanSub = subFolder ? sanitizeFileName(subFolder).toUpperCase() : '';
+  const cleanExp = sanitizeFileName(expedienteId || 'EXP').toUpperCase();
+  const cleanDocType = sanitizeFileName(documentType || 'DOC').toUpperCase();
+
+  const rawExt = originalFileName.includes('.') ? originalFileName.split('.').pop()?.toLowerCase() : 'bin';
+  const cleanExt = sanitizeFileName(rawExt || 'bin');
+
+  const standardizedFileName = `${cleanInst}_${cleanYear}_${cleanExp}_${cleanDocType}.${cleanExt}`;
+
+  const folderParts = [cleanInst, cleanYear, cleanModule];
+  if (cleanSub) {
+    folderParts.push(cleanSub);
+  }
+  folderParts.push(cleanExp, standardizedFileName);
+
+  return folderParts.join('/');
+}
+
+/**
  * Deduce el tipo MIME exacto a partir del nombre o tipo de archivo.
  */
 export function getMimeType(fileName = '', fallbackType = '') {
@@ -66,17 +101,38 @@ export function getMimeType(fileName = '', fallbackType = '') {
  * @param {File|Blob} file 
  * @param {string} folder 
  * @param {string} radicado 
+ * @param {Object} options Metadatos canónicos opcionales: { expedienteId, documentType, year, institutionCode, subFolder, moduleFolder }
  * @returns {Promise<{ storageKey: string|null, error: any, provider?: string }>}
  */
-export async function uploadDocumentFile(file, folder = 'general', radicado = 'DOC') {
+export async function uploadDocumentFile(file, folder = 'general', radicado = 'DOC', options = {}) {
   if (!file) {
     return { storageKey: null, error: null };
   }
 
   const rawName = file.name || 'documento.bin';
   const cleanName = sanitizeFileName(rawName);
-  const cleanFolder = (folder || 'general').toLowerCase();
-  const filePath = `${cleanFolder}/${radicado}_${cleanName}`;
+
+  let filePath;
+  // Si se proveen opciones canónicas o se detecta expediente estructurado
+  if (options.expedienteId || options.documentType || options.moduleFolder) {
+    const inferredModule = options.moduleFolder || (folder.includes('/') ? folder.split('/')[0] : folder);
+    const inferredSub = options.subFolder || (folder.includes('/') ? folder.split('/').slice(1).join('/') : '');
+
+    filePath = buildCanonicalStorageKey({
+      institutionCode: options.institutionCode || 'GMG',
+      year: options.year || '2026',
+      moduleFolder: inferredModule,
+      subFolder: inferredSub,
+      expedienteId: options.expedienteId || radicado,
+      documentType: options.documentType || 'PRINCIPAL',
+      originalFileName: cleanName
+    });
+  } else {
+    // Modo legado compatible con sanitización segura
+    const cleanFolder = (folder || 'general').toLowerCase();
+    filePath = `${cleanFolder}/${radicado}_${cleanName}`;
+  }
+
   const resolvedContentType = getMimeType(cleanName, file.type);
 
   // 1. Prioridad: Cloudflare R2 (10 GB gratis, $0 Egress)
