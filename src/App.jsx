@@ -1070,7 +1070,7 @@ export default function App() {
         />
         {/* Modal para Subir / Radicar Documento en Bóveda */}
         <UploadModal 
-          key={isUploadModalOpen ? `upload_modal_boveda_${currentFolder}_${rosterTick}` : 'upload_modal_boveda_closed'}
+          key={isUploadModalOpen ? "global-upload-modal" : "upload_modal_boveda_closed"}
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
           currentUser={currentUser}
@@ -1205,7 +1205,7 @@ export default function App() {
         />
         {/* Modal para Subir / Radicar Documento */}
         <UploadModal 
-          key={isUploadModalOpen ? `upload_modal_decreto_${currentFolder}_${activeUploadPillarId}_${rosterTick}` : 'upload_modal_decreto_closed'}
+          key={isUploadModalOpen ? "global-upload-modal" : "upload_modal_decreto_closed"}
           isOpen={isUploadModalOpen}
           onClose={() => {
             setIsUploadModalOpen(false);
@@ -1506,7 +1506,7 @@ export default function App() {
 
       {/* Modal para Subir Documento */}
       <UploadModal 
-        key={isUploadModalOpen ? `upload_modal_${currentFolder}_${rosterTick}` : 'upload_modal_closed'}
+        key={isUploadModalOpen ? "global-upload-modal" : "upload_modal_closed"}
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         currentUser={currentUser}

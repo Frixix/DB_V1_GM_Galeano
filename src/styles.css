@@ -5630,3 +5630,128 @@ select {
   animation: pulseTarget 2s infinite ease-in-out !important;
 }
 
+/* =====================================================================
+   DECRETO 1075 COLABORATIVO - COMPACT BANNER & POPOVER (PASO 2)
+   ===================================================================== */
+.decreto-collab-compact-banner {
+  margin: 0.5rem 0 1.25rem 0;
+  padding: 0.75rem 0.95rem;
+  background: #f0fdfa;
+  border: 1.5px solid #99f6e4;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+}
+
+.decreto-collab-left {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+}
+
+.decreto-collab-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0f766e;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.decreto-collab-title i {
+  font-size: 1rem;
+}
+
+.btn-decreto-bulb {
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 9999px;
+  padding: 1px 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-decreto-bulb:hover,
+.btn-decreto-bulb.active {
+  background: #fef08a;
+  border-color: #eab308;
+  transform: scale(1.1);
+}
+
+.decreto-tip-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 290px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  z-index: 60;
+  font-size: 0.75rem;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.decreto-tip-popover p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.btn-download-template {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-download-template:hover {
+  background: #115e59;
+}
+
+@media (max-width: 640px) {
+  .decreto-collab-compact-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .decreto-tip-popover {
+    position: static;
+    width: 100%;
+    margin-top: 0.4rem;
+    box-shadow: none;
+    border-color: #99f6e4;
+    background: #f8fafc;
+  }
+
+  .btn-download-template {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

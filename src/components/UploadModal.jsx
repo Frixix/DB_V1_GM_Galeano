@@ -37,6 +37,7 @@ export default function UploadModal({
   const [period, setPeriod] = useState(() => activePeriodInfo.shortName || '1° Periodo');
   const [isPublic, setIsPublic] = useState(initialFolder === 'publico' || isInst);
   const [notes, setNotes] = useState('');
+  const [showDecretoTip, setShowDecretoTip] = useState(false);
 
   // Estados para Bóveda si aplica
   const [bovedaYear, setBovedaYear] = useState('2026');
@@ -284,11 +285,18 @@ export default function UploadModal({
     setCompressedInfo(null);
     setNotes('');
     setErrorMessage('');
+    setShowDecretoTip(false);
     onClose();
   };
 
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget && !isProcessing) {
+      handleClose();
+    }
+  };
+
   return (
-    <div className="modal-backdrop show" onClick={handleClose}>
+    <div className="modal-backdrop show" onClick={handleBackdropClick}>
       <div className="modal modal-preview" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
@@ -500,51 +508,41 @@ export default function UploadModal({
 
           {/* Banner de Ayuda y Descarga de Plantilla Base Decreto 1075 */}
           {isDecretoCollab && (
-            <div style={{
-              margin: '0.5rem 0 1.25rem 0',
-              padding: '0.85rem 1rem',
-              background: '#f0fdfa',
-              border: '1.5px solid #99f6e4',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px'
-            }}>
-              <div>
-                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f766e', fontSize: '0.82rem' }}>
-                  <i className="ph-bold ph-file-doc"></i> Estandarización Colaborativa Decreto 1075
-                </strong>
-                <span style={{ fontSize: '0.74rem', color: '#334155', display: 'block', marginTop: '2px' }}>
-                  Prefijo sugerido para {subject}: <strong style={{ color: '#0f766e', fontFamily: 'monospace' }}>{activeSubjectPrefix}</strong> · Formatos admitidos: <strong>.docx / .pdf</strong>
-                </span>
+            <div className="decreto-collab-compact-banner">
+              <div className="decreto-collab-left">
+                <div className="decreto-collab-title">
+                  <i className="ph-bold ph-scales"></i>
+                  <span>Decreto 1075 Colaborativo</span>
+                  <button
+                    type="button"
+                    className={`btn-decreto-bulb ${showDecretoTip ? 'active' : ''}`}
+                    onClick={() => setShowDecretoTip(!showDecretoTip)}
+                    title="Ver orientación y prefijo sugerido"
+                  >
+                    💡
+                  </button>
+                </div>
+                {showDecretoTip && (
+                  <div className="decreto-tip-popover">
+                    <p>Prefijo sugerido para <strong>{subject}</strong>: <code style={{ color: '#0f766e', fontWeight: 700 }}>{activeSubjectPrefix}</code></p>
+                    <p>Formatos requeridos: <strong>.docx / .pdf</strong></p>
+                    <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748b' }}>Alineado con directivas de inspección MEN y Secretaría de Educación.</p>
+                  </div>
+                )}
               </div>
               <button
                 type="button"
+                className="btn-download-template"
                 onClick={() => downloadDecretoWordTemplate({
                   pilarTitulo: currentPillarMeta?.titulo || 'PEI',
                   areaLabel: subject,
                   docenteName: currentUser?.name || 'Docente',
                   anoLectivo: '2026'
                 })}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: '#0f766e',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '7px 12px',
-                  borderRadius: '6px',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  flexShrink: 0
-                }}
                 title="Descargar plantilla Word formateada con membrete oficial"
               >
                 <i className="ph-bold ph-download-simple"></i>
-                <span>Descargar Plantilla Base (.docx)</span>
+                <span>Plantilla Base (.docx)</span>
               </button>
             </div>
           )}
@@ -578,7 +576,7 @@ export default function UploadModal({
                 </div>
                 <input 
                   type="file" 
-                  accept={isDecretoCollab ? ".docx,.pdf" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp"}
+                  accept={isDecretoCollab ? ".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
                   className="file-hidden-input" 
                   onChange={handleFileChange} 
                   required
