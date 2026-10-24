@@ -367,47 +367,81 @@
 
 @media (max-width: 600px) {
   .portal-navbar {
+    height: 58px;
     padding: 0 0.75rem;
     gap: 0.5rem;
   }
   .portal-navbar-left {
     gap: 0.5rem;
     min-width: 0;
+    align-items: center;
   }
   .portal-navbar-right {
     gap: 0.5rem;
     flex-shrink: 0;
+    align-items: center;
+  }
+  .btn-mobile-toggle {
+    font-size: 1.25rem;
+    padding: 4px;
+    width: 32px;
+    height: 32px;
+  }
+  .btn-portal-back-modules {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
   }
   .portal-shield-badge {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
   }
   .portal-shield-badge svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
   .portal-system-title {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 140px;
+    max-width: 130px;
   }
   .portal-module-tag-pill {
     display: none;
   }
+  .btn-presence-nav {
+    padding: 4px 6px;
+    height: 32px;
+  }
   .btn-presence-nav .live-status-nav-label {
     display: none;
+  }
+  .portal-navbar .nav-notification-bell {
+    font-size: 1.2rem;
+    padding: 4px;
+    width: 32px;
+    height: 32px;
   }
   .portal-navbar .user-info {
     display: none;
   }
   .portal-navbar .user-chip {
-    padding: 2px;
+    padding: 0;
     background: transparent;
     border: none;
   }
+  .portal-navbar .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
   .portal-navbar .user-chip-icon-hint {
     display: none;
+  }
+  .portal-navbar .portal-btn-logout {
+    padding: 0.35rem 0.5rem;
+    height: 32px;
+    font-size: 0.75rem;
   }
 }

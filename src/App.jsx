@@ -181,24 +181,29 @@ export default function App() {
     setIsBovedaUnlocked(false);
     setActiveModule(null);
 
-    // Scroll Restoration: volver a la posición previa o enfocar la tarjeta del módulo activo
-    if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
-      setTimeout(() => {
-        try {
-          const lastMod = sessionStorage.getItem('gmg_last_active_module');
-          const targetCard = (lastMod && (document.getElementById(`module-card-${lastMod}`) || document.getElementById(`tour-card-${lastMod}`))) || null;
-          if (targetCard) {
-            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          } else {
-            const savedPos = parseInt(sessionStorage.getItem('gmg_dashboard_scroll_pos'), 10);
-            if (!isNaN(savedPos)) {
-              window.scrollTo({ top: savedPos, behavior: 'smooth' });
+    // Flujo de Retorno Limpio con Scroll Suave al tope y restauración de vista
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (typeof sessionStorage !== 'undefined') {
+        setTimeout(() => {
+          try {
+            const lastMod = sessionStorage.getItem('gmg_last_active_module');
+            const targetCard = (lastMod && (document.getElementById(`module-card-${lastMod}`) || document.getElementById(`tour-card-${lastMod}`))) || null;
+            if (targetCard) {
+              targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              const savedPos = parseInt(sessionStorage.getItem('gmg_dashboard_scroll_pos'), 10);
+              if (!isNaN(savedPos) && savedPos > 0) {
+                window.scrollTo({ top: savedPos, behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
             }
+          } catch {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
-        } catch {
-          // Ignorar fallos de scroll restoration
-        }
-      }, 60);
+        }, 60);
+      }
     }
   }, []);
   const handleOpenCurrentUserProfile = useCallback(() => {
@@ -659,7 +664,7 @@ export default function App() {
         <Suspense fallback={<LoadingSpinner message="Cargando Gestión Docente & Planta Curricular..." />}>
           <GestionDocenteModule 
             currentUser={currentUser}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineMap={onlineMap}
@@ -740,7 +745,7 @@ export default function App() {
         <Suspense fallback={<LoadingSpinner message="Cargando Panel de Matriculados (Fase 5)..." />}>
           <MatriculasModule 
             currentUser={currentUser}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineMap={onlineMap}
@@ -821,7 +826,7 @@ export default function App() {
         <Suspense fallback={<LoadingSpinner message="Cargando Calificaciones & SIEE..." />}>
           <GradesModule 
             currentUser={currentUser}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineMap={onlineMap}
@@ -911,7 +916,7 @@ export default function App() {
         <Suspense fallback={<LoadingSpinner message="Cargando Evaluaciones & Exámenes Finales..." />}>
           <FinalExamsModule 
             currentUser={currentUser}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineMap={onlineMap}
@@ -1054,10 +1059,7 @@ export default function App() {
           <BovedaModule 
             currentUser={currentUser}
             documents={documents}
-            onBackToModules={() => {
-              setIsBovedaUnlocked(false);
-              setActiveModule(null);
-            }}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineCount={onlineCount}
@@ -1193,7 +1195,7 @@ export default function App() {
             currentUser={currentUser}
             documents={documents}
             initialPillar={decretoInitialPillar}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineCount={onlineCount}
@@ -1318,7 +1320,7 @@ export default function App() {
         <Suspense fallback={<LoadingSpinner message="Cargando Comités & Actas Oficiales..." />}>
           <ObservadorModule 
             currentUser={currentUser}
-            onBackToModules={() => setActiveModule(null)}
+            onBackToModules={handleBackToModules}
             onOpenProfile={handleOpenProfile}
             onOpenConnectionsModal={() => setIsConnectionsModalOpen(true)}
             onlineCount={onlineCount}

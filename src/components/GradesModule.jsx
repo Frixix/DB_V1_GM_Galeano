@@ -148,6 +148,7 @@ export default function GradesModule({
   const [isRetireModalOpen, setIsRetireModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [selectedStudentForAction, setSelectedStudentForAction] = useState(null);
+  const [isSieeInfoOpen, setIsSieeInfoOpen] = useState(false);
 
   // Asegurar que usuarios docentes solo visualicen la sábana de sus materias y no la consolidada
   useEffect(() => {
@@ -901,31 +902,17 @@ export default function GradesModule({
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <h4>Planilla Oficial de {selectedSubject} • {selectedGrade}</h4>
-                    {/* Bombillo Informativo Sutil SIEE & Tiraje N+1 */}
-                    <div className="grades-siee-bulb-wrapper" title="Información del Modelo SIEE y Tiraje N+1">
-                      <button 
-                        type="button" 
-                        className="grades-siee-bulb-btn"
-                        aria-label="Información del Modelo SIEE y Tiraje N+1"
-                      >
-                        <i className="ph-fill ph-lightbulb"></i>
-                      </button>
-                      <div className="grades-siee-bulb-tooltip">
-                        <div className="bulb-tooltip-title">
-                          <i className="ph-fill ph-lightbulb"></i>
-                          <span>Modelo SIEE & Impresión N+1</span>
-                        </div>
-                        <div className="bulb-tooltip-content">
-                          <p><strong>Aula Continua ({activities.length} activas):</strong> 80% (talleres, quices y tareas sin rigidez).</p>
-                          <p><strong>{isSubjectWithFinalExam ? 'Evaluación Final:' : 'Otras Actividades:'}</strong> 20% {isSubjectWithFinalExam ? '(examen acumulativo bimestral)' : '(en esta área el 20% se obtiene de talleres formativos y vivenciales, sin examen escrito)'}.</p>
-                          {isSubjectWithFinalExam ? (
-                            <p><strong>Tiraje N+1:</strong> {suggestedCopies} copias sugeridas ({activeStudentsCount} alumnos activos + 1 docente).</p>
-                          ) : (
-                            <p><strong>Sin Impresión Escrita:</strong> No requiere fotocopiado en secretaría.</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    <button 
+                      type="button" 
+                      className={`grades-siee-toggle-btn ${isSieeInfoOpen ? 'active' : ''}`}
+                      onClick={() => setIsSieeInfoOpen(prev => !prev)}
+                      title={isSieeInfoOpen ? "Ocultar detalles del modelo SIEE y tiraje" : "Ver detalles del modelo SIEE y tiraje N+1"}
+                      aria-expanded={isSieeInfoOpen}
+                    >
+                      <i className="ph-fill ph-lightbulb"></i>
+                      <span>{isSieeInfoOpen ? "Ocultar SIEE" : "Guía SIEE"}</span>
+                      <i className={`ph-bold ${isSieeInfoOpen ? 'ph-caret-up' : 'ph-caret-down'}`}></i>
+                    </button>
                   </div>
                   <p style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span>Docente a cargo: <strong>{teacherInfo.teacherName}</strong> • {selectedPeriod}</span>
@@ -1002,6 +989,51 @@ export default function GradesModule({
                 )}
               </div>
             </div>
+
+            {/* Banner Informativo SIEE Integrado al Layout (Sin Flotar ni Superponer) */}
+            {isSieeInfoOpen && (
+              <div className="grades-siee-inline-banner" role="region" aria-label="Información del Modelo SIEE y Tiraje N+1">
+                <div className="grades-siee-banner-header">
+                  <div className="grades-siee-banner-badge">
+                    <i className="ph-fill ph-lightbulb"></i>
+                    <span>Modelo SIEE & Impresión N+1</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="grades-siee-banner-close"
+                    onClick={() => setIsSieeInfoOpen(false)}
+                    title="Cerrar banner informativo"
+                    aria-label="Cerrar información SIEE"
+                  >
+                    <i className="ph-bold ph-x"></i>
+                  </button>
+                </div>
+                <div className="grades-siee-banner-body">
+                  <div className="grades-siee-banner-item">
+                    <span className="grades-siee-item-tag">80% Aula Continua</span>
+                    <p>
+                      <strong>{activities.length} activas:</strong> Talleres, quices, exposiciones y tareas formativas sin rigidez temporal.
+                    </p>
+                  </div>
+                  <div className="grades-siee-banner-item">
+                    <span className="grades-siee-item-tag">20% Evaluación / Proceso</span>
+                    <p>
+                      <strong>{isSubjectWithFinalExam ? 'Evaluación Final:' : 'Otras Actividades:'}</strong> {isSubjectWithFinalExam ? 'Examen acumulativo bimestral con fecha oficial.' : 'Talleres formativos y vivenciales en aula (sin examen escrito).' }
+                    </p>
+                  </div>
+                  <div className="grades-siee-banner-item">
+                    <span className="grades-siee-item-tag">{isSubjectWithFinalExam ? 'Tiraje N+1 Oficial' : 'Impresión'}</span>
+                    <p>
+                      {isSubjectWithFinalExam ? (
+                        <><strong>{suggestedCopies} copias sugeridas:</strong> {activeStudentsCount} alumnos activos + 1 copia docente calificador.</>
+                      ) : (
+                        <><strong>Sin Impresión Escrita:</strong> En esta asignatura formativa no se requiere fotocopiado en secretaría.</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grades-table-wrapper">
               <table className="grades-table">
