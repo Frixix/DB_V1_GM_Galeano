@@ -441,6 +441,32 @@ export default function ObservadorModule({
           {/* Barra de Controles y Filtros */}
           <section className="obs-controls-bar">
             <div className="obs-controls-left">
+              {/* Selector de Instancia / Comité */}
+              <div className="obs-filter-unit">
+                <label htmlFor="obsRouteFilter">
+                  <i className="ph-bold ph-scales"></i> Instancia / Comité:
+                </label>
+                <select
+                  id="obsRouteFilter"
+                  className="obs-select-control"
+                  value={currentRoute}
+                  onChange={(e) => setCurrentRoute(e.target.value)}
+                >
+                  <option value="all">Todas las Instancias</option>
+                  <optgroup label="Comités Escolares (Gobierno Escolar)">
+                    <option value="comite_convivencia">Comité de Convivencia Escolar (Ley 1620)</option>
+                    <option value="comision_evaluacion">Comisión de Evaluación y Promoción (Dec. 1290)</option>
+                    <option value="consejo_academico">Consejo Académico (Ley 115)</option>
+                    <option value="reuniones_docentes">Consejo Directivo / Claustro</option>
+                  </optgroup>
+                  <optgroup label="Seguimiento Estudiantil">
+                    <option value="observador">Observador del Estudiante</option>
+                    <option value="citaciones">Citaciones & Acudientes</option>
+                    <option value="piar">Seguimiento Pedagógico & PIAR</option>
+                  </optgroup>
+                </select>
+              </div>
+
               {/* Búsqueda en vivo */}
               <div className="obs-search-box">
                 <i className="ph-bold ph-magnifying-glass obs-search-icon"></i>

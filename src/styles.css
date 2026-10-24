@@ -73,10 +73,27 @@ body {
 /* Pantalla Login */
 .login-wrapper {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
+  height: auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0.75rem;
   background: radial-gradient(circle at 15% 15%, #ecfdf5 0%, #f8fafc 70%);
+  box-sizing: border-box;
+}
+
+.login-container {
+  min-height: 100vh;
+  height: auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0.75rem;
+  box-sizing: border-box;
 }
 
 .login-card {

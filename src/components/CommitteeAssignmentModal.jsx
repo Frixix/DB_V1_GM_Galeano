@@ -39,6 +39,10 @@ export default function CommitteeAssignmentModal({
     }
   }, [isOpen]);
 
+  // Sincronización y validación de claves activas contra ELIGIBLE_TEACHERS para resolver desajustes de conteo
+  const eligibleKeySet = new Set(ELIGIBLE_TEACHERS.map(t => t.key.toLowerCase()));
+  const countValidAssigned = (arr = []) => arr.filter(k => eligibleKeySet.has(String(k).toLowerCase())).length;
+
   // Atajo de teclado: Cerrar modal con la tecla Escape
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -152,12 +156,12 @@ export default function CommitteeAssignmentModal({
                   <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Ley 1620 de 2013 • Protocolos Tipo I, II y III</span>
                 </div>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: selectedTeachers.comite_convivencia?.length === 2 ? '#fef3c7' : '#f0fdfa', color: selectedTeachers.comite_convivencia?.length === 2 ? '#b45309' : '#0f766e', border: '1px solid #cbd5e1' }}>
-                {selectedTeachers.comite_convivencia?.length || 0} / 2 asignadas
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: countValidAssigned(selectedTeachers.comite_convivencia) === 2 ? '#fef3c7' : '#f0fdfa', color: countValidAssigned(selectedTeachers.comite_convivencia) === 2 ? '#b45309' : '#0f766e', border: '1px solid #cbd5e1' }}>
+                {countValidAssigned(selectedTeachers.comite_convivencia)} / 2 asignadas
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.65rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px', marginTop: '0.65rem' }}>
               {ELIGIBLE_TEACHERS.map(t => {
                 const isSelected = (selectedTeachers.comite_convivencia || []).includes(t.key);
                 return (
@@ -199,12 +203,12 @@ export default function CommitteeAssignmentModal({
                   <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Decreto 1290 de 2009 • Análisis académico y planes de apoyo</span>
                 </div>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: selectedTeachers.comision_evaluacion?.length === 2 ? '#fef3c7' : '#f0fdfa', color: selectedTeachers.comision_evaluacion?.length === 2 ? '#b45309' : '#0f766e', border: '1px solid #cbd5e1' }}>
-                {selectedTeachers.comision_evaluacion?.length || 0} / 2 asignadas
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: countValidAssigned(selectedTeachers.comision_evaluacion) === 2 ? '#fef3c7' : '#f0fdfa', color: countValidAssigned(selectedTeachers.comision_evaluacion) === 2 ? '#b45309' : '#0f766e', border: '1px solid #cbd5e1' }}>
+                {countValidAssigned(selectedTeachers.comision_evaluacion)} / 2 asignadas
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.65rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px', marginTop: '0.65rem' }}>
               {ELIGIBLE_TEACHERS.map(t => {
                 const isSelected = (selectedTeachers.comision_evaluacion || []).includes(t.key);
                 return (
@@ -246,12 +250,12 @@ export default function CommitteeAssignmentModal({
                   <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Ley 115 de 1994 • Articulación curricular y transversalidad</span>
                 </div>
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: selectedTeachers.consejo_academico?.length === 2 ? '#fef3c7' : '#f0fdfa', color: selectedTeachers.consejo_academico?.length === 2 ? '#b45309' : '#0f766e', border: '1px solid #cbd5e1' }}>
-                {selectedTeachers.consejo_academico?.length || 0} / 2 asignadas
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: countValidAssigned(selectedTeachers.consejo_academico) === 2 ? '#fef3c7' : '#f0fdfa', color: countValidAssigned(selectedTeachers.consejo_academico) === 2 ? '#b45309' : '#0f766e', border: '1px solid #cbd5e1' }}>
+                {countValidAssigned(selectedTeachers.consejo_academico)} / 2 asignadas
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.65rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px', marginTop: '0.65rem' }}>
               {ELIGIBLE_TEACHERS.map(t => {
                 const isSelected = (selectedTeachers.consejo_academico || []).includes(t.key);
                 return (

@@ -6,6 +6,19 @@ import { committeeService } from '../services/committeeService.js';
 import { uploadDocumentFile } from '../services/storageService.js';
 import gradesService from '../services/gradesService.js';
 
+// Presets de asistentes para comités y asambleas
+const COMMITTEE_ATTENDEE_PRESETS = [
+  'Claudia (Rectora)',
+  'Liliana (Preescolar)',
+  'Yuri (1°)',
+  'Elcy (2°)',
+  'Blanca (3°)',
+  'Nicolle (4°)',
+  'Jessica (5°)',
+  'Representante de Padres',
+  'Personero Estudiantil'
+];
+
 export default function UploadObservadorModal({
   isOpen,
   onClose,
@@ -569,10 +582,10 @@ export default function UploadObservadorModal({
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
                 >
-                  <option value="1° Periodo">1° Periodo (25%)</option>
-                  <option value="2° Periodo">2° Periodo (25%)</option>
-                  <option value="3° Periodo">3° Periodo (25%)</option>
-                  <option value="4° Periodo">4° Periodo (25%)</option>
+                  <option value="1° Periodo">1° Periodo</option>
+                  <option value="2° Periodo">2° Periodo</option>
+                  <option value="3° Periodo">3° Periodo</option>
+                  <option value="4° Periodo">4° Periodo</option>
                   <option value="Anual / Permanente">Anual / Permanente</option>
                 </select>
               </div>
@@ -592,11 +605,13 @@ export default function UploadObservadorModal({
                   required
                 >
                   <option value="">-- Seleccionar Docente Responsable --</option>
-                  {AVAILABLE_TEACHERS.map((t) => (
-                    <option key={t.key} value={t.name}>
-                      {t.name} ({t.label})
-                    </option>
-                  ))}
+                  <option value="Liliana">Liliana • Preescolar</option>
+                  <option value="Yuri">Yuri • 1° Primaria</option>
+                  <option value="Elcy">Elcy • 2° Primaria</option>
+                  <option value="Blanca">Blanca • 3° Primaria</option>
+                  <option value="Nicolle">Nicolle • 4° Primaria</option>
+                  <option value="Jessica">Jessica • 5° Primaria</option>
+                  <option value="Claudia (Rectora)">Claudia • Rectoría Institucional</option>
                 </select>
               </div>
 
@@ -751,8 +766,58 @@ export default function UploadObservadorModal({
                     </select>
                   </div>
 
-                  <div className="obs-form-group">
-                    <label htmlFor="obsCommitteeAttendees">Miembros Convocados / Asistentes *</label>
+                  <div className="obs-form-group" style={{ gridColumn: 'span 2' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label htmlFor="obsCommitteeAttendees" style={{ margin: 0 }}>
+                        <i className="ph-bold ph-users-three"></i> Miembros Convocados / Asistentes *
+                      </label>
+                      <span style={{ fontSize: '0.72rem', color: '#0f766e', fontWeight: 600 }}>
+                        Toca los chips para alternar asistentes
+                      </span>
+                    </div>
+
+                    {/* Cuadrícula táctil de chips de asistentes */}
+                    <div className="obs-attendees-chips-grid" style={{ marginBottom: '8px' }}>
+                      {COMMITTEE_ATTENDEE_PRESETS.map((preset) => {
+                        const currentList = attendees ? attendees.split(',').map(s => s.trim()).filter(Boolean) : [];
+                        const isSelected = currentList.some(item => item.toLowerCase() === preset.toLowerCase());
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            className={`obs-chip-btn ${isSelected ? 'active' : ''}`}
+                            onClick={() => {
+                              let nextList;
+                              if (isSelected) {
+                                nextList = currentList.filter(item => item.toLowerCase() !== preset.toLowerCase());
+                              } else {
+                                nextList = [...currentList, preset];
+                              }
+                              setAttendees(nextList.join(', '));
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
+                              padding: '5px 8px',
+                              borderRadius: '6px',
+                              fontSize: '0.72rem',
+                              fontWeight: isSelected ? 700 : 500,
+                              background: isSelected ? '#0f766e' : '#f1f5f9',
+                              color: isSelected ? '#ffffff' : '#334155',
+                              border: isSelected ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <i className={`ph-bold ${isSelected ? 'ph-check' : 'ph-plus'}`}></i>
+                            <span>{preset}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     <input
                       type="text"
                       id="obsCommitteeAttendees"
@@ -797,7 +862,7 @@ export default function UploadObservadorModal({
 
                 {!isManualTitleEdit ? (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '10px', marginBottom: '0.6rem' }}>
+                    <div className="obs-acta-sequence-grid" style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '10px', marginBottom: '0.6rem' }}>
                       <div>
                         <label htmlFor="obsActaNum" style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
                           N° de Acta
@@ -916,10 +981,10 @@ export default function UploadObservadorModal({
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                 >
-                  <option value="en_seguimiento">En Seguimiento (Caso Activo)</option>
+                  <option value="en_seguimiento">En Seguimiento</option>
                   <option value="compromiso_firmado">Compromiso Firmado</option>
-                  <option value="resuelto">Superado / Resuelto (🟢 Verde)</option>
-                  <option value="acta_aprobada">Acta Aprobada & Firmada</option>
+                  <option value="resuelto">Superado</option>
+                  <option value="acta_aprobada">Aprobada & Firmada</option>
                 </select>
               </div>
 

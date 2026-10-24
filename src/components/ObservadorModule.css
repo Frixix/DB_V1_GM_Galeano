@@ -2545,6 +2545,30 @@
   }
 }
 
+@media (max-width: 640px) {
+  .obs-modal-dialog {
+    max-height: 85vh;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .obs-upload-form {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5rem;
+  }
+
+  .obs-attendees-chips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .obs-acta-sequence-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ==========================================================================
    FORMATO DE IMPRESIÓN OFICIAL SED / MEN (ESTÁNDAR DOCUMENTAL INSTITUCIONAL)
    ========================================================================== */
