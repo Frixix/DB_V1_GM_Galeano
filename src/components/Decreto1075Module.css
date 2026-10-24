@@ -435,11 +435,14 @@
 
   .decreto-controls-bar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .decreto-search-box {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
   }
 }

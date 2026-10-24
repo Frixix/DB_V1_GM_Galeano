@@ -282,6 +282,16 @@
     overflow-y: visible;
   }
 
+  .boveda-directivo-card,
+  .boveda-summary-card,
+  .sidebar-back-wrap {
+    display: none !important;
+  }
+
+  .boveda-sidebar-header {
+    display: none;
+  }
+
   .boveda-nav-list,
   .boveda-pillars-nav-list {
     display: flex;
@@ -307,9 +317,5 @@
     background-color: #0f172a;
     color: #ffffff;
     border-color: #0f172a;
-  }
-
-  .boveda-summary-card {
-    display: none;
   }
 }

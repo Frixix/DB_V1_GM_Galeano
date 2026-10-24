@@ -326,16 +326,25 @@
 
 @media (max-width: 768px) {
   .portal-navbar {
-    padding: 0 1rem;
+    padding: 0 0.85rem;
     gap: 0.5rem;
   }
 
   .portal-navbar-left {
     gap: 0.5rem;
+    min-width: 0;
   }
 
   .portal-navbar-right {
     gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .portal-system-title {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .btn-portal-back-modules {

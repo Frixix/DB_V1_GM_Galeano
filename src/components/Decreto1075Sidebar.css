@@ -222,6 +222,13 @@
     overflow-y: visible;
   }
 
+  .decreto-header-card,
+  .decreto-summary-card,
+  .decreto-section-header,
+  .decreto-pillar-arts {
+    display: none !important;
+  }
+
   .decreto-nav-list {
     display: flex;
     flex-direction: row;
@@ -249,12 +256,7 @@
   }
 
   .decreto-pillar-name,
-  .decreto-pillar-arts,
   .decreto-nav-text {
     white-space: nowrap;
-  }
-
-  .decreto-summary-card {
-    display: none;
   }
 }
