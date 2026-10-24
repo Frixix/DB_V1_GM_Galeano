@@ -26,6 +26,11 @@ export default function ViewObservadorModal({
   const [signatures, setSignatures] = useState(() => record?.signatures || {});
   const [activePadRole, setActivePadRole] = useState(null); // 'teacher' | 'secondParty' | null
 
+  // Estado del visor rápido de firmas / soporte documental
+  const [quickPreviewUrl, setQuickPreviewUrl] = useState(null);
+  const [isLoadingQuickPreview, setIsLoadingQuickPreview] = useState(false);
+  const [previewError, setPreviewError] = useState('');
+
   // Resetear estados al abrir o cambiar de registro
   useEffect(() => {
     setIsResolving(false);
@@ -35,7 +40,21 @@ export default function ViewObservadorModal({
     setIsUploadingEvidence(false);
     setEvidenceSuccessMsg('');
     setSignatures(record?.signatures || {});
+    if (quickPreviewUrl) {
+      URL.revokeObjectURL(quickPreviewUrl);
+      setQuickPreviewUrl(null);
+    }
+    setPreviewError('');
   }, [record?.id, record?.signatures, isOpen]);
+
+  // Limpiar ObjectURL al desmontar o cerrar preview
+  useEffect(() => {
+    return () => {
+      if (quickPreviewUrl) {
+        URL.revokeObjectURL(quickPreviewUrl);
+      }
+    };
+  }, [quickPreviewUrl]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -129,6 +148,12 @@ export default function ViewObservadorModal({
   const handleConfirmResolve = (e) => {
     e.preventDefault();
     setResolveError('');
+
+    // Candado Jurídico: Bloqueo explícito si no existe soporte documental en R2
+    if (!record?.storageKey && !hasUploadedEvidence) {
+      setResolveError('⚠️ Candado Jurídico R2: No es legal cerrar este caso en 🟢 Verde sin un soporte documental o acta física escaneada custodiada en R2.');
+      return;
+    }
 
     if (!isFullySignedOrScanned) {
       setResolveError('⚠️ Consentimiento pendiente: Para pasar el check a 🟢 Verde, ambas partes deben firmar digitalmente o se debe adjuntar el acta escaneada con las firmas físicas a R2.');
@@ -609,40 +634,65 @@ export default function ViewObservadorModal({
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   {record.storageKey && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const blob = await downloadDocumentBlob(record.storageKey);
-                        if (blob) {
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = record.fileName || 'soporte_observador.pdf';
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                        } else {
-                          alert('No se pudo descargar el archivo desde el almacenamiento en la nube.');
-                        }
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '5px 12px',
-                        background: '#0f766e',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <i className="ph-bold ph-download-simple"></i>
-                      <span>Descargar Soporte</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleLoadQuickPreview}
+                        disabled={isLoadingQuickPreview}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          background: quickPreviewUrl ? '#042f2e' : '#134e4a',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        title="Ver miniatura / visor rápido de firmas en el navegador"
+                      >
+                        <i className={`ph-bold ${isLoadingQuickPreview ? 'ph-spinner ph-spin' : (quickPreviewUrl ? 'ph-eye-slash' : 'ph-eye')}`}></i>
+                        <span>{isLoadingQuickPreview ? 'Cargando...' : (quickPreviewUrl ? 'Ocultar Visor' : 'Ver Firmas')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const blob = await downloadDocumentBlob(record.storageKey);
+                          if (blob) {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = record.fileName || 'soporte_observador.pdf';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          } else {
+                            alert('No se pudo descargar el archivo desde el almacenamiento en la nube.');
+                          }
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '5px 12px',
+                          background: '#0f766e',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <i className="ph-bold ph-download-simple"></i>
+                        <span>Descargar Soporte</span>
+                      </button>
+                    </>
                   )}
 
                   <label className="obs-btn-replace-r2" title="Reemplazar o subir nueva versión escaneada">
@@ -678,6 +728,53 @@ export default function ViewObservadorModal({
                     onChange={handleUploadEvidenceDirect}
                   />
                 </label>
+              </div>
+            )}
+
+            {/* Visor Rápido / Miniatura de Firmas y Soportes Documentales */}
+            {previewError && (
+              <div style={{ marginTop: '0.65rem', padding: '0.5rem 0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#991b1b', fontSize: '0.75rem' }}>
+                <i className="ph-bold ph-warning-circle" style={{ marginRight: '5px' }}></i>
+                {previewError}
+              </div>
+            )}
+
+            {quickPreviewUrl && (
+              <div className="signature-quick-preview-panel" style={{ marginTop: '0.75rem', border: '1.5px solid #0f766e', borderRadius: '8px', overflow: 'hidden', background: '#f8fafc' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.45rem 0.75rem', background: '#0f766e', color: '#ffffff', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="ph-bold ph-file-search"></i>
+                    <span>Visor de Firmas & Soporte Documental: {record.fileName || 'Acta_Soporte'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      URL.revokeObjectURL(quickPreviewUrl);
+                      setQuickPreviewUrl(null);
+                    }}
+                    style={{ background: 'transparent', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}
+                    title="Cerrar visor"
+                  >
+                    <i className="ph-bold ph-x"></i>
+                  </button>
+                </div>
+                <div style={{ padding: '0.5rem', display: 'flex', justifyContent: 'center', background: '#334155' }}>
+                  {isPdfFile ? (
+                    <iframe
+                      src={quickPreviewUrl}
+                      title="Visor PDF de Firmas"
+                      className="signature-pdf-frame"
+                      style={{ width: '100%', height: '420px', border: 'none', borderRadius: '4px', background: '#ffffff' }}
+                    />
+                  ) : (
+                    <img
+                      src={quickPreviewUrl}
+                      alt="Miniatura de Acta Escaneada"
+                      className="signature-img-preview"
+                      style={{ maxWidth: '100%', maxHeight: '420px', objectFit: 'contain', borderRadius: '4px' }}
+                    />
+                  )}
+                </div>
               </div>
             )}
           </div>

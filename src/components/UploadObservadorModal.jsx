@@ -248,6 +248,13 @@ export default function UploadObservadorModal({
       return;
     }
 
+    // Candado Jurídico: Bloqueo explícito de radicación si se marca estado verde o resuelto sin soporte documental
+    if ((semaforo === 'verde' || status === 'resuelto') && !selectedFile) {
+      setErrorMessage('⚠️ Candado Jurídico: No es legal radicar un caso en estado 🟢 Verde (Superado / Resuelto) sin adjuntar el acta escaneada o soporte probatorio en R2.');
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     const currentDiffDays = getDaysDifference(followUpDate);
     if (currentDiffDays === null || isNaN(currentDiffDays)) {
       setErrorMessage('⚠️ Fecha de seguimiento no válida. Seleccione una fecha válida en el calendario.');
@@ -601,12 +608,22 @@ export default function UploadObservadorModal({
                   id="obsSemaforoSelect"
                   className={`obs-input-field obs-semaforo-select ${semaforo}`}
                   value={semaforo}
-                  onChange={(e) => setSemaforo(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'verde' && !selectedFile) {
+                      setErrorMessage('⚠️ Candado Jurídico: Para pasar a 🟢 Verde (Superado / Resuelto) es obligatorio adjuntar el acta firmada o soporte documental escaneado.');
+                      return;
+                    }
+                    setErrorMessage('');
+                    setSemaforo(val);
+                  }}
                   required
                 >
                   <option value="rojo">🔴 Rojo - Alerta Crítica (Va primero en la lista)</option>
                   <option value="amarillo">🟡 Amarillo - En Seguimiento / Proceso (Intermedio)</option>
-                  <option value="verde">🟢 Verde - Superado / Resuelto (Va al fondo / resuelto)</option>
+                  <option value="verde" disabled={!selectedFile}>
+                    🟢 Verde - Superado / Resuelto {!selectedFile ? '(Requiere adjuntar evidencia escaneada)' : '(Soporte cargado)'}
+                  </option>
                 </select>
               </div>
             </div>

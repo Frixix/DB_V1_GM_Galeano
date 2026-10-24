@@ -69,6 +69,60 @@ export default function UploadModal({
 
   const isDecretoCollab = Boolean(pillarId || initialPillarId);
 
+  // Carpetas normativas dinámicas según el pilar seleccionado
+  const getAvailableFolders = (currentPillar) => {
+    const folders = [];
+    if (initialFolder === 'boveda') {
+      folders.push({ value: 'boveda', label: 'Bóveda Directiva' });
+      return folders;
+    }
+
+    if (currentPillar === 'gobierno_escolar') {
+      folders.push(
+        { value: 'actas_gobierno', label: '📜 Actas de Gobierno Escolar' },
+        { value: 'institucional', label: '📢 Circulares & Resoluciones' }
+      );
+    } else if (currentPillar === 'curriculo_plan_estudios') {
+      folders.push(
+        { value: 'mallas_curriculares', label: '📚 Mallas Curriculares & Plan de Estudios' }
+      );
+    } else if (currentPillar === 'proyectos_transversales') {
+      folders.push(
+        { value: 'prae_proyectos', label: '🌿 Proyectos Transversales PRAE / PESCC' }
+      );
+    } else if (currentPillar === 'inclusion_piar') {
+      folders.push(
+        { value: 'expedientes_piar', label: '🧩 Expedientes PIAR & Ajustes Razonables' },
+        { value: 'observador', label: '📋 Observador & Seguimiento' }
+      );
+    }
+
+    // Carpetas base
+    folders.push(
+      { value: 'planeaciones', label: 'Planeaciones' },
+      { value: 'talleres', label: 'Guías & Talleres' }
+    );
+
+    if (isPrivileged && !folders.some(f => f.value === 'institucional')) {
+      folders.push({ value: 'institucional', label: 'Institucional & Circulares' });
+    }
+
+    if (isPrivileged) {
+      folders.push({ value: 'boveda', label: 'Bóveda Directiva' });
+    }
+
+    return folders;
+  };
+
+  const dynamicFolders = useMemo(() => getAvailableFolders(pillarId), [pillarId, initialFolder, isPrivileged]);
+
+  // Si la carpeta actual no existe en las carpetas disponibles tras cambio de pilar, seleccionar la primera disponible
+  useEffect(() => {
+    if (dynamicFolders.length > 0 && !dynamicFolders.some(f => f.value === folder)) {
+      handleFolderChange(dynamicFolders[0].value);
+    }
+  }, [dynamicFolders]);
+
   // Obtener prefijo de materia según la asignatura seleccionada
   const activeSubjectPrefix = useMemo(() => {
     return SUBJECT_PREFIX_MAP[subject] || 'MATERIA_';
@@ -349,15 +403,11 @@ export default function UploadModal({
             <div className="form-group">
               <label htmlFor="docFolder">Carpeta de Destino</label>
               <select id="docFolder" value={folder} onChange={(e) => handleFolderChange(e.target.value)}>
-                {initialFolder === 'boveda' ? (
-                  <option value="boveda">Bóveda Directiva</option>
-                ) : (
-                  <>
-                    <option value="planeaciones">Planeaciones</option>
-                    <option value="talleres">Guías & Talleres</option>
-                    {isPrivileged && <option value="institucional">Institucional & Circulares</option>}
-                  </>
-                )}
+                {dynamicFolders.map((df) => (
+                  <option key={df.value} value={df.value}>
+                    {df.label}
+                  </option>
+                ))}
               </select>
             </div>
 
