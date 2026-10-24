@@ -2752,9 +2752,9 @@ select {
   }
 
   .profile-tabs-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
     padding: 0 0 8px 0;
     margin-bottom: 1rem;
     border-bottom: 1.5px solid #e2e8f0;
@@ -2762,12 +2762,24 @@ select {
   }
 
   .profile-tab-btn {
-    padding: 9px 12px;
-    font-size: 0.8rem;
-    flex: 1 1 calc(50% - 8px);
-    min-width: 125px;
-    border-radius: 8px;
-    white-space: normal;
+    padding: 9px 12px !important;
+    font-size: 0.8rem !important;
+    min-height: 48px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    white-space: normal !important;
+  }
+
+  .avatar-preview-circle,
+  .current-avatar-preview img {
+    width: 96px !important;
+    height: 96px !important;
+    border-radius: 9999px !important;
+    object-fit: cover !important;
+    aspect-ratio: 1 / 1 !important;
   }
 
   .password-change-form {

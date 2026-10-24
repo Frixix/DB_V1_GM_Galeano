@@ -1222,6 +1222,72 @@
   }
 }
 
+/* Barra Compacta con Bombillito */
+.gd-compact-tip-bar {
+  margin-bottom: 1.25rem;
+  padding: 0.65rem 0.95rem;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+}
+
+.gd-compact-tip-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.gd-tip-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  background: #0f766e;
+  color: #ffffff;
+  border-radius: 4px;
+}
+
+.gd-tip-summary {
+  font-size: 0.78rem;
+  color: #134e4a;
+  font-weight: 600;
+}
+
+.gd-btn-bulb {
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 9999px;
+  padding: 2px 7px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.gd-btn-bulb:hover,
+.gd-btn-bulb.active {
+  background: #fef08a;
+  border-color: #eab308;
+  transform: scale(1.1);
+}
+
+.gd-bulb-popover {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.75rem;
+  color: #334155;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gd-subnav-container {
@@ -1247,5 +1313,77 @@
     width: 100% !important;
     justify-content: center !important;
     padding: 0.75rem 1rem !important;
+  }
+
+  /* Encabezado y acciones de tarjeta docente */
+  .gd-tc-header,
+  .gd-teacher-card-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.5rem !important;
+  }
+
+  .gd-tc-actions,
+  .gd-teacher-actions-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .gd-btn-save-teacher,
+  .btn-save-profile {
+    grid-column: span 2 !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .gd-btn-edit-avatar,
+  .gd-btn-reset-pass,
+  .gd-btn-discharge-teacher {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.45rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .gd-header-actions,
+  .gd-top-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .gd-header-actions button,
+  .gd-top-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+    padding: 0.55rem 0.5rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .gd-tc-header,
+  .gd-teacher-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .gd-tc-actions,
+  .gd-teacher-actions-bar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .gd-btn-save-teacher,
+  .btn-save-profile {
+    grid-column: span 1 !important;
   }
 }

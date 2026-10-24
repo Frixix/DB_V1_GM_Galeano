@@ -65,6 +65,7 @@ export default function GestionDocenteModule({
 
   // Estados para edición de perfiles docentes
   const [editingProfiles, setEditingProfiles] = useState({});
+  const [showSyncInfoTip, setShowSyncInfoTip] = useState(false);
 
   // Cargar datos del servicio
   const loadData = () => {
@@ -309,7 +310,7 @@ export default function GestionDocenteModule({
             </p>
           </div>
 
-          <div className="gd-header-actions">
+          <div className="gd-header-actions gd-top-actions">
             <button 
               type="button" 
               className="gd-btn-comites" 
@@ -414,12 +415,27 @@ export default function GestionDocenteModule({
 
       {/* Contenido Principal */}
       <main className="gd-body-container">
-        {/* Banner Informativo */}
-        <div className="gd-info-banner">
-          <i className="ph-bold ph-info"></i>
-          <p>
-            <strong>Sincronización Global en Tiempo Real:</strong> Cualquier cambio en la dirección de curso o titularidad de materias actualiza instantáneamente el <strong>Inicio de Sesión (Login)</strong>, las planillas y permisos de <strong>Calificaciones (SIEE)</strong>, el repositorio de <strong>Evaluaciones Finales</strong> y el <strong>Observador del Estudiante</strong>.
-          </p>
+        {/* Barra Compacta de Sincronización con Bombillito */}
+        <div className="gd-compact-tip-bar">
+          <div className="gd-compact-tip-left">
+            <span className="gd-tip-badge">Sincronización Global</span>
+            <span className="gd-tip-summary">Cambios curriculares y de planta en tiempo real</span>
+            <button
+              type="button"
+              className={`gd-btn-bulb ${showSyncInfoTip ? 'active' : ''}`}
+              onClick={() => setShowSyncInfoTip(prev => !prev)}
+              title="Ver detalle de sincronización institucional"
+            >
+              💡
+            </button>
+          </div>
+          {showSyncInfoTip && (
+            <div className="gd-bulb-popover">
+              <p style={{ margin: 0 }}>
+                Cualquier cambio en la dirección de curso o titularidad de materias actualiza instantáneamente el <strong>Inicio de Sesión (Login)</strong>, las planillas y permisos de <strong>Calificaciones (SIEE)</strong>, el repositorio de <strong>Evaluaciones Finales</strong> y el <strong>Observador del Estudiante</strong>.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* =====================================================================
@@ -665,7 +681,7 @@ export default function GestionDocenteModule({
 
                 return (
                   <article key={t.key} className="gd-teacher-card">
-                    <div className="gd-tc-header">
+                    <div className="gd-tc-header gd-teacher-card-header">
                       <div className="gd-tc-left">
                         <div 
                           className="gd-tc-avatar gd-tc-avatar-clickable"
@@ -767,17 +783,17 @@ export default function GestionDocenteModule({
                       </select>
                     </div>
 
-                    <div className="gd-tc-actions">
+                    <div className="gd-tc-actions gd-teacher-actions-bar">
                       <button 
                         type="button" 
-                        className="gd-btn-save-teacher"
+                        className="gd-btn-save-teacher btn-save-profile"
                         onClick={() => handleSaveProfile(t.key)}
                         title="Guardar cambios de este docente"
                       >
                         <i className="ph-bold ph-floppy-disk"></i> Guardar Perfil
                       </button>
 
-                      <div style={{ display: 'flex', gap: '6px' }}>
+                      <div className="gd-teacher-actions-subgroup" style={{ display: 'contents' }}>
                         {onOpenProfile && (
                           <button 
                             type="button" 

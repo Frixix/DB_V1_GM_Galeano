@@ -180,6 +180,26 @@ export default function App() {
   const handleBackToModules = useCallback(() => {
     setIsBovedaUnlocked(false);
     setActiveModule(null);
+
+    // Scroll Restoration: volver a la posición previa o enfocar la tarjeta del módulo activo
+    if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+      setTimeout(() => {
+        try {
+          const lastMod = sessionStorage.getItem('gmg_last_active_module');
+          const targetCard = (lastMod && (document.getElementById(`module-card-${lastMod}`) || document.getElementById(`tour-card-${lastMod}`))) || null;
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            const savedPos = parseInt(sessionStorage.getItem('gmg_dashboard_scroll_pos'), 10);
+            if (!isNaN(savedPos)) {
+              window.scrollTo({ top: savedPos, behavior: 'smooth' });
+            }
+          }
+        } catch {
+          // Ignorar fallos de scroll restoration
+        }
+      }, 60);
+    }
   }, []);
   const handleOpenCurrentUserProfile = useCallback(() => {
     handleOpenProfile(currentUser?.key);
@@ -508,6 +528,10 @@ export default function App() {
         <ModulesDashboard 
           currentUser={currentUser}
           onSelectModule={(moduleId, options) => {
+            if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+              sessionStorage.setItem('gmg_dashboard_scroll_pos', String(window.scrollY || 0));
+              sessionStorage.setItem('gmg_last_active_module', moduleId || '');
+            }
             if (moduleId === 'reemplazos') {
               setActiveModule(null);
               return;
