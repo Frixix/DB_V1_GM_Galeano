@@ -5784,3 +5784,21 @@ select {
   }
 }
 
+
+/* Adaptaciones Responsivas Generales de Modales (< 640px) */
+@media (max-width: 640px) {
+  .modal-preview .modal-footer,
+  .modal-footer {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .modal-preview .modal-footer button,
+  .modal-preview .modal-footer .btn,
+  .modal-footer button,
+  .modal-footer .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}

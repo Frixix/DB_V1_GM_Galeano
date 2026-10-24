@@ -2727,3 +2727,57 @@
     color: #444444 !important;
   }
 }
+
+/* ==========================================================================
+   ADAPTACIONES RESPONSIVAS MOVILES (< 640px y <= 390px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .obs-modal-footer {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+
+  .obs-modal-footer button,
+  .obs-modal-footer-left button,
+  .obs-modal-footer-right button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .obs-modal-footer-left,
+  .obs-modal-footer-right {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .obs-filter-unit,
+  .obs-select-control {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  .obs-signature-box .obs-signature-actions {
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .obs-signature-box .obs-signature-actions button,
+  .obs-signature-box .obs-signature-actions label {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .obs-attendees-chips-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

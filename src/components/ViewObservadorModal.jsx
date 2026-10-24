@@ -830,7 +830,7 @@ export default function ViewObservadorModal({
                 </span>
 
                 {!signatures.teacher?.signedAt && canEditThisRecord && (
-                  <div style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                  <div className="obs-signature-actions" style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
                     <button
                       type="button"
                       onClick={() => setActivePadRole('teacher')}
@@ -887,7 +887,7 @@ export default function ViewObservadorModal({
                 </span>
 
                 {!signatures.secondParty?.signedAt && canEditThisRecord && (
-                  <div style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                  <div className="obs-signature-actions" style={{ marginTop: '6px', display: 'flex', gap: '4px', justifyContent: 'center' }}>
                     <button
                       type="button"
                       onClick={() => setActivePadRole('secondParty')}
