@@ -1431,3 +1431,57 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   MODAL ACTIONS FOOTER RESPONSIVE (< 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .final-modal-footer.final-detail-modal-footer,
+  .final-modal-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 1rem 0 !important;
+    margin-top: 1rem !important;
+  }
+
+  .final-detail-actions-right {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .final-modal-footer button,
+  .final-modal-footer .btn,
+  .final-btn-primary,
+  .final-btn-secondary,
+  .final-btn-danger {
+    width: 100% !important;
+    min-height: 44px !important; /* Estándar táctil Apple/Android */
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Reordenamiento ergonómico táctil */
+  .final-detail-modal-footer .final-detail-actions-right {
+    order: 1 !important;
+  }
+
+  .final-detail-modal-footer .final-detail-actions-right .final-btn-primary {
+    order: 1 !important; /* Botón Primario [Descargar Examen]: arriba, prominente */
+  }
+
+  .final-detail-modal-footer .final-detail-actions-right .final-btn-secondary {
+    order: 2 !important; /* Botón Secundario [Sustituir Archivo]: centro */
+  }
+
+  .final-detail-modal-footer .final-btn-danger {
+    order: 3 !important; /* Botón Peligro [Eliminar]: abajo, tenue */
+    margin-top: 4px !important;
+    opacity: 0.9;
+  }
+}

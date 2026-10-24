@@ -1278,7 +1278,7 @@ function ViewExamModal({
             <p className="notes-text">{item.notes || 'Sin especificaciones adicionales de reproducción.'}</p>
           </div>
 
-          <div className="final-modal-footer" style={{ marginTop: '1.25rem' }}>
+          <div className="final-modal-footer final-detail-modal-footer" style={{ marginTop: '1.25rem' }}>
             {canUpload && (
               <button
                 type="button"
@@ -1291,7 +1291,7 @@ function ViewExamModal({
               </button>
             )}
 
-            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+            <div className="final-detail-actions-right">
               {canUpload && (
                 <button
                   type="button"
