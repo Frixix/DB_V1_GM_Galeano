@@ -350,14 +350,22 @@ class TeacherService {
       replacementName = USERS[replacementKey].name;
     }
 
-    // 1. Marcar al docente saliente como 'retirada'
+    // 1. Marcar al docente saliente como 'retirada' e inhabilitar (isBlocked: true)
     saveUserOverride(retiredKey, {
       status: 'retirada',
+      isBlocked: true,
       retiredAt: effectiveDate,
       retirementReason: reason.trim(),
       replacedBy: replacementKey,
       replacedByName: replacementName
     });
+
+    // Disparar evento de revocación si coincide con la sesión activa
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gmg_teacher_discharged', {
+        detail: { retiredKey, replacementKey }
+      }));
+    }
 
     // 2. Traspasar Dirección de Curso si el docente retirado era director
     const transferredDirectorGrades = [];
@@ -494,6 +502,67 @@ class TeacherService {
     return {
       success: true,
       entry: retirementEntry
+    };
+  }
+
+  /**
+   * Reactiva a un docente previamente dado de baja o inhabilitado.
+   * Requiere autorización de rol directivo y motivo obligatorio.
+   */
+  async reactivateTeacher({ teacherKey, reason, author }) {
+    if (!teacherKey || !USERS[teacherKey]) {
+      throw new Error(`Docente no encontrado para reactivación: ${teacherKey}`);
+    }
+
+    // Validar autorización directiva
+    const authorRole = author?.role || '';
+    const allowedRoles = ['admin', 'rectora', 'induccion_rectora', 'coordinacion'];
+    if (!allowedRoles.includes(authorRole)) {
+      throw new Error('No autorizado: Solo Rectoría, Dirección o Coordinación pueden reactivar docentes.');
+    }
+
+    if (!reason || reason.trim().length < 10) {
+      throw new Error('Debe especificar un motivo formal de reactivación con un mínimo de 10 caracteres.');
+    }
+
+    const now = new Date().toISOString();
+    const docente = USERS[teacherKey];
+
+    // Actualizar estado a 'activa', isBlocked: false y registrar auditoría
+    saveUserOverride(teacherKey, {
+      status: 'activa',
+      isBlocked: false,
+      reactivatedAt: now,
+      reactivatedBy: author?.name || 'Dirección Institucional',
+      reactivationReason: reason.trim()
+    });
+
+    this.addAuditLog(
+      'Reactivación de Docente',
+      `Docente ${docente.name} reactivado(a) por ${author?.name || 'Dirección'}. Motivo: "${reason.trim()}".`,
+      author
+    );
+
+    this.notifyUpdates();
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('docentes_perfiles').upsert({
+          user_key: teacherKey,
+          name: docente.name,
+          label: docente.label,
+          status: 'activa',
+          updated_at: now,
+          updated_by: author?.name || 'Dirección'
+        }, { onConflict: 'user_key' });
+      } catch (err) {
+        console.warn('[TeacherService] Error sincronizando reactivación en Supabase:', err);
+      }
+    }
+
+    return {
+      success: true,
+      message: `Docente ${docente.name} ha sido reactivado(a) exitosamente.`
     };
   }
   // =========================================================================

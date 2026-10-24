@@ -67,6 +67,14 @@ export default function Login({ onLogin }) {
       setLoginError("Por favor selecciona un usuario institucional.");
       return;
     }
+
+    // Bloqueo de cuentas inhabilitadas o docentes retiradas
+    const activeProfile = teacherService.getTeacherProfile(userKey);
+    if (activeProfile?.status === 'retirada' || activeProfile?.isBlocked) {
+      setLoginError("🔒 Cuenta Inhabilitada: La docente no se encuentra activa en la planta institucional. Acceso revocado.");
+      setPassword('');
+      return;
+    }
     
     const expectedUser = USERS[userKey];
     if (!verifyCredentials(userKey, password)) {

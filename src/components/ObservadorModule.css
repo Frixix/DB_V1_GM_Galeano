@@ -2546,6 +2546,18 @@
 }
 
 @media (max-width: 640px) {
+  .obs-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .obs-main-content {
+    padding: 1rem 0.75rem 2rem 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .obs-modal-dialog {
     max-height: 85vh;
     width: 100%;
