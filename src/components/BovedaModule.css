@@ -7,7 +7,10 @@
    ========================================================================== */
 
 .boveda-module-container {
+  height: 100vh;
   min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
@@ -97,13 +100,18 @@
   flex: 1;
   width: 100%;
   position: relative;
-  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
+  max-height: calc(100vh - 64px);
+  overflow: hidden;
 }
 
 .boveda-main-content {
   flex: 1;
   padding: 2rem 2.25rem;
+  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -794,18 +802,31 @@
 }
 
 @media (max-width: 768px) {
+  .boveda-module-container {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
+  }
+
   .boveda-layout {
     flex-direction: column;
     width: 100%;
     max-width: 100%;
+    height: auto;
+    max-height: none;
+    overflow: visible;
     overflow-x: hidden;
   }
 
   .boveda-main-content {
     width: 100%;
     max-width: 100%;
+    height: auto;
+    max-height: none;
     box-sizing: border-box;
     padding: 1rem 0.75rem;
+    overflow: visible;
     overflow-x: hidden;
   }
 

@@ -66,7 +66,7 @@ export default function Decreto1075Sidebar({
                 type="button"
                 className={`folder-btn decreto-nav-btn ${isActive ? 'active' : ''}`}
                 onClick={() => onSelectPillar && onSelectPillar(p.id)}
-                title={`Pilar ${p.numero}: ${p.titulo} • ${p.articulos}`}
+                title={`Pilar ${p.numero}: ${p.tituloCompleto || p.titulo} • ${p.articulos}`}
               >
                 <div className="decreto-nav-inner">
                   <span className={`decreto-pillar-badge ${isActive ? 'active' : ''}`}>
