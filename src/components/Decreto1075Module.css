@@ -400,3 +400,46 @@
   max-width: 480px;
   margin: 0 auto 1.25rem;
 }
+
+@media (max-width: 768px) {
+  .decreto-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .decreto-main-content {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 1rem 0.75rem;
+    overflow-x: hidden;
+  }
+
+  .decreto-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .decreto-banner-actions {
+    width: 100%;
+  }
+
+  .decreto-banner-actions .decreto-btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .decreto-controls-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .decreto-search-box {
+    width: 100%;
+    max-width: 100%;
+  }
+}

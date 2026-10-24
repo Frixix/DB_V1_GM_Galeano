@@ -792,3 +792,34 @@
     width: 100%;
   }
 }
+
+@media (max-width: 768px) {
+  .boveda-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .boveda-main-content {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 1rem 0.75rem;
+    overflow-x: hidden;
+  }
+
+  .boveda-content-area {
+    padding: 1rem 0.5rem;
+  }
+
+  .boveda-pillars-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .boveda-lock-card {
+    padding: 1.5rem 1rem;
+    width: 100%;
+  }
+}
