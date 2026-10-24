@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "audit:curriculum": "node scripts/audit-curriculum-metrics.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1152.0",

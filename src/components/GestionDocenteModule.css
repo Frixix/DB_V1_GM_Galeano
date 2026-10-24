@@ -504,14 +504,30 @@
 
 /* Tabla de asignación de materias */
 .gd-table-responsive {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .gd-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  min-width: 640px;
+  border-collapse: collapse;
   text-align: left;
+}
+
+.gd-table th:first-child,
+.gd-table td:first-child {
+  min-width: 170px;
+}
+
+.gd-table th:nth-child(3),
+.gd-table td:nth-child(3) {
+  min-width: 210px;
 }
 
 .gd-table th {
